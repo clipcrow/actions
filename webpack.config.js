@@ -1,5 +1,6 @@
 module.exports = {
-    mode: 'development',
+    target: "node",
+    mode: 'production',
     entry: './src/index.ts',
     output: {
         path: __dirname,

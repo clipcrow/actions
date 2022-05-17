@@ -1,12 +1,11 @@
 {
     "compilerOptions": {
-        "sourceMap": true,
-        "target": "ES5",
-        "module": "ES2015",
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "forceConsistentCasingInFileNames": true,
+        "lib": ["ES2021"],
+        "target": "ES2021",
+        "module": "CommonJS",
         "strict": true,
-        "skipLibCheck": true
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
     }
 }
