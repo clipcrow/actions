@@ -1,7 +1,5 @@
 name: "actions"
 description: "Toolbox for Github Actions"
-inputs:
-outputs:
 runs:
     using: "node16"
     main: "build/index.js"
