@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "webpack",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest"
     },
     "repository": {
         "type": "git",
@@ -27,6 +27,8 @@
     },
     "devDependencies": {
         "@octokit/webhooks-definitions": "^3.67.3",
+        "@types/jest": "^27.5.1",
+        "ts-jest": "^28.0.2",
         "ts-loader": "^9.3.0",
         "typescript": "^4.6.4",
         "webpack": "^5.72.1",
