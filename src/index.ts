@@ -1,8 +1,13 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { PushEvent } from '@octokit/webhooks-definitions/schema';
+import { IssuesEvent } from '@octokit/webhooks-definitions/schema';
 
-if (github.context.eventName === 'push') {
-    const pushPayload = github.context.payload as PushEvent;
-    core.info(JSON.stringify(pushPayload.head_commit));
+export function handleEvent(event: IssuesEvent): string {
+    return '';
+}
+
+if (github.context.eventName === 'issues') {
+    const event = github.context.payload as IssuesEvent;
+    core.info(JSON.stringify(event));
+    handleEvent(event);
 }
