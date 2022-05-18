@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { handleEvent } from './index';
+import { handleEvent } from './handler';
 
 test('handleEvent', () => {
     github.context.eventName = 'issues';
