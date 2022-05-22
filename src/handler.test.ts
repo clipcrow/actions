@@ -12,4 +12,4 @@ test('handleEvent', () => {
 
     expect(spy.mock.calls[0].at(0)).toEqual('opened');
     spy.mockRestore();
-})
+});
