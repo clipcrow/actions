@@ -1,3 +1,4 @@
+/** @type import('webpack').Configuration */
 module.exports = {
     target: "node",
     mode: 'production',
@@ -15,5 +16,5 @@ module.exports = {
     output: {
         path: __dirname,
         filename: 'build/index.js',
-    }
+    },
 };
