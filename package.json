@@ -6,7 +6,7 @@
     "scripts": {
         "build": "webpack",
         "test": "jest",
-        "release": "git tag -f v$npm_package_version && git push --tags -f"
+        "release": "npm run build && git add build && git tag -f v$npm_package_version && git push --tags -f"
     },
     "repository": {
         "type": "git",
