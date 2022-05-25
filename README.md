@@ -13,13 +13,19 @@ Notify the pull request author as soon as the reviewer completes the approval.
 
 ## How to implement
 
-By implementing it as an action to be incorporated into the workflow of GitHub Actions, it can be operated without a server. The billing value increases each time the workflow moves, but I decided to implement it as an action after considering the cost of preparing a server separately and the trouble of operation.
+By implementing it as an action to be incorporated into the workflow of GitHub Actions,
+it can be operated without a server. The billing value increases each time the workflow moves,
+but I decided to implement it as an action after considering the cost of preparing a server separately
+and the trouble of operation.
 
 Use Slack's metadata API to find messages to update. In this way, the channel is not wasted. 
 Fortunately, pull requests have a unique number, so I can simply use that as my search key.
 
 - Store the bot tokens needed to use the Slack API in Github Secrets.
 - The Slack channel ID, Slack and Github account pair, will be written in the workflow YAML.
+
+I will write it in TypeScript, assuming the future of changing the location to
+[Slack's next-generation platform](https://api.slack.com/future).
 
 ## GitHub Actions Trigger
 
