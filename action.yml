@@ -1,5 +1,12 @@
 name: "actions"
 description: "Toolbox for Github Actions"
+inputs:
+    channel:
+        description: "Slack Channel ID"
+        required: true
+    path:
+        description: "GitHub - Slack Account Pairing JSON File Path"
+        required: true
 runs:
     using: "node16"
     main: "build/index.js"

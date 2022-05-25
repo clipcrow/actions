@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import { IssuesEvent } from '@octokit/webhooks-definitions/schema';
+import type { IssuesEvent } from '@octokit/webhooks-definitions/schema';
 import { JSXSlack, Blocks, Section } from 'jsx-slack';
 
 const ReviewerPayload = () => (
-    <Blocks>
+    <Blocks> 
         <Section>
             <p>Hello, World</p>
         </Section>

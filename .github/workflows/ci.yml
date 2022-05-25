@@ -1,0 +1,14 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Test
+        run: npm run test
+      - name: Build
+        run: npm ci && npm run build && git add build
+      - name: Release
+        run: git tag -f v$npm_package_version && git push --tags -f
