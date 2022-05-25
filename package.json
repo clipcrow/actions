@@ -1,6 +1,6 @@
 {
     "name": "actions",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Toolbox for Github Actions",
     "main": "index.js",
     "scripts": {
