@@ -1,14 +1,17 @@
 name: CI
-on: [push]
+on:
+  push:
+    branches:
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v1
-      - name: Test
+      - name: node_modules
+        run: npm ci
+      - name: test
         run: npm run test
-      - name: Build
-        run: npm ci && npm run build && git add build
-      - name: Release
-        run: git tag -f v$npm_package_version && git push --tags -f
+      - name: build
+        run: npm run build && git add build && npm run release
