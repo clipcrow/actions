@@ -6,7 +6,7 @@
     "scripts": {
         "test": "jest",
         "build": "webpack",
-        "git_commit": "git add * && git commit -m v$npm_package_version",
+        "git_commit": "git add dist action.yml && git commit -m v$npm_package_version",
         "git_tag": "git tag -f v$npm_package_version && git push origin v$npm_package_version -f",
         "release": "npm run test && npm run build && npm run git_commit && npm run git_tag"
     },
