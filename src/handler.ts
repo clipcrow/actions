@@ -28,18 +28,25 @@ export async function createContext(): Promise<ActionContext> {
 
 export function handlePullRequestEvent() {
     const { action, pull_request } = github.context.payload as PullRequestEvent;
-    if (action === 'closed') { 
+    if (action === 'review_requested') {
+        // レビュワーが追加された
+        // 初めてのレビュワーだったらメッセージ投稿、そうでなければレビュワー描画を更新＋ログ
+        // レビュワーへ特別なメンション
+    } else if (action === 'review_request_removed') {
+        // レビュワーが削除された
+        // レビュワー描画を更新＋ログ
+    } else if (action === 'closed') { 
         // PRがクローズした
         if (pull_request.merged) {
             // PRがマージされたためにクローズした
-
-
-
+            // PR描画を更新＋ログ
+        } else {
+            // PRをマージせずにクローズした
+            // PR描画を更新＋ログ
         }
-    } else if (action === 'review_requested') {
-        // レビュワーが追加された
-    } else if (action === 'review_request_removed') {
-        // レビュワーが削除された
+    } else if (action === 'reopened') {
+        // 一旦クローズされたPRが再度オープンになった。
+        // PR描画を更新＋ログ。レビュワーには既にメンションされているはずなので、ログで通知が飛ぶ。 
     }
     core.info(action!);
 }
@@ -49,8 +56,10 @@ export function handlePullRequestReviewEvent() {
     if (action === 'submitted') {
         if (review.state === 'approved') {
             // 承認された。
+            // レビュワー描画を更新＋ログ
+            // 全員が承認していたら、プルリク作成者へ特別なメンション
         }
-    }
+    } 
     core.info(action!);
 }
 

@@ -42,7 +42,7 @@ I will write it in TypeScript, assuming the future of changing the location to
     - **closed**
         - When a pull request merges, the `pull_request` is automatically `closed`. 
         - with a conditional that checks the `merged` value of the event. 
-    - reopened
+    - **reopened**
     - synchronize
     - converted_to_draft
     - ready_for_review
