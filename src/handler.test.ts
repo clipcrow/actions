@@ -4,8 +4,8 @@ import * as github from '@actions/github';
 import { handleEvent } from './handler';
 
 test('handleEvent', () => {
-    github.context.eventName = 'issues';
-    github.context.payload = require('./event/issues_opened.json');
+    github.context.eventName = 'pull_request';
+    github.context.payload = require('./event/pull_request.opened.json');
     const spy = jest.spyOn(core, 'info');
 
     handleEvent();
