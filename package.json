@@ -9,8 +9,7 @@
         "commit": "git add dist action.yml && git commit -m build",
         "version": "standard-version",
         "push": "git push --follow-tags origin main",
-        "release": "gh release create v$npm_package_version",
-        "deploy": "npm run test && npm run build && npm run commit && npm run version && npm run push && npm run release"
+        "deploy": "npm run test && npm run build && npm run commit && npm run version && npm run push"
     },
     "repository": {
         "type": "git",
@@ -35,7 +34,6 @@
     "devDependencies": {
         "@octokit/webhooks-definitions": "^3.67.3",
         "@types/jest": "^27.5.1",
-        "gh": "^2.8.9",
         "standard-version": "^9.5.0",
         "ts-jest": "^28.0.2",
         "ts-loader": "^9.3.0",
