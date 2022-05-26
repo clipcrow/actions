@@ -1,9 +1,6 @@
-/*!
- * actions <https://github.com/masataka/actions>
- *
- * Copyright (c) 2022, Masataka Kurihara.
- * Released under the MIT License.
- */
+import * as core from '@actions/core';
 import { handleEvent } from './handler';
 
-handleEvent();
+handleEvent().catch(err => {
+    core.setFailed(err);
+});

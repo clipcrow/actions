@@ -21,8 +21,9 @@ and the trouble of operation.
 Use Slack's metadata API to find messages to update. In this way, the channel is not wasted. 
 Fortunately, pull requests have a unique number, so I can simply use that as my search key.
 
-- Store the bot tokens needed to use the Slack API in Github Secrets.
-- The Slack channel ID, Slack and Github account pair, will be written in the workflow YAML.
+Store the bot tokens needed to use the Slack API in Github Secrets. However, as an Action,
+it is sufficient to simply accept a string.The Slack channel ID, Slack and Github account pair,
+will be written in the workflow YAML too.
 
 I will write it in TypeScript, assuming the future of changing the location to
 [Slack's next-generation platform](https://api.slack.com/future).

@@ -1,11 +1,14 @@
 name: "actions"
 description: "Toolbox for Github Actions"
 inputs:
+    token:
+        description: "Slack Bot Token with chat:write, channels:history, groups:history, im:history and mpim:history"
+        required: true
     channel:
         description: "Slack Channel ID"
         required: true
     path:
-        description: "GitHub - Slack Account Pairing JSON File Path"
+        description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
         required: true
 runs:
     using: "node16"

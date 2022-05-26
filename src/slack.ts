@@ -1,6 +1,6 @@
 import { WebClient } from '@slack/web-api';
-import type { SlackContext } from './context';
+import type { ActionContext } from './handler';
 
-export function findMessageTS(client: WebClient, cx: SlackContext, prNum: number): string {
+export function findMessageTS(client: WebClient, cx: ActionContext, pull_number: number): string {
     return '';
 }
