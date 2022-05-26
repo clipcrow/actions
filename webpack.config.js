@@ -15,6 +15,6 @@ module.exports = {
     },
     output: {
         path: __dirname,
-        filename: 'build/index.js',
+        filename: 'dist/index.js',
     },
 };
