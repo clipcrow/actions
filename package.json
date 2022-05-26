@@ -6,11 +6,11 @@
     "scripts": {
         "test": "jest",
         "build": "webpack",
-        "git_commit": "git add dist action.yml && git commit -m v$npm_package_version",
-        "git_tag": "git tag -f v$npm_package_version && git push origin v$npm_package_version -f",
-        "tag": "standard-version",
-        "release": "gh release create ",
-        "deploy": "npm run test && npm run build && npm run git_commit && npm run git_tag"
+        "commit": "git add dist action.yml && git commit -m build",
+        "version": "standard-version",
+        "push": "git push --follow-tags origin main",
+        "release": "gh release create v$npm_package_version",
+        "deploy": "npm run test && npm run build && npm run commit && npm run version && npm run push && npm run release"
     },
     "repository": {
         "type": "git",
