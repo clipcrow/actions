@@ -25,7 +25,35 @@ interface ActionEvent {
 		title: string;
 		state: string;
 		user: Profile;
-	}
+	};
+    requested_reviewer?: Profile;
+    review?: {
+        body:string;
+        html_url: string;
+        state: string;
+        user: Profile;
+    };
 }
+
+export const EmptyEvent: ActionEvent = {
+	action: '',
+	pull_request: {
+		base: { ref: '' },
+		body: '',
+		commits: 0,
+		head: { ref: '' },
+		html_url: '',
+		mergeable: false,
+		merged: false,
+		number: 0,
+		requested_reviewers: [],
+		title: '',
+		state: '',
+		user: {
+			login: '',
+			slack: '',
+		},
+	},
+};
 
 export type { Profile, ActionContext, ActionEvent };

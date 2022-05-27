@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { createContext, handleEvent } from './handler';
+import { createActionContext, handleEvent } from './handler';
 
 test('event PoC', () => {
     const submitted = require('./event/pull_request_review.submitted.json');
@@ -30,7 +30,7 @@ test('createContext', async () => {
         }[arg] || 'n/a';
     });
 
-    const cx = await createContext();
+    const cx = await createActionContext();
 
     expect(cx.token).toEqual('xoxb-123456789-1234');
     expect(cx.channel).toEqual('C56789X1234');

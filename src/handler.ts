@@ -3,9 +3,9 @@ import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { Profile, ActionContext } from './types';
+import type { Profile, ActionContext, ActionEvent } from './types';
 
-export async function createContext(): Promise<ActionContext> {
+export async function createActionContext(): Promise<ActionContext> {
     const token = core.getInput('token');
     const channel = core.getInput('channel');
 
@@ -17,6 +17,43 @@ export async function createContext(): Promise<ActionContext> {
     }
 
     return { token, channel, profiles };    
+}
+
+export function mergePullRequestEvent(payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
+    const requested_reviewers: Profile[] = []; // TODO create Profile[]
+    const user: Profile = { login: '', slack: '' }; // TODO create Profile
+    const requested_reviewer = undefined; // TODO create Profile[]
+    return {
+        action: payload.action,
+        pull_request: {
+            base: {
+                ref: payload.pull_request.base.ref,
+            },
+            body: payload.pull_request.body,
+            commits: payload.pull_request.commits,
+            head: {
+                ref: payload.pull_request.head.ref,
+            },
+            html_url: payload.pull_request.html_url,
+            mergeable: payload.pull_request.mergeable || origin.pull_request.mergeable,
+            merged: payload.pull_request.merged || origin.pull_request.merged,
+            number: payload.pull_request.number,
+            requested_reviewers,
+            title: payload.pull_request.title,
+            state: payload.pull_request.state,
+            user,
+        },
+        requested_reviewer,
+    };
+}
+
+export function mergePullRequestReviewEvent(payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
+    const result: ActionEvent = {
+        action: payload.action,
+        pull_request: origin.pull_request,
+    };
+    result.review = undefined; // TODO: reviewをつくる。pull_request.requested_reviewersの状態を更新する。
+    return result;
 }
 
 export function handlePullRequestEvent() {

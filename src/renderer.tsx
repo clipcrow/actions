@@ -88,6 +88,6 @@ export const PullRequestInfo = (props: ActionEvent) => (
 );
 
 export const ActivityLog = (props: ActionEvent) => (
-    //   追加ログ情報。PRのクローズ・再開、レビュワーの追加・削除、レビュー承認・却下についてBlock描画する。
-    <p></p>
+    // TODO: Slack Block drawing for closing / reopening PR, adding / deleting reviewers, and approving reviews.
+    null
 );
