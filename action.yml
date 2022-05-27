@@ -9,7 +9,7 @@ inputs:
         required: true
     path:
         description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
-        required: true
+        default: "./accounts.json"
 runs:
     using: "node16"
     main: "dist/index.js"

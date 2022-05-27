@@ -41,7 +41,7 @@ const blockSample = {
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": ":red_circle: *Review requested*"
+				"text": ":red_circle: *Awaiting requested review*"
 			}
 		},
 		{
