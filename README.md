@@ -42,7 +42,7 @@ I will write it in TypeScript, assuming the future of changing the location to
         - edited
         - **closed**
             - When a pull request merges, the `pull_request` is automatically `closed`. 
-            - with a conditional that checks the `merged` value of the event. 
+            - with a conditional that checks the `merged` value of the event. also `merged_by`.
         - **reopened**
         - synchronize
         - converted_to_draft
@@ -50,7 +50,9 @@ I will write it in TypeScript, assuming the future of changing the location to
         - locked
         - unlocked
         - **review_requested**
+            - see `payload.requested_reviewer`.
         - **review_request_removed**
+            - see `payload.requested_reviewer`.
         - auto_merge_enabled
         - auto_merge_disabled
 - Event
@@ -65,26 +67,25 @@ I will write it in TypeScript, assuming the future of changing the location to
 
 ## Slack API
 
+- **users.info**
+    - scope
+        - `users:read`
+    - arg
+        - user
 - **chat.postMessage**
     - scope
         - `chat:write`
     - arg
-        - `channel`
-        - `blocks`
-        - `as_user`
-        - `username`
-    - arg when log
-        - `thread_ts`
-        - `reply_broadcast`
-        - `text`
-        - `mrkdwn`
+        - channel
+        - blocks
+        - thread_ts
+        - reply_broadcast
 - **chat.update**
     - scope
         - `chat:write`
     - arg
-        - `channel`
-        - `ts`
-        - `as_user`
+        - channel
+        - ts
 - **conversations.history**
     - scope
         - `channels:history`
@@ -92,6 +93,7 @@ I will write it in TypeScript, assuming the future of changing the location to
         - `im:history`
         - `mpim:history`
     - arg
-        - `channel`
-        - `include_all_metadata`
-        - ( `oldest` `latest` )
+        - channel
+        - include_all_metadata
+        - oldest
+        - latest

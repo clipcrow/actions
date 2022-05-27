@@ -29,19 +29,26 @@ test('createContext', async () => {
             path: 'src/repository/accounts.json',
         }[arg] || 'n/a';
     });
+
     const cx = await createContext();
+
     expect(cx.token).toEqual('xoxb-123456789-1234');
     expect(cx.channel).toEqual('C56789X1234');
-    expect(cx.accounts.someone).toEqual('U1234567890');
-    expect(cx.accounts.another).toEqual('U5678901234');
+    expect(cx.profiles[0]).toEqual({ login:'someone', slack: 'U1234567890' });
+    expect(cx.profiles[1]).toEqual({ login: 'another', slack: 'U5678901234' });
+    expect(cx.profiles[2]).toEqual({ login: 'nobody', slack: 'U8901234567' });
+
     spy.mockRestore();
 });
 
 test('handleEvent', async () => {
     github.context.eventName = 'push';
     const spy = jest.spyOn(core, 'info');
+
     await handleEvent();
+
     expect(spy.mock.calls.length).toBe(1);
+
     spy.mockRestore();
 });
 

@@ -1,114 +1,36 @@
-import { JSXSlack, Blocks, Section } from 'jsx-slack';
-import { JSX } from 'jsx-slack/jsx-runtime';
+import { Blocks, Section, Field, Header } from 'jsx-slack';
+import type { Profile, ActionEvent } from './types';
 
-const Reviewer = () => (
-    <Blocks>
-        <Section>
-            <p>Hello, World</p>
-        </Section>
-    </Blocks>
+export const UserLink = (props: Profile) => (
+	<a href={'@' + props.slack} /> 
 );
 
-export function renderMessage () {
-    // PoC
-    console.log(JSXSlack(<Reviewer></Reviewer>));
+export const HeadlineInfo = (props: ActionEvent) => {
+
+	return (
+		<Section>
+			<UserLink {...props.pull_request.user} /> wants to merge {props.pull_request.commits} commits into <code>
+				{props.pull_request.base.ref}</code> from <code>{props.pull_request.head.ref}</code>
+		</Section>
+	);
 }
+export const StatuDisplay = (props: { text: string, chack: boolean }) => (
+	<Section>{ props.chack ? ':large_green_circle:' : ':red_circle:' }<b>{props.text}</b></Section>
+);
 
-// - プルリク情報ブロックの描画。作成者・番号・題名・リンク・状態（オープン、クローズ）・マージ（未、完）
-//   レビュワー情報ブロックの描画。レビュワー・承認（未、完）
+export const PullRequestInfo = (props: ActionEvent) => (
+	<Blocks>
+		<HeadlineInfo {...props} />
+		<Header>{props.pull_request.title}</Header>
+		<Section>
+			<Field><b>Pull Request:</b> <a href={props.pull_request.html_url}>#{props.pull_request.number}</a></Field>
+			<Field><b>Status:</b> {props.pull_request.state}</Field>
+		</Section>
+		<Section>{props.pull_request.body}</Section>
+	</Blocks>
+);
 
-export function renderPullRequestInfoBlock(): JSX.Element {
-    // メタ情報＋イベント情報から作られたモデルを、Block描画する。
-    return <p></p>;
-}
-
-export function renderActivityLogBlock(): JSX.Element {
+export const ActivityLog = (props: ActionEvent) => (
     //   追加ログ情報。PRのクローズ・再開、レビュワーの追加・削除、レビュー承認・却下についてBlock描画する。
-    return <p></p>;
-}
-
-const blockSample = {
-	"blocks": [
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "<@Tam> wants to merge 8 commits into `develop` from `feature/ci-child-269-api-get-tags-of-group`"
-			}
-		},
-		{
-			"type": "header",
-			"text": {
-				"type": "plain_text",
-				"text": "api get tags of group"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": `Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-                        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                        when an unknown printer took a galley of type and scrambled it to make a type specimen book.`
-			}
-		},
-		{
-			"type": "section",
-			"fields": [
-				{
-					"type": "mrkdwn",
-					"text": "*Pull Request:* #987"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Status:* Open"
-				}
-			]
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*URL:* https://github.com/clipcrow/essentialworkware/pull/987"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": ":red_circle: *Review requested*"
-			}
-		},
-		{
-			"type": "context",
-			"elements": [
-				{
-					"type": "mrkdwn",
-					"text": "> 2 pending reviewer"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "<@m>"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "<@Aida>"
-				}
-			]
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": ":large_green_circle: *All checks have passed*"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": ":large_green_circle: *This branch has no conflicts*"
-			}
-		}
-	]
-};
+    <p></p>
+);

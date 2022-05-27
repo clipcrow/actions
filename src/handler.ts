@@ -6,15 +6,22 @@ import type {
     PullRequestEvent,
     PullRequestReviewEvent
 } from '@octokit/webhooks-definitions/schema';
-import type { ActionContext } from './types';
+import type { Profile, ActionContext } from './types';
+
+interface Accounts {
+    [login: string]: string;
+}
 
 export async function createContext(): Promise<ActionContext> {
     const token = core.getInput('token');
     const channel = core.getInput('channel');
     const file = await fs.readFile(core.getInput('path'), 'utf8');
-    const accounts = JSON.parse(file);
-
-    return { token, channel, accounts };    
+    const accounts: Accounts = JSON.parse(file);
+    const profiles: Profile[] = [];
+    for (const login in accounts) {
+        profiles.push({ login, slack: accounts[login] });
+    }
+    return { token, channel, profiles };    
 }
 
 export function handlePullRequestEvent() {
