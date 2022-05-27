@@ -84,7 +84,7 @@ const eventSample: ActionEvent = {
         mergeable: true,
         merged: false,
         number: 987,
-        requested_reviewers: [{ login: 'another', slack: 'U5678901234', approved: false }, { login: 'nobody', slack: 'U8901234567', approved: false }],
+        requested_reviewers: [{ login: 'another', slack: 'U5678901234', approved: true }, { login: 'nobody', slack: 'U8901234567', approved: true }],
 		title: 'PULL REQUEST SAMPLE',
         state: 'open',
 		user: { login: 'someone', slack: 'U1234567890' },

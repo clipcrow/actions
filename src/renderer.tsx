@@ -1,4 +1,4 @@
-import { Blocks, Section, Field, Header } from 'jsx-slack';
+import { Blocks, Context, Field, Fragment, Header, Section } from 'jsx-slack';
 import type { Profile, ActionEvent } from './types';
 
 const UserLink = (props: Profile) => (
@@ -21,6 +21,51 @@ const StatusSection = (props: { ok: boolean, text: string }) => (
 	<Section>{ props.ok ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
+const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
+	const count = props.reviewers.length;
+	if (count == 0) {
+		return null;
+	}
+	const postfix = count > 1 ? 'reviewers' : 'reviewer';
+	return (
+		<Context>
+			<span>&gt; {`${count} ${props.text} ${postfix}`}</span>
+			{
+				props.reviewers.map((profile) => {
+					return <span><UserLink {...profile}/></span>
+				})
+			}
+		</Context>
+	);
+}
+
+const ApprovalsInfo = (props: ActionEvent) => {
+	const approved = 'Changes approved';
+	const requested = 'Review requested';
+	const no_review = 'No requested review';
+
+	const count = props.pull_request.requested_reviewers.length;
+	const approvals: Profile[] = [];  
+	const pendings: Profile[] = [];
+
+	for (const reviewer of props.pull_request.requested_reviewers) {
+		if (reviewer.approved) {
+			approvals.push(reviewer);
+		} else {
+			pendings.push(reviewer);
+		}
+	}
+	const ok = pendings.length == 0 && count > 0;
+
+	return (
+		<Fragment>
+			<StatusSection ok={ok} text={ok ? approved : (count > 0 ? requested : no_review)}/>
+			<ReviewersInfo reviewers={approvals} text='approved'/>
+			<ReviewersInfo reviewers={pendings} text='pending'/>
+		</Fragment>
+	);
+}
+
 const ConflictsInfo = (props: ActionEvent) => {
 	const no_conflicts = 'This branch has no conflicts with the base branch';
 	const must_be_resolved = 'This branch has conflicts that must be resolved';
@@ -37,6 +82,7 @@ export const PullRequestInfo = (props: ActionEvent) => (
 			<Field><b>Status:</b> {props.pull_request.state}</Field>
 		</Section>
 		<Section>{props.pull_request.body}</Section>
+		<ApprovalsInfo {...props}/>
 		<ConflictsInfo {...props}/>
 	</Blocks>
 );
