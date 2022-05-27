@@ -9,11 +9,11 @@ const HeadlineInfo = (props: ActionEvent) => {
 	const text = props.pull_request.merged ? 'merged' : 'wants to merge';
 	const commits = props.pull_request.commits < 2 ? 'commit' : 'commits';
 	return (
-		<Section>
+		<Context>
 			<UserLink {...props.pull_request.user} />
 			{` ${text} ${props.pull_request.commits} ${commits} into `}
 			<code>{props.pull_request.base.ref}</code> from <code>{props.pull_request.head.ref}</code>
-		</Section>
+		</Context>
 	);
 }
 
