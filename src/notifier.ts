@@ -1,5 +1,5 @@
 import { WebClient } from '@slack/web-api';
-import type { ActionContext } from './handler';
+import type { ActionContext } from './types';
 
 export function findMetadata(client: WebClient, cx: ActionContext, pull_number: number): string {
     // チャンネルのメッセージを検索して、メタ情報を取得する。

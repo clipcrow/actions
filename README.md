@@ -32,36 +32,36 @@ I will write it in TypeScript, assuming the future of changing the location to
 
 - Event
     - **pull_request**
-- Activity Type
-    - assigned
-    - unassigned
-    - labeled
-    - unlabeled
-    - opened
-    - edited
-    - **closed**
-        - When a pull request merges, the `pull_request` is automatically `closed`. 
-        - with a conditional that checks the `merged` value of the event. 
-    - **reopened**
-    - synchronize
-    - converted_to_draft
-    - ready_for_review
-    - locked
-    - unlocked
-    - **review_requested**
-    - **review_request_removed**
-    - auto_merge_enabled
-    - auto_merge_disabled
-
+    - Activity Type
+        - assigned
+        - unassigned
+        - labeled
+        - unlabeled
+        - opened
+            - Even if a review request is made at the same time as the PR opens, the events will occur separately.
+        - edited
+        - **closed**
+            - When a pull request merges, the `pull_request` is automatically `closed`. 
+            - with a conditional that checks the `merged` value of the event. 
+        - **reopened**
+        - synchronize
+        - converted_to_draft
+        - ready_for_review
+        - locked
+        - unlocked
+        - **review_requested**
+        - **review_request_removed**
+        - auto_merge_enabled
+        - auto_merge_disabled
 - Event
     - **pull_request_review**
-- Activity Type
-    - **submitted**
-        - when a pull request has been approved
-        - check the `review state`
-        - state == `approved`
-    - edited
-    - dismissed
+    - Activity Type
+        - **submitted**
+            - when a pull request has been approved
+            - check the `payload.review.state`, state == `approved` then PR was approved.
+        - edited
+        - dismissed
+            - Change the state of the review, but not the state of the PR.
 
 ## Slack API
 

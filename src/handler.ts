@@ -6,16 +6,7 @@ import type {
     PullRequestEvent,
     PullRequestReviewEvent
 } from '@octokit/webhooks-definitions/schema';
-
-interface Accounts {
-    [github: string]: string;
-}
-
-interface ActionContext {
-    token: string;
-    channel: string;
-    accounts: Accounts;
-}
+import type { ActionContext } from './types';
 
 export async function createContext(): Promise<ActionContext> {
     const token = core.getInput('token');
@@ -48,7 +39,6 @@ export function handlePullRequestEvent() {
         // 一旦クローズされたPRが再度オープンになった。
         // PR描画を更新＋ログ。レビュワーには既にメンションされているはずなので、ログで通知が飛ぶ。 
     }
-    core.info(action!);
 }
 
 export function handlePullRequestReviewEvent() {
@@ -60,7 +50,6 @@ export function handlePullRequestReviewEvent() {
             // 全員が承認していたら、プルリク作成者へ特別なメンション
         }
     } 
-    core.info(action!);
 }
 
 export async function handleEvent () {
@@ -73,5 +62,3 @@ export async function handleEvent () {
         core.info(`Unsupported trigger type: "${eventName}"`);
     }
 }
-
-export type { ActionContext };
