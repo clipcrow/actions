@@ -3,9 +3,9 @@ import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { Profile, ActionContext, ActionEvent } from './types';
+import type { Profile, Context, Event } from './types';
 
-export async function createActionContext(): Promise<ActionContext> {
+export async function createActionContext(): Promise<Context> {
     const token = core.getInput('token');
     const channel = core.getInput('channel');
 
@@ -13,12 +13,26 @@ export async function createActionContext(): Promise<ActionContext> {
     const accounts: { [login: string]: string; } = JSON.parse(file);
     const profiles: Profile[] = [];
     for (const login in accounts) {
-        profiles.push({ login, slack: accounts[login] });
+        profiles.push(Object.freeze({ login, slack: accounts[login] }));
     }
-
-    return { token, channel, profiles };    
+    const repo = github.context.repo.repo;
+    const owner = github.context.repo.owner;
+    return {
+        repository: Object.freeze({
+            name: repo,
+            html_url: `https://github.com/${owner}/${repo}`,
+            owner: {
+                html_url: `https://github.com/${owner}`,
+                login: github.context.repo.owner,
+            },
+        }),
+        token,
+        channel,
+        profiles,
+    };    
 }
 
+// return original object, not copy.
 export function getProfile(dictionary: Profile[], login: string): Profile {
     for (const profile of dictionary) {
         if (profile.login === login) {
@@ -28,12 +42,13 @@ export function getProfile(dictionary: Profile[], login: string): Profile {
     return { login };
 } 
 
-export function mergePullRequestEvent(cx: ActionContext, payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
+export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, origin: Event): Event {
     // pull_request / closed, reopened, review_requested, review_request_removed
     const requested_reviewers = [];
     for (const reviewer of payload.pull_request.requested_reviewers) {
         const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
-        requested_reviewers.push(getProfile(cx.profiles, login));
+        const originReviewer = getProfile(origin.pull_request.requested_reviewers, login);
+        requested_reviewers.push({ ...getProfile(cx.profiles, login), approved: originReviewer.approved });
     }
     const user = getProfile(cx.profiles, payload.pull_request.user.login);
     const requested_reviewer = 'requested_reviewer' in payload ?
@@ -41,10 +56,14 @@ export function mergePullRequestEvent(cx: ActionContext, payload: PullRequestEve
     return {
         action: payload.action,
         pull_request: {
+            // payload.pull_request has too many properties so I can't use spread operator.
+            // ...payload.pull_request,  <= NG.
             base: {
                 ref: payload.pull_request.base.ref,
             },
             body: payload.pull_request.body,
+            changed_files: payload.pull_request.changed_files,
+		    comments: payload.pull_request.comments,
             commits: payload.pull_request.commits,
             head: {
                 ref: payload.pull_request.head.ref,
@@ -58,11 +77,12 @@ export function mergePullRequestEvent(cx: ActionContext, payload: PullRequestEve
             state: payload.pull_request.state,
             user,
         },
+        repository: cx.repository,
         requested_reviewer,
     };
 }
 
-export function mergePullRequestReviewEvent(cx: ActionContext, payload: PullRequestReviewEvent, origin: ActionEvent): ActionEvent {
+export function mergePullRequestReviewEvent(cx: Context, payload: PullRequestReviewEvent, origin: Event): Event {
     // pull_request_review / submitted
     const { body, html_url, state, user: { login } } = payload.review;
     const review = {
@@ -71,9 +91,23 @@ export function mergePullRequestReviewEvent(cx: ActionContext, payload: PullRequ
         state,
         user: getProfile(cx.profiles, login),
     };
+
+    const requested_reviewers: Profile[] = [];
+    for (const reviewer of origin.pull_request.requested_reviewers) {
+        let approved = reviewer.approved;
+        if (login === reviewer.login && state === 'approved') {
+            approved = true;
+        }
+        requested_reviewers.push({ ...reviewer, approved });
+    }
+
     return {
         action: payload.action,
-        pull_request: origin.pull_request,
+        pull_request: {
+            ...origin.pull_request,
+            requested_reviewers,
+        },
+        repository: cx.repository,
         review
     };
 }

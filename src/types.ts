@@ -4,17 +4,29 @@ interface Profile {
 	approved?: boolean;
 }
 
-interface ActionContext {
+interface Repository {
+	name: string;
+	html_url: string;
+	owner: {
+		login: string;
+		html_url: string;
+	};
+}
+
+interface Context {
+	repository: Repository;
     token: string;
     channel: string;
     profiles: Profile[];
 }
 
-interface ActionEvent {
+interface Event {
 	action: string;
 	pull_request: {
 		base: { ref: string };
 		body: string;
+		changed_files: number;
+		comments: number;
 		commits: number;
 		head: { ref: string };
 		html_url: string;
@@ -26,6 +38,7 @@ interface ActionEvent {
 		state: string;
 		user: Profile;
 	};
+	repository: Repository;
     requested_reviewer?: Profile;
     review?: {
         body: string;
@@ -35,4 +48,4 @@ interface ActionEvent {
     };
 }
 
-export type { Profile, ActionContext, ActionEvent };
+export type { Profile, Context, Event };

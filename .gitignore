@@ -6,3 +6,7 @@ node_modules/
 
 # slack token for test
 token.json
+
+# PoC
+*.spec.ts
+*.spec.tsx

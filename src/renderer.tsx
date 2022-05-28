@@ -1,11 +1,11 @@
 import { Blocks, Context, Field, Fragment, Header, Section } from 'jsx-slack';
-import type { Profile, ActionEvent } from './types';
+import type { Profile, Event } from './types';
 
 const UserLink = (props: Profile) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>props.login</i>
 );
 
-const HeadlineInfo = (props: ActionEvent) => {
+const HeadlineInfo = (props: Event) => {
 	const text = props.pull_request.merged ? 'merged' : 'wants to merge';
 	const commits = props.pull_request.commits < 2 ? 'commit' : 'commits';
 	return (
@@ -40,7 +40,7 @@ const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
 	);
 }
 
-const ApprovalsInfo = (props: ActionEvent) => {
+const ApprovalsInfo = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		return null;
 	}
@@ -70,7 +70,7 @@ const ApprovalsInfo = (props: ActionEvent) => {
 	);
 }
 
-const ConflictsInfo = (props: ActionEvent) => {
+const ConflictsInfo = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		return null;
 	}
@@ -80,7 +80,7 @@ const ConflictsInfo = (props: ActionEvent) => {
 	return <StatusSection ok={mergeable} text={mergeable ? no_conflicts : must_be_resolved}/>
 }
 
-const MergedInfo = (props: ActionEvent) => {
+const MergedInfo = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		const ok = props.pull_request.merged;
 		const text = ok ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
@@ -89,22 +89,19 @@ const MergedInfo = (props: ActionEvent) => {
 	return null;
 }
 
-export const PullRequestInfo = (props: ActionEvent) => (
+export const PullRequestInfo = (props: Event) => (
 	<Blocks>
 		<HeadlineInfo {...props}/>
 		<Header>{props.pull_request.title}</Header>
 		<Section>
-			<Field><b>Pull Request:</b> <a href={props.pull_request.html_url}>#{props.pull_request.number}</a></Field>
+			<Field><b>Number:</b> <a href={props.pull_request.html_url}>#{props.pull_request.number}</a></Field>
+			<Field><b>Change Files:</b> {props.pull_request.changed_files}</Field>
 			<Field><b>Status:</b> {props.pull_request.state}</Field>
+			<Field><b>Comments:</b> {props.pull_request.comments}</Field>
 		</Section>
 		<Section>{props.pull_request.body}</Section>
 		<ApprovalsInfo {...props}/>
 		<ConflictsInfo {...props}/>
 		<MergedInfo {...props}/>
 	</Blocks>
-);
-
-export const ActivityLog = (props: ActionEvent) => (
-    // TODO: Slack Block drawing for closing / reopening PR, adding / deleting reviewers, and approving reviews.
-    null
 );

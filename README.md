@@ -55,11 +55,6 @@ I will write it in TypeScript, assuming the future of changing the location to
 
 ## Slack API
 
-- **users.info**
-    - scope
-        - `users:read`
-    - arg
-        - user
 - **chat.postMessage**
     - scope
         - `chat:write`
