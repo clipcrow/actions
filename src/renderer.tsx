@@ -1,18 +1,34 @@
-import { Blocks, Context, Field, Fragment, Header, Section } from 'jsx-slack';
+import { Blocks, Context, Divider, Field, Fragment, Header, Section } from 'jsx-slack';
 import type { Profile, Event } from './types';
 
 const UserLink = (props: Profile) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>props.login</i>
 );
 
+const RepositoryInfo = (props: Event) => {
+	const { name, html_url, owner } = props.repository;
+	const repoInfo = (
+		<Fragment>
+			<a href={owner.html_url}>{owner.login}</a> / <a href={html_url}>{name}</a>
+		</Fragment>
+	);
+	return (
+		<Context>
+			<span>this pull request online at github.com / {repoInfo}</span>
+		</Context>
+	);
+}
+
 const HeadlineInfo = (props: Event) => {
 	const text = props.pull_request.merged ? 'merged' : 'wants to merge';
 	const commits = props.pull_request.commits < 2 ? 'commit' : 'commits';
 	return (
 		<Context>
-			<UserLink {...props.pull_request.user} />
-			{` ${text} ${props.pull_request.commits} ${commits} into `}
-			<code>{props.pull_request.base.ref}</code> from <code>{props.pull_request.head.ref}</code>
+			<span>
+				<UserLink {...props.pull_request.user} />
+				{` ${text} ${props.pull_request.commits} ${commits} into `}
+				<code>{props.pull_request.base.ref}</code> from <code>{props.pull_request.head.ref}</code>
+			</span>
 		</Context>
 	);
 }
@@ -91,8 +107,8 @@ const MergedInfo = (props: Event) => {
 
 export const PullRequestInfo = (props: Event) => (
 	<Blocks>
-		<HeadlineInfo {...props}/>
 		<Header>{props.pull_request.title}</Header>
+		<HeadlineInfo {...props}/>
 		<Section>
 			<Field><b>Number:</b> <a href={props.pull_request.html_url}>#{props.pull_request.number}</a></Field>
 			<Field><b>Change Files:</b> {props.pull_request.changed_files}</Field>
@@ -103,5 +119,6 @@ export const PullRequestInfo = (props: Event) => (
 		<ApprovalsInfo {...props}/>
 		<ConflictsInfo {...props}/>
 		<MergedInfo {...props}/>
+		<RepositoryInfo {...props}/>
 	</Blocks>
 );

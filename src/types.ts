@@ -46,6 +46,7 @@ interface Event {
         state: string;
         user: Profile;
     };
+	ts?: string;
 }
 
 export type { Profile, Context, Event };
