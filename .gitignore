@@ -4,5 +4,5 @@
 # Dependency directories
 node_modules/
 
-# Webpack
-*.LICENSE.txt
+# slack token for test
+token.json
