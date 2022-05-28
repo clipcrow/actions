@@ -22,6 +22,7 @@ const StatusSection = (props: { ok: boolean, text: string }) => (
 );
 
 const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
+	
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
@@ -40,6 +41,9 @@ const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
 }
 
 const ApprovalsInfo = (props: ActionEvent) => {
+	if (props.pull_request.state == 'closed') {
+		return null;
+	}
 	const approved = 'Changes approved';
 	const requested = 'Review requested';
 	const no_review = 'No requested review';
@@ -67,10 +71,22 @@ const ApprovalsInfo = (props: ActionEvent) => {
 }
 
 const ConflictsInfo = (props: ActionEvent) => {
+	if (props.pull_request.state == 'closed') {
+		return null;
+	}
 	const no_conflicts = 'This branch has no conflicts with the base branch';
 	const must_be_resolved = 'This branch has conflicts that must be resolved';
 	const { mergeable } = props.pull_request;
 	return <StatusSection ok={mergeable} text={mergeable ? no_conflicts : must_be_resolved}/>
+}
+
+const MergedInfo = (props: ActionEvent) => {
+	if (props.pull_request.state == 'closed') {
+		const ok = props.pull_request.merged;
+		const text = ok ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
+		return (<StatusSection ok={ok} text={text}/>);
+	}
+	return null;
 }
 
 export const PullRequestInfo = (props: ActionEvent) => (
@@ -84,6 +100,7 @@ export const PullRequestInfo = (props: ActionEvent) => (
 		<Section>{props.pull_request.body}</Section>
 		<ApprovalsInfo {...props}/>
 		<ConflictsInfo {...props}/>
+		<MergedInfo {...props}/>
 	</Blocks>
 );
 

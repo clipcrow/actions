@@ -30,17 +30,14 @@ export function getProfile(dictionary: Profile[], login: string): Profile {
 
 export function mergePullRequestEvent(cx: ActionContext, payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
     // pull_request / closed, reopened, review_requested, review_request_removed
-    const requested_reviewers = payload.action == 'closed' ? origin.pull_request.requested_reviewers.concat() : [];
-    if (requested_reviewers.length == 0) {
-        // origin is empty, review_requested, review_request_removed and maybe brand new.
-        for (const reviewer of payload.pull_request.requested_reviewers) {
-            const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
-            requested_reviewers.push(getProfile(cx.profiles, login));
-        }
+    const requested_reviewers = [];
+    for (const reviewer of payload.pull_request.requested_reviewers) {
+        const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
+        requested_reviewers.push(getProfile(cx.profiles, login));
     }
     const user = getProfile(cx.profiles, payload.pull_request.user.login);
-    const requested_reviewer =
-        'requested_reviewer' in payload ? getProfile(cx.profiles, payload.requested_reviewer.login) : undefined;
+    const requested_reviewer = 'requested_reviewer' in payload ?
+        getProfile(cx.profiles, payload.requested_reviewer.login) : undefined;
     return {
         action: payload.action,
         pull_request: {

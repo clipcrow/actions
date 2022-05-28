@@ -35,25 +35,4 @@ interface ActionEvent {
     };
 }
 
-export const EmptyEvent: ActionEvent = {
-	action: '',
-	pull_request: {
-		base: { ref: '' },
-		body: '',
-		commits: 0,
-		head: { ref: '' },
-		html_url: '',
-		mergeable: false,
-		merged: false,
-		number: 0,
-		requested_reviewers: [],
-		title: '',
-		state: '',
-		user: {
-			login: '',
-			slack: '',
-		},
-	},
-};
-
 export type { Profile, ActionContext, ActionEvent };
