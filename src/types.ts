@@ -1,6 +1,6 @@
 interface Profile {
     login: string;
-	slack: string;
+	slack?: string;
 	approved?: boolean;
 }
 
@@ -28,7 +28,7 @@ interface ActionEvent {
 	};
     requested_reviewer?: Profile;
     review?: {
-        body:string;
+        body: string;
         html_url: string;
         state: string;
         user: Profile;

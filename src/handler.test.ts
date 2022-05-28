@@ -6,14 +6,12 @@ import { createActionContext, handleEvent } from './handler';
 test('event PoC', () => {
     const submitted = require('./event/pull_request_review.submitted.json');
     const closed = require('./event/pull_request.closed.json');
-    const opened = require('./event/pull_request.opened.json');
     const removed = require('./event/pull_request.review_request_removed.json');
     const requested = require('./event/pull_request.review_requested.json');
 
     // pull_number
     expect(submitted.pull_request.number).toBe(1);
     expect(closed.pull_request.number).toBe(1);
-    expect(opened.pull_request.number).toBe(1);
     expect(removed.pull_request.number).toBe(1);
     expect(requested.pull_request.number).toBe(1);
 })
@@ -21,7 +19,7 @@ test('event PoC', () => {
 
 test('createContext', async () => {
     github.context.eventName = 'pull_request';
-    github.context.payload = require('./event/pull_request.opened.json');
+    github.context.payload = require('./event/pull_request.review_requested.json');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
             token: 'xoxb-123456789-1234',

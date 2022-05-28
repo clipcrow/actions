@@ -19,10 +19,28 @@ export async function createActionContext(): Promise<ActionContext> {
     return { token, channel, profiles };    
 }
 
-export function mergePullRequestEvent(payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
-    const requested_reviewers: Profile[] = []; // TODO create Profile[]
-    const user: Profile = { login: '', slack: '' }; // TODO create Profile
-    const requested_reviewer = undefined; // TODO create Profile[]
+export function getProfile(dictionary: Profile[], login: string): Profile {
+    for (const profile of dictionary) {
+        if (profile.login === login) {
+            return profile;
+        }
+    }
+    return { login };
+} 
+
+export function mergePullRequestEvent(cx: ActionContext, payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
+    // pull_request / closed, reopened, review_requested, review_request_removed
+    const requested_reviewers = payload.action == 'closed' ? origin.pull_request.requested_reviewers.concat() : [];
+    if (requested_reviewers.length == 0) {
+        // origin is empty, review_requested, review_request_removed and maybe brand new.
+        for (const reviewer of payload.pull_request.requested_reviewers) {
+            const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
+            requested_reviewers.push(getProfile(cx.profiles, login));
+        }
+    }
+    const user = getProfile(cx.profiles, payload.pull_request.user.login);
+    const requested_reviewer =
+        'requested_reviewer' in payload ? getProfile(cx.profiles, payload.requested_reviewer.login) : undefined;
     return {
         action: payload.action,
         pull_request: {
@@ -47,13 +65,20 @@ export function mergePullRequestEvent(payload: PullRequestEvent, origin: ActionE
     };
 }
 
-export function mergePullRequestReviewEvent(payload: PullRequestEvent, origin: ActionEvent): ActionEvent {
-    const result: ActionEvent = {
+export function mergePullRequestReviewEvent(cx: ActionContext, payload: PullRequestReviewEvent, origin: ActionEvent): ActionEvent {
+    // pull_request_review / submitted
+    const { body, html_url, state, user: { login } } = payload.review;
+    const review = {
+        body: body || '',
+        html_url,
+        state,
+        user: getProfile(cx.profiles, login),
+    };
+    return {
         action: payload.action,
         pull_request: origin.pull_request,
+        review
     };
-    result.review = undefined; // TODO: reviewをつくる。pull_request.requested_reviewersの状態を更新する。
-    return result;
 }
 
 export function handlePullRequestEvent() {
