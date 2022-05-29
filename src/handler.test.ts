@@ -1,15 +1,14 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { createActionContext, handleEvent } from './handler';
+import { createContext, handleEvent } from './handler';
 
-test('event PoC', () => {
+test('check files', () => {
     const submitted = require('./event/pull_request_review.submitted.json');
     const closed = require('./event/pull_request.closed.json');
     const removed = require('./event/pull_request.review_request_removed.json');
     const requested = require('./event/pull_request.review_requested.json');
 
-    // pull_number
     expect(submitted.pull_request.number).toBe(1);
     expect(closed.pull_request.number).toBe(1);
     expect(removed.pull_request.number).toBe(1);
@@ -28,7 +27,7 @@ test('createContext', async () => {
         }[arg] || 'n/a';
     });
 
-    const cx = await createActionContext();
+    const cx = await createContext();
 
     expect(cx.client.token).toEqual('xoxb-123456789-1234');
     expect(cx.channel).toEqual('C56789X1234');
@@ -49,4 +48,3 @@ test('handleEvent', async () => {
 
     spy.mockRestore();
 });
-

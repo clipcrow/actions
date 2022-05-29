@@ -3,10 +3,12 @@ import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 import { WebClient } from '@slack/web-api';
 
+import { findMetadata, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
+
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
 import type { Profile, Context, Event } from './types';
 
-export async function createActionContext(): Promise<Context> {
+export async function createContext(): Promise<Context> {
     const token = core.getInput('token');
     const channel = core.getInput('channel');
 
@@ -43,12 +45,12 @@ export function getProfile(dictionary: Profile[], login: string): Profile {
     return { login };
 } 
 
-export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, origin: Event): Event {
+export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, origin?: Event): Event {
     // pull_request / closed, reopened, review_requested, review_request_removed
     const requested_reviewers = [];
     for (const reviewer of payload.pull_request.requested_reviewers) {
         const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
-        const origin_reviewer = getProfile(origin.pull_request.requested_reviewers, login);
+        const origin_reviewer = origin ? getProfile(origin.pull_request.requested_reviewers, login) : { approved: false };
         requested_reviewers.push({ ...getProfile(cx.profiles, login), approved: origin_reviewer.approved });
     }
     const user = getProfile(cx.profiles, payload.pull_request.user.login);
@@ -58,7 +60,7 @@ export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, or
         action: payload.action,
         pull_request: {
             // payload.pull_request has too many properties so I can't use spread operator.
-            // ...payload.pull_request,  <= NG.
+            // "{ ...payload.pull_request }"　is verbose to stack as metadata for Slack posts.
             base: {
                 ref: payload.pull_request.base.ref,
             },
@@ -70,8 +72,8 @@ export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, or
                 ref: payload.pull_request.head.ref,
             },
             html_url: payload.pull_request.html_url,
-            mergeable: payload.pull_request.mergeable || origin.pull_request.mergeable,
-            merged: payload.pull_request.merged || origin.pull_request.merged,
+            mergeable: payload.pull_request.mergeable || origin?.pull_request.mergeable || false,
+            merged: payload.pull_request.merged || origin?.pull_request.merged || false,
             number: payload.pull_request.number,
             requested_reviewers,
             title: payload.pull_request.title,
@@ -113,37 +115,41 @@ export function mergePullRequestReviewEvent(cx: Context, payload: PullRequestRev
     };
 }
 
-export function handlePullRequestEvent() {
-    const { action, pull_request } = github.context.payload as PullRequestEvent;
-    if (action === 'review_requested') {
-        // レビュワーが追加された
-        // 初めてのレビュワーだったらメッセージ投稿、そうでなければレビュワー描画を更新＋ログ
-        // レビュワーへ特別なメンション
-    } else if (action === 'review_request_removed') {
-        // レビュワーが削除された
-        // レビュワー描画を更新＋ログ
-    } else if (action === 'closed') { 
-        // PRがクローズした
-        if (pull_request.merged) {
-            // PRがマージされたためにクローズした
-            // PR描画を更新＋ログ
+export async function handlePullRequestEvent() {
+    const payload = github.context.payload as PullRequestEvent;
+    const { action, pull_request: { number} } = payload;
+    if (['review_requested', 'review_request_removed', 'closed'].includes(action)) { 
+        const cx = await createContext();
+        const origin = await findMetadata(cx, number);
+        const event = mergePullRequestEvent(cx, payload, origin);
+        let ts;
+        if (origin) {
+            ts = await updatePullRequestInfo(cx, event);
         } else {
-            // PRをマージせずにクローズした
-            // PR描画を更新＋ログ
+            ts = await postPullRequestInfo(cx, event);
         }
-    } else if (action === 'reopened') {
-        // 一旦クローズされたPRが再度オープンになった。
-        // PR描画を更新＋ログ。レビュワーには既にメンションされているはずなので、ログで通知が飛ぶ。 
+        if (ts) {
+            await postChangeLog(cx, ts, () => {
+                return action; // TODO IMPL
+            });
+        }
     }
 }
 
-export function handlePullRequestReviewEvent() {
-    const { action, review } = github.context.payload as PullRequestReviewEvent;
-    if (action === 'submitted') {
-        if (review.state === 'approved') {
-            // 承認された。
-            // レビュワー描画を更新＋ログ
-            // 全員が承認していたら、プルリク作成者へ特別なメンション
+export async function handlePullRequestReviewEvent() {
+    const payload = github.context.payload as PullRequestReviewEvent;
+    const { action, pull_request: { number }, review: { state } } = payload;
+    if (action === 'submitted' && state === 'approved') {
+        const cx = await createContext();
+        const origin = await findMetadata(cx, number);
+        if (origin) {
+            const event = mergePullRequestReviewEvent(cx, payload, origin);
+            const ts = await updatePullRequestInfo(cx, event);
+            if (ts) {
+                await postChangeLog(cx, ts, () => {
+                    return 'approved'; // TODO IMPL
+                });
+            }
         }
     } 
 }
