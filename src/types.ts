@@ -1,7 +1,7 @@
 import { WebClient } from '@slack/web-api';
 
 interface Profile {
-    login: string;
+	login: string;
 	slack?: string;
 	approved?: boolean;
 }
@@ -18,8 +18,8 @@ interface Repository {
 interface Context {
 	client: WebClient;
 	repository: Repository;
-    channel: string;
-    profiles: Profile[];
+	channel: string;
+	profiles: Profile[];
 }
 
 interface Event {
@@ -28,7 +28,6 @@ interface Event {
 		base: { ref: string };
 		body: string;
 		changed_files: number;
-		comments: number;
 		commits: number;
 		head: { ref: string };
 		html_url: string;
@@ -41,14 +40,127 @@ interface Event {
 		user: Profile;
 	};
 	repository: Repository;
-    requested_reviewer?: Profile;
-    review?: {
-        body: string;
-        html_url: string;
-        state: string;
-        user: Profile;
-    };
+	requested_reviewer?: Profile;
+	review?: {
+		body: string;
+		html_url: string;
+		state: string;
+		user: Profile;
+	};
 	ts?: string;
 }
 
-export type { Profile, Repository, Context, Event };
+const Query = `
+query ($owner: String!, $name: String!, $number: Int!) {
+    repository(owner: $owner, name: $name) {
+      name
+      owner {
+        login
+      }
+      pullRequest(number: $number) {
+        author {
+          login
+        }
+        baseRefName
+        body
+        changedFiles
+        commits {
+          totalCount
+        }
+        headRefName
+        mergeable
+        merged
+        number
+        reviewRequests(last: 100) {
+          totalCount
+          edges {
+            node {
+              requestedReviewer {
+                ... on User {
+                  login
+                }
+                ... on Team {
+                  name
+                }
+              }
+            }
+          }
+        }
+        reviews(last: 100) {
+          totalCount
+          edges {
+            node {
+              author {
+                login
+              }
+              state
+              updatedAt
+            }
+          }
+        }
+        state
+        title
+        url
+      }
+      url
+    }
+  }
+`;
+
+interface Variables {
+	owner: string;
+	name: string;
+	number: number;
+}
+
+interface QueryResult {
+    repository: {
+        name: string;
+        owner: {
+            login: string;
+        };
+        pullRequest: {
+            author: {
+                login: string;
+            };
+            baseRefName: string;
+            body: string;
+            changedFiles: number;
+            commits: {
+                totalCount: number;
+            };
+            headRefName: string;
+            mergeable: 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
+            merged: boolean;
+            number: number;
+            reviewRequests: {
+                totalCount: number;
+                edges: {
+                    node: {
+                        requestedReviewer: {
+                            login: string;
+                        };
+                    }
+                }[];
+            };
+            reviews: {
+                totalCount: number;
+                edges: {
+                    node: {
+                        author: {
+                            login: string;
+                        };
+                        state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
+                        updatedAt: string;
+                    };
+                }[];
+            };
+            state: 'CLOSED' | 'MERGED' | 'OPEN';
+            title: string;
+            url: string;
+        };
+        url: string;
+    }
+}
+
+export type { Profile, Repository, Context, Event, Query as GraphQLQuery, Variables as GraphQLVariables, QueryResult as GraphQLResult };

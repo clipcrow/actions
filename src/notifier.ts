@@ -1,4 +1,5 @@
 import { JSXSlack } from 'jsx-slack';
+import { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
 import type { Context, Event } from './types';
@@ -41,14 +42,10 @@ export async function findMetadata(cx: Context, pull_number: number): Promise<Ev
     return undefined;
 }
 
-function hiddenText(url: string, post: boolean): string {
-    return `PRNotifier ${post ? 'posted' : 'updated'} this message. ${url}`;
-}
-
 export async function postPullRequestInfo(cx: Context, event: Event): Promise<string | undefined> {
     const result = await cx.client.chat.postMessage({
         channel: cx.channel,
-        text: hiddenText(event.pull_request.html_url, true),
+        text: 'PRNotifier posted this message.',
         blocks: JSXSlack(PullRequest(event)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
@@ -65,7 +62,7 @@ export async function updatePullRequestInfo(cx: Context, event: Event): Promise<
     if (event.ts) {
         const result = await cx.client.chat.update({
             channel: cx.channel,
-            text: hiddenText(event.pull_request.html_url, false),
+            text: 'PRNotifier updated this message.',
             blocks: JSXSlack(PullRequest(event)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
@@ -82,11 +79,11 @@ export async function updatePullRequestInfo(cx: Context, event: Event): Promise<
 }
 
 
-export async function postChangeLog(cx: Context, ts: string, log: () => string): Promise<string | undefined> {
+export async function postChangeLog(cx: Context, ts: string, log: () => JSX.Element): Promise<string | undefined> {
     const result = await cx.client.chat.postMessage({
         channel: cx.channel,
-        mrkdwn: true,
-        text: log(),
+        text: 'PRNotifier posted this change log.',
+        blocks: JSXSlack(log()),
         thread_ts: ts,
     });
     if (result.ok) {

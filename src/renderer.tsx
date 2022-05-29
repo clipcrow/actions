@@ -125,3 +125,9 @@ export const PullRequest = (props: Event) => (
 		<Divider/>
 	</Blocks>
 );
+
+export const ChangeLog = (props: Event) => (
+	<Blocks>
+		<Context>{props.action}</Context>
+	</Blocks>
+);

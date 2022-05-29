@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import { WebClient } from '@slack/web-api';
 
 import { findMetadata, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
+import { ChangeLog } from './renderer';
 
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
 import type { Profile, Context, Event } from './types';
@@ -43,7 +44,7 @@ export function getProfile(dictionary: Profile[], login: string): Profile {
         }
     }
     return { login };
-} 
+}
 
 export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, origin?: Event): Event {
     // pull_request / closed, reopened, review_requested, review_request_removed
@@ -66,7 +67,6 @@ export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, or
             },
             body: payload.pull_request.body,
             changed_files: payload.pull_request.changed_files,
-		    comments: payload.pull_request.comments,
             commits: payload.pull_request.commits,
             head: {
                 ref: payload.pull_request.head.ref,
@@ -129,9 +129,7 @@ export async function handlePullRequestEvent() {
             ts = await postPullRequestInfo(cx, event);
         }
         if (ts) {
-            await postChangeLog(cx, ts, () => {
-                return action; // TODO IMPL
-            });
+            await postChangeLog(cx, ts, () => ChangeLog(event));
         }
     }
 }
@@ -146,9 +144,7 @@ export async function handlePullRequestReviewEvent() {
             const event = mergePullRequestReviewEvent(cx, payload, origin);
             const ts = await updatePullRequestInfo(cx, event);
             if (ts) {
-                await postChangeLog(cx, ts, () => {
-                    return 'approved'; // TODO IMPL
-                });
+                await postChangeLog(cx, ts, () => ChangeLog(event));
             }
         }
     } 
@@ -163,4 +159,9 @@ export async function handleEvent () {
     } else {
         core.info(`Unsupported trigger type: "${eventName}"`);
     }
+}
+
+function Poc() {
+    const api = github.getOctokit('');
+    api.rest.pulls.get({owner: 'mastaka', repo: 'test', pull_number: 125 })
 }
