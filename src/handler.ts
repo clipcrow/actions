@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as fs from 'fs/promises';
+import { WebClient } from '@slack/web-api';
 
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
 import type { Profile, Context, Event } from './types';
@@ -18,6 +19,7 @@ export async function createActionContext(): Promise<Context> {
     const repo = github.context.repo.repo;
     const owner = github.context.repo.owner;
     return {
+        client: new WebClient(token),
         repository: Object.freeze({
             name: repo,
             html_url: `https://github.com/${owner}/${repo}`,
@@ -26,7 +28,6 @@ export async function createActionContext(): Promise<Context> {
                 login: github.context.repo.owner,
             },
         }),
-        token,
         channel,
         profiles,
     };    

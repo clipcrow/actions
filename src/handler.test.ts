@@ -30,7 +30,7 @@ test('createContext', async () => {
 
     const cx = await createActionContext();
 
-    expect(cx.token).toEqual('xoxb-123456789-1234');
+    expect(cx.client.token).toEqual('xoxb-123456789-1234');
     expect(cx.channel).toEqual('C56789X1234');
     expect(cx.profiles[0]).toEqual({ login:'someone', slack: 'U1234567890' });
     expect(cx.profiles[1]).toEqual({ login: 'another', slack: 'U5678901234' });

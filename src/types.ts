@@ -1,3 +1,5 @@
+import { WebClient } from '@slack/web-api';
+
 interface Profile {
     login: string;
 	slack?: string;
@@ -14,8 +16,8 @@ interface Repository {
 }
 
 interface Context {
+	client: WebClient;
 	repository: Repository;
-    token: string;
     channel: string;
     profiles: Profile[];
 }
