@@ -48,8 +48,8 @@ export function mergePullRequestEvent(cx: Context, payload: PullRequestEvent, or
     const requested_reviewers = [];
     for (const reviewer of payload.pull_request.requested_reviewers) {
         const login = 'login' in reviewer ? reviewer.login : reviewer.name; // User.login or Team.name
-        const originReviewer = getProfile(origin.pull_request.requested_reviewers, login);
-        requested_reviewers.push({ ...getProfile(cx.profiles, login), approved: originReviewer.approved });
+        const origin_reviewer = getProfile(origin.pull_request.requested_reviewers, login);
+        requested_reviewers.push({ ...getProfile(cx.profiles, login), approved: origin_reviewer.approved });
     }
     const user = getProfile(cx.profiles, payload.pull_request.user.login);
     const requested_reviewer = 'requested_reviewer' in payload ?

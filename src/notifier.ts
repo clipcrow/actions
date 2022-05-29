@@ -55,7 +55,10 @@ export async function postPullRequestInfo(cx: Context, event: Event): Promise<st
             event_payload: event,
         }
     });
-    return result.ts;
+    if (result.ok) {
+        return result.ts;
+    }
+    console.log(result.error);
 }
 
 export async function updatePullRequestInfo(cx: Context, event: Event): Promise<string | undefined> {
@@ -63,13 +66,17 @@ export async function updatePullRequestInfo(cx: Context, event: Event): Promise<
         const result = await cx.client.chat.update({
             channel: cx.channel,
             text: hiddenText(event.pull_request.html_url, false),
+            blocks: JSXSlack(PullRequestInfo(event)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
                 event_payload: event,
             },
             ts: event.ts,
         });
-        return result.ts;
+        if (result.ok) {
+            return result.ts;
+        }
+        console.log(result.error);
     }
     return await postPullRequestInfo(cx, event);
 }
@@ -82,5 +89,8 @@ export async function postLogInfo(cx: Context, ts: string, log: () => string): P
         text: log(),
         thread_ts: ts,
     });
-    return result.ts;
+    if (result.ok) {
+        return result.ts;
+    }
+    console.log(result.error);
 }

@@ -5,20 +5,6 @@ const UserLink = (props: Profile) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>props.login</i>
 );
 
-const RepositoryInfo = (props: Event) => {
-	const { name, html_url, owner } = props.repository;
-	const repoInfo = (
-		<Fragment>
-			<a href={owner.html_url}>{owner.login}</a> / <a href={html_url}>{name}</a>
-		</Fragment>
-	);
-	return (
-		<Context>
-			<span>this pull request online at github.com / {repoInfo}</span>
-		</Context>
-	);
-}
-
 const HeadlineInfo = (props: Event) => {
 	const text = props.pull_request.merged ? 'merged' : 'wants to merge';
 	const commits = props.pull_request.commits < 2 ? 'commit' : 'commits';
@@ -105,20 +91,35 @@ const MergedInfo = (props: Event) => {
 	return null;
 }
 
+const RepositoryInfo = (props: Event) => {
+	const { name, html_url, owner } = props.repository;
+	const repo_info = (
+		<Fragment>
+			<a href={owner.html_url}>{owner.login}</a> / <a href={html_url}>{name}</a>
+		</Fragment>
+	);
+	const pull_info = (
+		<Fragment><a href={props.pull_request.html_url}>{props.pull_request.number}</a></Fragment>
+	);
+	return (
+		<Context>
+			<span>See github.com / {repo_info} / pull / {pull_info}</span>
+		</Context>
+	);
+}
 export const PullRequestInfo = (props: Event) => (
 	<Blocks>
-		<Header>{props.pull_request.title}</Header>
 		<HeadlineInfo {...props}/>
-		<Section>
-			<Field><b>Number:</b> <a href={props.pull_request.html_url}>#{props.pull_request.number}</a></Field>
-			<Field><b>Change Files:</b> {props.pull_request.changed_files}</Field>
-			<Field><b>Status:</b> {props.pull_request.state}</Field>
-			<Field><b>Comments:</b> {props.pull_request.comments}</Field>
-		</Section>
+		<Header>{props.pull_request.title}</Header>
 		<Section>{props.pull_request.body}</Section>
+		<Section>
+			<Field><b>Pull Request Status:</b> {props.pull_request.state}</Field>
+			<Field><b>Change Files:</b> {props.pull_request.changed_files}</Field>
+		</Section>
 		<ApprovalsInfo {...props}/>
 		<ConflictsInfo {...props}/>
 		<MergedInfo {...props}/>
 		<RepositoryInfo {...props}/>
+		<Divider/>
 	</Blocks>
 );
