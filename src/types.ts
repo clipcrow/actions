@@ -50,64 +50,7 @@ interface Event {
 	ts?: string;
 }
 
-const Query = `
-query ($owner: String!, $name: String!, $number: Int!) {
-    repository(owner: $owner, name: $name) {
-      name
-      owner {
-        login
-      }
-      pullRequest(number: $number) {
-        author {
-          login
-        }
-        baseRefName
-        body
-        changedFiles
-        commits {
-          totalCount
-        }
-        headRefName
-        mergeable
-        merged
-        number
-        reviewRequests(last: 100) {
-          totalCount
-          edges {
-            node {
-              requestedReviewer {
-                ... on User {
-                  login
-                }
-                ... on Team {
-                  name
-                }
-              }
-            }
-          }
-        }
-        reviews(last: 100) {
-          totalCount
-          edges {
-            node {
-              author {
-                login
-              }
-              state
-              updatedAt
-            }
-          }
-        }
-        state
-        title
-        url
-      }
-      url
-    }
-  }
-`;
-
-interface Variables {
+interface QueryVariables {
 	owner: string;
 	name: string;
 	number: number;
@@ -163,4 +106,4 @@ interface QueryResult {
     }
 }
 
-export type { Profile, Repository, Context, Event, Query as GraphQLQuery, Variables as GraphQLVariables, QueryResult as GraphQLResult };
+export type { Profile, Repository, Context, Event, QueryVariables, QueryResult };

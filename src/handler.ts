@@ -7,7 +7,7 @@ import { findMetadata, postPullRequestInfo, updatePullRequestInfo, postChangeLog
 import { ChangeLog } from './renderer';
 
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { Profile, Context, Event } from './types';
+import type { Profile, Context, Event, QueryVariables, QueryResult } from './types';
 
 export async function createContext(): Promise<Context> {
     const token = core.getInput('token');
@@ -113,6 +113,65 @@ export function mergePullRequestReviewEvent(cx: Context, payload: PullRequestRev
         repository: cx.repository,
         review
     };
+}
+
+
+export async function queryPullRequest(token: string, variables: QueryVariables): Promise<QueryResult> {
+    const queryString = `
+    query ($owner: String!, $name: String!, $number: Int!) {
+        repository(owner: $owner, name: $name) {
+            name
+            owner {
+                login
+            }
+            pullRequest(number: $number) {
+                author {
+                    login
+                }
+                baseRefName
+                body
+                changedFiles
+                commits {
+                    totalCount
+                }
+                headRefName
+                mergeable
+                merged
+                number
+                reviewRequests(last: 100) {
+                    totalCount
+                    edges {
+                        node {
+                            requestedReviewer {
+                                ... on User {
+                                    login
+                                }
+                            }
+                        }
+                    }
+                }
+                reviews(last: 100) {
+                    totalCount
+                    edges {
+                        node {
+                        author {
+                            login
+                        }
+                        state
+                        updatedAt
+                        }
+                    }
+                }
+                state
+                title
+                url
+            }
+            url
+        }
+    }
+    `;
+    const oktokit = github.getOctokit(token);
+    return await oktokit.graphql<QueryResult>(queryString, { ...variables });
 }
 
 export async function handlePullRequestEvent() {
