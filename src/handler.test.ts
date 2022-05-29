@@ -21,19 +21,19 @@ test('createContext', async () => {
     github.context.payload = require('./event/pull_request.review_requested.json');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
-            token: 'xoxb-123456789-1234',
-            channel: 'C56789X1234',
-            path: 'src/repository/accounts.json',
+            slackToken: 'xoxb-123456789-1234',
+            slackChannel: 'C56789X1234',
+            slackAccounts: 'src/repository/accounts.json',
         }[arg] || 'n/a';
     });
 
     const cx = await createContext();
 
-    expect(cx.client.token).toEqual('xoxb-123456789-1234');
-    expect(cx.channel).toEqual('C56789X1234');
-    expect(cx.profiles[0]).toEqual({ login:'someone', slack: 'U1234567890' });
-    expect(cx.profiles[1]).toEqual({ login: 'another', slack: 'U5678901234' });
-    expect(cx.profiles[2]).toEqual({ login: 'nobody', slack: 'U8901234567' });
+    expect(cx.slackToken).toEqual('xoxb-123456789-1234');
+    expect(cx.slackChannel).toEqual('C56789X1234');
+    expect(cx.slackAccounts['someone']).toEqual('U1234567890');
+    expect(cx.slackAccounts['another']).toEqual('U5678901234');
+    expect(cx.slackAccounts['nobody']).toEqual('U8901234567');
 
     spy.mockRestore();
 });

@@ -1,40 +1,36 @@
+import { WebClient } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
 import { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { Context, Event } from './types';
+import type { Context, Message, RenderModel } from './types';
 
 const METADATA_EVENT_TYPE = 'prnotifier';
 
-interface MessageWithMetadata {
-    metadata: {
-        event_type: string;
-        event_payload: Event;
-    };
-    ts: string;
-}
-
-export async function findMetadata(cx: Context, pull_number: number): Promise<Event | undefined> {
+export async function findMetadata(cx: Context, pull_number: number): Promise<Message | undefined> {
     // Search for messages on the channel to get metadata.
-    const result = await cx.client.conversations.history({
-        channel: cx.channel,
+    const client = new WebClient(cx.slackToken);
+    const result = await client.conversations.history({
+        channel: cx.slackChannel,
         include_all_metadata: true,
     });
     if (result.messages) {
         for (const message of result.messages) {
             // Search for messages using the pull_number stored in the metadata as a clue.
             if ('metadata' in message) {
-                const { metadata, ts } = (message as MessageWithMetadata);
-                // check type of application
-                if (metadata.event_type !== METADATA_EVENT_TYPE) break;
-                
-                // check owner && repository
-                if (metadata.event_payload.repository.owner.login !== cx.repository.owner.login) break;
-                if (metadata.event_payload.repository.name !== cx.repository.name) break;
-                
-                // check the pull request number
-                if (metadata.event_payload.pull_request.number == pull_number) {
-                    return { ... metadata.event_payload, ts }
+                const { metadata } = (message as Message);
+                if ('owner' in metadata && 'name' in metadata && 'number' in metadata) {
+                    // check type of application
+                    if (metadata.event_type !== METADATA_EVENT_TYPE) break;
+                    
+                    // check owner && repository
+                    if (metadata.event_payload.owner !== cx.owner) break;
+                    if (metadata.event_payload.name !== cx.name) break;
+                    
+                    // check the pull request number
+                    if (metadata.event_payload.number == pull_number) {
+                        return (message as Message);
+                    }
                 }
             }
         }
@@ -42,14 +38,15 @@ export async function findMetadata(cx: Context, pull_number: number): Promise<Ev
     return undefined;
 }
 
-export async function postPullRequestInfo(cx: Context, event: Event): Promise<string | undefined> {
-    const result = await cx.client.chat.postMessage({
-        channel: cx.channel,
+export async function postPullRequestInfo(cx: Context, model: RenderModel): Promise<string | undefined> {
+    const client = new WebClient(cx.slackToken);
+    const result = await client.chat.postMessage({
+        channel: cx.slackChannel,
         text: 'PRNotifier posted this message.',
-        blocks: JSXSlack(PullRequest(event)),
+        blocks: JSXSlack(PullRequest(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
-            event_payload: event,
+            event_payload: model,
         }
     });
     if (result.ok) {
@@ -58,30 +55,32 @@ export async function postPullRequestInfo(cx: Context, event: Event): Promise<st
     console.log(result.error);
 }
 
-export async function updatePullRequestInfo(cx: Context, event: Event): Promise<string | undefined> {
-    if (event.ts) {
-        const result = await cx.client.chat.update({
-            channel: cx.channel,
+export async function updatePullRequestInfo(cx: Context, model: RenderModel): Promise<string | undefined> {
+    if (model.ts) {
+        const client = new WebClient(cx.slackToken);
+        const result = await client.chat.update({
+            channel: cx.slackChannel,
             text: 'PRNotifier updated this message.',
-            blocks: JSXSlack(PullRequest(event)),
+            blocks: JSXSlack(PullRequest(model)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
-                event_payload: event,
+                event_payload: model,
             },
-            ts: event.ts,
+            ts: model.ts,
         });
         if (result.ok) {
             return result.ts;
         }
         console.log(result.error);
     }
-    return await postPullRequestInfo(cx, event);
+    return await postPullRequestInfo(cx, model);
 }
 
 
 export async function postChangeLog(cx: Context, ts: string, log: () => JSX.Element): Promise<string | undefined> {
-    const result = await cx.client.chat.postMessage({
-        channel: cx.channel,
+    const client = new WebClient(cx.slackToken);
+    const result = await client.chat.postMessage({
+        channel: cx.slackChannel,
         text: 'PRNotifier posted this change log.',
         blocks: JSXSlack(log()),
         thread_ts: ts,
