@@ -1,4 +1,4 @@
-export interface Context {
+export interface ActionContext {
 	owner: string;
     name: string;
     githubToken: string;
@@ -19,6 +19,16 @@ export interface Message {
         event_payload: Metadata;
     };
     ts: string;
+}
+
+export interface ActionEventPayload {
+    // GitHub Actions event & action
+    event: string;
+    action: string;
+    // PR#
+    number: number;
+    reviewRequest?: ReviewRequest;
+    review?: Review;
 }
 
 interface Connection<T> {
@@ -74,15 +84,4 @@ export interface QueryResult {
     }
 }
 
-export interface EventPayload {
-    // GitHub Actions event & action
-    event: string;
-    action: string;
-    // PR#
-    number: number;
-    review_request?: ReviewRequest;
-    review?: Review;
-    ts?: string;
-}
-
-export type RenderModel = QueryResult & EventPayload & { slackAccounts: { [login: string]: string; }};
+export type RenderModel = Omit<ActionContext, 'githubToken' | 'slackToken'> & ActionEventPayload & QueryResult & { ts?: string };

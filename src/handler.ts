@@ -6,9 +6,9 @@ import { findMetadata, postPullRequestInfo, updatePullRequestInfo, postChangeLog
 import { ChangeLog } from './renderer';
 
 import type { PullRequestReviewRequestedEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { Context, Metadata, QueryResult, EventPayload } from './types';
+import type { ActionContext, Metadata, QueryResult, ActionEventPayload } from './types';
 
-export async function createContext(): Promise<Context> {
+export async function createContext(): Promise<ActionContext> {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
     const githubToken = core.getInput('githubToken');
@@ -90,25 +90,25 @@ export async function queryPullRequest(token: string, variables: Metadata): Prom
     return await oktokit.graphql<QueryResult>(queryString, { ...variables });
 }
 
-export async function handleAction (event_payload: EventPayload) {
-    const { action, number } = event_payload;
+export async function handleAction (eventPayload: ActionEventPayload) {
+    const { action, number } = eventPayload;
     if (['review_requested', 'review_request_removed', 'closed', 'submitted'].includes(action)) { 
         const cx = await createContext();
         const { owner, name, slackAccounts } = cx;
         const result = await queryPullRequest(cx.githubToken, { owner, name, number });
         const message = await findMetadata(cx, number);
         let ts = message?.ts;
-        const render_model = { ...result, ...event_payload, ts, slackAccounts };
+        const renderModel = { ...result, ...eventPayload, ts, ...cx };
         if (message) {
-            ts = await updatePullRequestInfo(cx, render_model);
+            ts = await updatePullRequestInfo(cx, renderModel);
         } else {
-            ts = await postPullRequestInfo(cx, render_model);
+            ts = await postPullRequestInfo(cx, renderModel);
         }
         if (ts) {
-            await postChangeLog(cx, ts, () => ChangeLog(render_model));
+            await postChangeLog(cx, ts, () => ChangeLog(renderModel));
         }
     }else {
-        core.info(`Unsupported trigger type: "${event_payload.event}"`);
+        core.info(`Unsupported trigger type: "${eventPayload.event}"`);
     }
 }
 
@@ -117,13 +117,13 @@ export async function handleEvent () {
     if (eventName === 'pull_request') {
         const payload = github.context.payload as PullRequestReviewRequestedEvent;
         const number = payload.pull_request.number;
-        const review_request = (payload.requested_reviewer) ? {
+        const reviewRequest = (payload.requested_reviewer) ? {
             requestedReviewer: {
                 login: payload.requested_reviewer.login,
                 url: payload.requested_reviewer.html_url,
             },
         } : undefined; // <- undefined when action is 'closed'
-        handleAction({ event: 'pull_request', action, number, review_request });
+        handleAction({ event: 'pull_request', action, number, reviewRequest });
     } else if (eventName === 'pull_request_review') {
         const payload = github.context.payload as PullRequestReviewEvent;
         const number = payload.pull_request.number;

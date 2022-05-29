@@ -3,11 +3,11 @@ import { JSXSlack } from 'jsx-slack';
 import { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { Context, Message, RenderModel } from './types';
+import type { ActionContext, Message, RenderModel } from './types';
 
 const METADATA_EVENT_TYPE = 'prnotifier';
 
-export async function findMetadata(cx: Context, pull_number: number): Promise<Message | undefined> {
+export async function findMetadata(cx: ActionContext, pull_number: number): Promise<Message | undefined> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -38,7 +38,7 @@ export async function findMetadata(cx: Context, pull_number: number): Promise<Me
     return undefined;
 }
 
-export async function postPullRequestInfo(cx: Context, model: RenderModel): Promise<string | undefined> {
+export async function postPullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
@@ -55,7 +55,7 @@ export async function postPullRequestInfo(cx: Context, model: RenderModel): Prom
     console.log(result.error);
 }
 
-export async function updatePullRequestInfo(cx: Context, model: RenderModel): Promise<string | undefined> {
+export async function updatePullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
     if (model.ts) {
         const client = new WebClient(cx.slackToken);
         const result = await client.chat.update({
@@ -64,7 +64,7 @@ export async function updatePullRequestInfo(cx: Context, model: RenderModel): Pr
             blocks: JSXSlack(PullRequest(model)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
-                event_payload: model,
+                event_payload: { owner: model.repository.owner.login, name: model.repository.name, number: model.number },
             },
             ts: model.ts,
         });
@@ -77,7 +77,7 @@ export async function updatePullRequestInfo(cx: Context, model: RenderModel): Pr
 }
 
 
-export async function postChangeLog(cx: Context, ts: string, log: () => JSX.Element): Promise<string | undefined> {
+export async function postChangeLog(cx: ActionContext, ts: string, log: () => JSX.Element): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
