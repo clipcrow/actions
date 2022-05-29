@@ -5,7 +5,7 @@ const UserLink = (props: Profile) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>props.login</i>
 );
 
-const HeadlineInfo = (props: Event) => {
+const Commits = (props: Event) => {
 	const text = props.pull_request.merged ? 'merged' : 'wants to merge';
 	const commits = props.pull_request.commits < 2 ? 'commit' : 'commits';
 	return (
@@ -23,7 +23,7 @@ const StatusSection = (props: { ok: boolean, text: string }) => (
 	<Section>{ props.ok ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
+const Reviewers = (props: { reviewers: Profile[], text: string }) => {
 	
 	const count = props.reviewers.length;
 	if (count == 0) {
@@ -42,7 +42,7 @@ const ReviewersInfo = (props: { reviewers: Profile[], text: string }) => {
 	);
 }
 
-const ApprovalsInfo = (props: Event) => {
+const Approvals = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		return null;
 	}
@@ -66,13 +66,13 @@ const ApprovalsInfo = (props: Event) => {
 	return (
 		<Fragment>
 			<StatusSection ok={ok} text={ok ? approved : (count > 0 ? requested : no_review)}/>
-			<ReviewersInfo reviewers={approvals} text='approved'/>
-			<ReviewersInfo reviewers={pendings} text='pending'/>
+			<Reviewers reviewers={approvals} text='approved'/>
+			<Reviewers reviewers={pendings} text='pending'/>
 		</Fragment>
 	);
 }
 
-const ConflictsInfo = (props: Event) => {
+const Conflicts = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		return null;
 	}
@@ -82,7 +82,7 @@ const ConflictsInfo = (props: Event) => {
 	return <StatusSection ok={mergeable} text={mergeable ? no_conflicts : must_be_resolved}/>
 }
 
-const MergedInfo = (props: Event) => {
+const Merged = (props: Event) => {
 	if (props.pull_request.state == 'closed') {
 		const ok = props.pull_request.merged;
 		const text = ok ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
@@ -91,35 +91,37 @@ const MergedInfo = (props: Event) => {
 	return null;
 }
 
-const RepositoryInfo = (props: Event) => {
+const PullRequestNumber = (props: { html_url: string, number: number }) => (
+	<Fragment><a href={props.html_url}>#{props.number}</a></Fragment>
+);
+
+const Repository = (props: Event) => {
 	const { name, html_url, owner } = props.repository;
 	const repo_info = (
 		<Fragment>
-			<a href={owner.html_url}>{owner.login}</a> / <a href={html_url}>{name}</a>
+			<a href={owner.html_url}>{owner.login}</a> &gt; <a href={html_url}>{name}</a>
 		</Fragment>
-	);
-	const pull_info = (
-		<Fragment><a href={props.pull_request.html_url}>{props.pull_request.number}</a></Fragment>
 	);
 	return (
 		<Context>
-			<span>See github.com / {repo_info} / pull / {pull_info}</span>
+			<span>See github.com &gt; {repo_info} &gt; pull &gt; <PullRequestNumber {...props.pull_request}/></span>
 		</Context>
 	);
 }
-export const PullRequestInfo = (props: Event) => (
+
+export const PullRequest = (props: Event) => (
 	<Blocks>
-		<HeadlineInfo {...props}/>
+		<Commits {...props}/>
 		<Header>{props.pull_request.title}</Header>
 		<Section>{props.pull_request.body}</Section>
 		<Section>
-			<Field><b>Pull Request Status:</b> {props.pull_request.state}</Field>
+			<Field><b>Pull Request <PullRequestNumber {...props.pull_request}/>:</b> {props.pull_request.state}</Field>
 			<Field><b>Change Files:</b> {props.pull_request.changed_files}</Field>
 		</Section>
-		<ApprovalsInfo {...props}/>
-		<ConflictsInfo {...props}/>
-		<MergedInfo {...props}/>
-		<RepositoryInfo {...props}/>
+		<Approvals {...props}/>
+		<Conflicts {...props}/>
+		<Merged {...props}/>
+		<Repository {...props}/>
 		<Divider/>
 	</Blocks>
 );

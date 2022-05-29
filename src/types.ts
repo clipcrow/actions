@@ -51,4 +51,4 @@ interface Event {
 	ts?: string;
 }
 
-export type { Profile, Context, Event };
+export type { Profile, Repository, Context, Event };

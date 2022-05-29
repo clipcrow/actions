@@ -1,6 +1,6 @@
 import { JSXSlack } from 'jsx-slack';
 
-import { PullRequestInfo } from './renderer';
+import { PullRequest } from './renderer';
 import type { Context, Event } from './types';
 
 const METADATA_EVENT_TYPE = 'prnotifier';
@@ -49,7 +49,7 @@ export async function postPullRequestInfo(cx: Context, event: Event): Promise<st
     const result = await cx.client.chat.postMessage({
         channel: cx.channel,
         text: hiddenText(event.pull_request.html_url, true),
-        blocks: JSXSlack(PullRequestInfo(event)),
+        blocks: JSXSlack(PullRequest(event)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
             event_payload: event,
@@ -66,7 +66,7 @@ export async function updatePullRequestInfo(cx: Context, event: Event): Promise<
         const result = await cx.client.chat.update({
             channel: cx.channel,
             text: hiddenText(event.pull_request.html_url, false),
-            blocks: JSXSlack(PullRequestInfo(event)),
+            blocks: JSXSlack(PullRequest(event)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
                 event_payload: event,
@@ -82,7 +82,7 @@ export async function updatePullRequestInfo(cx: Context, event: Event): Promise<
 }
 
 
-export async function postLogInfo(cx: Context, ts: string, log: () => string): Promise<string | undefined> {
+export async function postChangeLog(cx: Context, ts: string, log: () => string): Promise<string | undefined> {
     const result = await cx.client.chat.postMessage({
         channel: cx.channel,
         mrkdwn: true,
