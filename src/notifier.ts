@@ -3,11 +3,11 @@ import { JSXSlack } from 'jsx-slack';
 import { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { ActionContext, Message, RenderModel } from './types';
+import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from './types';
 
 const METADATA_EVENT_TYPE = 'prnotifier';
 
-export async function findMetadata(cx: ActionContext, pull_number: number): Promise<Message | undefined> {
+export async function findSlackMessage(cx: ActionContext, number: number): Promise<SlackMessage | undefined> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -16,21 +16,16 @@ export async function findMetadata(cx: ActionContext, pull_number: number): Prom
     });
     if (result.messages) {
         for (const message of result.messages) {
-            // Search for messages using the pull_number stored in the metadata as a clue.
+            // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {
-                const { metadata } = (message as Message);
-                if ('owner' in metadata && 'name' in metadata && 'number' in metadata) {
-                    // check type of application
-                    if (metadata.event_type !== METADATA_EVENT_TYPE) break;
-                    
-                    // check owner && repository
-                    if (metadata.event_payload.owner !== cx.owner) break;
-                    if (metadata.event_payload.name !== cx.name) break;
-                    
-                    // check the pull request number
-                    if (metadata.event_payload.number == pull_number) {
-                        return (message as Message);
-                    }
+                const slackMessage = (message as SlackMessage);
+                // check type of application
+                if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
+                // check the pull request
+                if (slackMessage.metadata.event_payload.owner !== cx.owner) break;
+                if (slackMessage.metadata.event_payload.name !== cx.name) break;
+                if (slackMessage.metadata.event_payload.number == number) {
+                    return slackMessage;
                 }
             }
         }
@@ -40,42 +35,43 @@ export async function findMetadata(cx: ActionContext, pull_number: number): Prom
 
 export async function postPullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
+    const event_payload: QueryVariables = { owner: model.owner, name: model.name, number: model.number };
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
         text: 'PRNotifier posted this message.',
         blocks: JSXSlack(PullRequest(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
-            event_payload: model,
+            event_payload,
         }
     });
     if (result.ok) {
         return result.ts;
     }
-    console.log(result.error);
+    console.error(result.error);
 }
 
 export async function updatePullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
     if (model.ts) {
         const client = new WebClient(cx.slackToken);
+        const event_payload: QueryVariables = { owner: model.owner, name: model.name, number: model.number };
         const result = await client.chat.update({
             channel: cx.slackChannel,
             text: 'PRNotifier updated this message.',
             blocks: JSXSlack(PullRequest(model)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
-                event_payload: { owner: model.repository.owner.login, name: model.repository.name, number: model.number },
+                event_payload,
             },
             ts: model.ts,
         });
         if (result.ok) {
             return result.ts;
         }
-        console.log(result.error);
+        console.error(result.error);
     }
     return await postPullRequestInfo(cx, model);
 }
-
 
 export async function postChangeLog(cx: ActionContext, ts: string, log: () => JSX.Element): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);

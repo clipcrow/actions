@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import { createContext, handleEvent } from './handler';
+import { createActionContext, handleEvent } from './handler';
 
 test('check files', () => {
     const submitted = require('./event/pull_request_review.submitted.json');
@@ -15,20 +15,23 @@ test('check files', () => {
     expect(requested.pull_request.number).toBe(1);
 })
 
-
-test('createContext', async () => {
+test('createActionContext', async () => {
     github.context.eventName = 'pull_request';
     github.context.payload = require('./event/pull_request.review_requested.json');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
+            githubToken: 'ghp_abcdefghijklmnopqrstuvwxyz0123456789',
             slackToken: 'xoxb-123456789-1234',
             slackChannel: 'C56789X1234',
             slackAccounts: 'src/repository/accounts.json',
         }[arg] || 'n/a';
     });
 
-    const cx = await createContext();
+    const cx = await createActionContext();
 
+    expect(cx.owner).toEqual('masataka');
+    expect(cx.name).toEqual('test');
+    expect(cx.githubToken).toEqual('ghp_abcdefghijklmnopqrstuvwxyz0123456789');
     expect(cx.slackToken).toEqual('xoxb-123456789-1234');
     expect(cx.slackChannel).toEqual('C56789X1234');
     expect(cx.slackAccounts['someone']).toEqual('U1234567890');

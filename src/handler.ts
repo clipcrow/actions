@@ -2,13 +2,13 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 
-import { findMetadata, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
+import { findSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { ChangeLog } from './renderer';
 
 import type { PullRequestReviewRequestedEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { ActionContext, Metadata, QueryResult, ActionEventPayload } from './types';
+import type { SlackAccounts, ActionContext, QueryVariables, QueryResult, TriggerEventPayload } from './types';
 
-export async function createContext(): Promise<ActionContext> {
+export async function createActionContext(): Promise<ActionContext> {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
     const githubToken = core.getInput('githubToken');
@@ -16,7 +16,7 @@ export async function createContext(): Promise<ActionContext> {
     const slackChannel = core.getInput('slackChannel');
 
     const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
-    const slackAccounts: { [login: string]: string; } = JSON.parse(file);
+    const slackAccounts: SlackAccounts = JSON.parse(file);
 
     return {
         owner,
@@ -28,7 +28,7 @@ export async function createContext(): Promise<ActionContext> {
     };    
 }
 
-export async function queryPullRequest(token: string, variables: Metadata): Promise<QueryResult> {
+export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult> {
     const queryString = `
     query ($owner: String!, $name: String!, $number: Int!) {
         repository(owner: $owner, name: $name) {
@@ -87,28 +87,28 @@ export async function queryPullRequest(token: string, variables: Metadata): Prom
     }
     `;
     const oktokit = github.getOctokit(token);
-    return await oktokit.graphql<QueryResult>(queryString, { ...variables });
+    return await oktokit.graphql<QueryResult>(queryString, { ...vars });
 }
 
-export async function handleAction (eventPayload: ActionEventPayload) {
-    const { action, number } = eventPayload;
+export async function handleAction (ev: TriggerEventPayload) {
+    const { action, number } = ev;
     if (['review_requested', 'review_request_removed', 'closed', 'submitted'].includes(action)) { 
-        const cx = await createContext();
-        const { owner, name, slackAccounts } = cx;
-        const result = await queryPullRequest(cx.githubToken, { owner, name, number });
-        const message = await findMetadata(cx, number);
-        let ts = message?.ts;
-        const renderModel = { ...result, ...eventPayload, ts, ...cx };
+        const cx = await createActionContext();
+        const { owner, name } = cx;
+        const result = await queryActualPullRequest(cx.githubToken, { owner, name, number });
+        const message = await findSlackMessage(cx, number);
+        let ts = message?.ts; // So the message not found, ts is undefined.
+        const model = { ...cx, ...ev, ...result, ts };
         if (message) {
-            ts = await updatePullRequestInfo(cx, renderModel);
+            ts = await updatePullRequestInfo(cx, model);
         } else {
-            ts = await postPullRequestInfo(cx, renderModel);
+            ts = await postPullRequestInfo(cx, model);
         }
         if (ts) {
-            await postChangeLog(cx, ts, () => ChangeLog(renderModel));
+            await postChangeLog(cx, ts, () => ChangeLog(model));
         }
     }else {
-        core.info(`Unsupported trigger type: "${eventPayload.event}"`);
+        core.info(`Unsupported trigger action: ${ev.event} > "${action}"`);
     }
 }
 
@@ -117,12 +117,12 @@ export async function handleEvent () {
     if (eventName === 'pull_request') {
         const payload = github.context.payload as PullRequestReviewRequestedEvent;
         const number = payload.pull_request.number;
-        const reviewRequest = (payload.requested_reviewer) ? {
+        const reviewRequest = (payload.requested_reviewer) && {
             requestedReviewer: {
                 login: payload.requested_reviewer.login,
                 url: payload.requested_reviewer.html_url,
             },
-        } : undefined; // <- undefined when action is 'closed'
+        }; // <- undefined when action is 'closed'
         handleAction({ event: 'pull_request', action, number, reviewRequest });
     } else if (eventName === 'pull_request_review') {
         const payload = github.context.payload as PullRequestReviewEvent;
@@ -132,11 +132,12 @@ export async function handleEvent () {
                 login: payload.review.user.login,
                 url: payload.review.user.html_url,
             },
+            // Since it is uppercase in the definition of GitHub GraphQL, align it
             state: (payload.review.state).toUpperCase(),
             updatedAt: payload.review.submitted_at,
         };
         handleAction({ event: 'pull_request_review', action, number, review });
     } else {
-        core.info(`Unsupported trigger type: "${eventName}"`);
+        core.info(`Unsupported trigger event: "${eventName}"`);
     }
 }
