@@ -1,11 +1,7 @@
 # Mac
 .DS_Store
 
-# Dependency directories
-node_modules/
-
 # slack token for test
-token.json
 .env
 
 # PoC

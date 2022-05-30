@@ -4,11 +4,19 @@
         "target": "ES2021",
         "module": "CommonJS",
         "moduleResolution": "node",
-        "strict": true,
-        "esModuleInterop": true,
+        "outDir": "dist",
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
+        "noImplicitAny": true,
+        "strict": true,
+        "sourceMap": true,
         "jsx": "react-jsx",
         "jsxImportSource": "jsx-slack"
-    }
+    },
+    "exclude": [
+        "node_modules",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx"
+    ]
 }
