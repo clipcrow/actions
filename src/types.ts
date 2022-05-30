@@ -68,7 +68,7 @@ export interface QueryResult {
                 url: string;
             };
             baseRefName: string;
-            body: string;
+            body: string | null;
             changedFiles: number;
             commits: {
                 totalCount: number;

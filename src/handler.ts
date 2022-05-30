@@ -109,10 +109,21 @@ export async function queryActualPullRequest(token: string, vars: QueryVariables
     return await oktokit.graphql<QueryResult>(queryString, { ...vars });
 }
 
+function dumpSlackAccounts(cx: ActionContext) {
+    core.info('- cx.slackAccounts')
+    let count = 0;
+    for (const login in cx.slackAccounts) {
+        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
+        count += 1;
+    }
+    core.info(`    - (total ${count} accounts)`);
+}
+
 export async function handleAction (ev: TriggerEventPayload) {
     const { action, number } = ev;
     if (['closed', 'review_request_removed', 'review_requested', 'submitted'].includes(action)) {
         const cx = await createActionContext();
+        dumpSlackAccounts(cx);
         const { owner, name } = cx;
         const result = await queryActualPullRequest(cx.githubToken, { owner, name, number });
         const message = await findSlackMessage(cx, number);

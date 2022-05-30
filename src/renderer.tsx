@@ -126,17 +126,20 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
+const Description = (props: { text: string | null }) => (
+	props.text ? <Section>{props.text}</Section> : null
+);
+
 export const PullRequest = (props: RenderModel) => {
-	const { url, number, state, changedFiles } = props.repository.pullRequest;
-	// TODO: display workflow status.
+	const { url, number, state, changedFiles, body } = props.repository.pullRequest;
 	return (
 		<Blocks>
 			<Commits {...props}/>
 			<Header>{props.repository.pullRequest.title}</Header>
-			<Section>{props.repository.pullRequest.body}</Section>
+			<Description text={body}/>
 			<Section>
-				<Field><b>Pull Request <PullNumber url={url} number={number}/>:</b> {state}</Field>
-				<Field><b>Change Files:</b> {changedFiles}</Field>
+				<Field>Pull Request <PullNumber url={url} number={number}/>: <b>{state}</b></Field>
+				<Field>Change Files: <b>{changedFiles}</b></Field>
 			</Section>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
@@ -167,14 +170,14 @@ export const ReviewRequestedLog = (props: RenderModel) => {
 	return (
 		<Blocks>
 			<Context>
-				<b>{msg} requested review from<UserLink login={login} slack={slack}/></b>
+				<b>{msg} requested review from <UserLink login={login} slack={slack}/></b>
 			</Context>
 		</Blocks>
 	);
 };
 
 export const SubmittedLog = (props: RenderModel) => {
-	const { state, author: { login } } = props.review!;
+	const { state, author: { login }, body } = props.review!;
 	if (state !== 'APPROVED') {
 		return null;
 	}
@@ -187,6 +190,7 @@ export const SubmittedLog = (props: RenderModel) => {
 				<b> <UserLink login={login} slack={slack}/> approved <UserLink
 					login={authorLogin} slack={authorSlack}/>'s changes.</b>
 			</Context>
+			<Description text={body}/>
 		</Blocks>
 	);
 };
