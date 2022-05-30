@@ -6,7 +6,13 @@ const UserLink = (props: { login: string, slack?: string }) => (
 );
 
 const Commits = (props: RenderModel) => {
-	const { merged, commits: { totalCount }, author: { login }, baseRefName, headRefName } = props.repository.pullRequest;
+	const {
+		merged,
+		commits: { totalCount },
+		author: { login },
+		baseRefName,
+		headRefName,
+	} = props.repository.pullRequest;
 	const text = merged ? 'merged' : 'wants to merge';
 	const unit = totalCount < 2 ? 'commit' : 'commits';
 	return (
@@ -140,7 +146,19 @@ export const PullRequest = (props: RenderModel) => {
 	);
 };
 
-export const ChangeLog = (props: RenderModel) => (
+export const ClosedLog = (props: RenderModel) => (
+	<Blocks>
+		<Context>{props.action}</Context>
+	</Blocks>
+);
+
+export const ReviewRequestedLog = (props: RenderModel) => (
+	<Blocks>
+		<Context>{props.action}</Context>
+	</Blocks>
+);
+
+export const SubmittedLog = (props: RenderModel) => (
 	<Blocks>
 		<Context>{props.action}</Context>
 	</Blocks>

@@ -18,7 +18,7 @@ it can be operated without a server. The billing value increases each time the w
 but I decided to implement it as an action after considering the cost of preparing a server separately
 and the trouble of operation.
 
-Use Slack's metadata API to find messages to update. In this way, the channel is not wasted. 
+Use Slack's metadata API to find messages to update. In this way, the channel is not wasted.
 Fortunately, pull requests have a unique number, so I can simply use that as my search key.
 
 Store the bot tokens needed to use the Slack API in Github Secrets. However, as an Action,
@@ -36,7 +36,7 @@ I will write it in TypeScript, assuming the future of changing the location to
         - opened
             - Even if a review request is made at the same time as the PR opens, the events will occur separately.
         - **closed**
-            - When a pull request merges, the `pull_request` is automatically `closed`. 
+            - When a pull request merges, the `pull_request` is automatically `closed`.
             - with a conditional that checks the `merged` value of the event. also `merged_by`.
         - reopened
             - I don't know...
@@ -80,3 +80,14 @@ I will write it in TypeScript, assuming the future of changing the location to
         - include_all_metadata
         - oldest
         - latest
+
+### .env file
+
+```yml
+githubToken=ghp_abcdefghijklmnopqrstuvwxyz0123456789
+slackToken=xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
+slackChannel=C0123456789
+owner=your-login-account
+name=repository-name
+number=1
+```

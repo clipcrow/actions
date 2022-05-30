@@ -37,6 +37,7 @@ export interface Review {
         login: string;
         url: string;
     };
+    body: string | null;
     state: string, // 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
     updatedAt: string;
 }

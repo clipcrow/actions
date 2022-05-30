@@ -1,7 +1,11 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
+import dotenv from 'dotenv';
 
-import { createActionContext, handleEvent } from './handler';
+import { createActionContext, queryActualPullRequest, handleEvent } from './handler';
+
+jest.setTimeout(5000 * 30);
+const env = dotenv.config();
 
 test('check files', () => {
     const submitted = require('./event/pull_request_review.submitted.json');
@@ -40,6 +44,20 @@ test('createActionContext', async () => {
 
     spy.mockRestore();
 });
+
+test('queryActualPullRequest', async () => {
+    const variables = {
+        owner: env.parsed!.owner,
+        name: env.parsed!.name,
+        number: parseInt(env.parsed!.number),
+    };
+    const result = await queryActualPullRequest(env.parsed!.githubToken, variables);
+    expect(result.repository.owner.login).toEqual(variables.owner);
+    expect(result.repository.name).toEqual(variables.name);
+    expect(result.repository.pullRequest.number).toEqual(variables.number);
+
+    // console.dir(result, { depth: null });
+})
 
 test('handleEvent', async () => {
     github.context.eventName = 'push';

@@ -2,11 +2,29 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 
-import { findSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
-import { ChangeLog } from './renderer';
+import {
+    findSlackMessage,
+    postPullRequestInfo,
+    updatePullRequestInfo,
+    postChangeLog,
+} from './notifier';
+import {
+    ClosedLog,
+    ReviewRequestedLog,
+    SubmittedLog,
+} from './renderer';
 
-import type { PullRequestReviewRequestedEvent, PullRequestReviewEvent } from '@octokit/webhooks-definitions/schema';
-import type { SlackAccounts, ActionContext, QueryVariables, QueryResult, TriggerEventPayload } from './types';
+import type {
+    PullRequestReviewRequestedEvent,
+    PullRequestReviewEvent,
+} from '@octokit/webhooks-definitions/schema';
+import type {
+    SlackAccounts,
+    ActionContext,
+    QueryVariables,
+    QueryResult,
+    TriggerEventPayload,
+} from './types';
 
 export async function createActionContext(): Promise<ActionContext> {
     const owner = github.context.repo.owner;
@@ -25,7 +43,7 @@ export async function createActionContext(): Promise<ActionContext> {
         slackToken,
         slackChannel,
         slackAccounts,
-    };    
+    };
 }
 
 export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult> {
@@ -73,6 +91,7 @@ export async function queryActualPullRequest(token: string, vars: QueryVariables
                             login
                             url
                         }
+                        body
                         state
                         updatedAt
                         }
@@ -92,7 +111,7 @@ export async function queryActualPullRequest(token: string, vars: QueryVariables
 
 export async function handleAction (ev: TriggerEventPayload) {
     const { action, number } = ev;
-    if (['review_requested', 'review_request_removed', 'closed', 'submitted'].includes(action)) { 
+    if (['closed', 'review_request_removed', 'review_requested', 'submitted'].includes(action)) {
         const cx = await createActionContext();
         const { owner, name } = cx;
         const result = await queryActualPullRequest(cx.githubToken, { owner, name, number });
@@ -105,7 +124,13 @@ export async function handleAction (ev: TriggerEventPayload) {
             ts = await postPullRequestInfo(cx, model);
         }
         if (ts) {
-            await postChangeLog(cx, ts, () => ChangeLog(model));
+            if (action === 'closed') {
+                await postChangeLog(cx, ts, () => ClosedLog(model));
+            } else if (['review_requested', 'review_request_removed'].includes(action)) {
+                await postChangeLog(cx, ts, () => ReviewRequestedLog(model));
+            } else if (action === 'submitted') {
+                await postChangeLog(cx, ts, () => SubmittedLog(model));
+            }
         }
     }else {
         core.info(`Unsupported trigger action: ${ev.event} > "${action}"`);
@@ -132,6 +157,7 @@ export async function handleEvent () {
                 login: payload.review.user.login,
                 url: payload.review.user.html_url,
             },
+            body: payload.review.body,
             // Since it is uppercase in the definition of GitHub GraphQL, align it
             state: (payload.review.state).toUpperCase(),
             updatedAt: payload.review.submitted_at,

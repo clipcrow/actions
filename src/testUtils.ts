@@ -54,6 +54,7 @@ export const sampleRenderModel: RenderModel = {
                                 login: "someone",
                                 url: "https://github.com/someone"
                             },
+                            body: 'LGTM',
                             state: "CHANGES_REQUESTED",
                             updatedAt: "2022-05-27T07:00:51Z"
                         }
@@ -64,6 +65,7 @@ export const sampleRenderModel: RenderModel = {
                                 login: "another",
                                 url: "https://github.com/another"
                             },
+                            body: '',
                             state: "CHANGES_REQUESTED",
                             updatedAt: "2022-05-27T09:23:28Z"
                         }
@@ -74,6 +76,7 @@ export const sampleRenderModel: RenderModel = {
                                 login: "someone",
                                 url: "https://github.com/someone"
                             },
+                            body: '',
                             state: "APPROVED",
                             updatedAt: "2022-05-29T10:07:44Z"
                         }

@@ -7,7 +7,10 @@ import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from '.
 
 const METADATA_EVENT_TYPE = 'prnotifier';
 
-export async function findSlackMessage(cx: ActionContext, number: number): Promise<SlackMessage | undefined> {
+export async function findSlackMessage(
+    cx: ActionContext,
+    number: number,
+): Promise<SlackMessage | undefined> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -22,9 +25,10 @@ export async function findSlackMessage(cx: ActionContext, number: number): Promi
                 // check type of application
                 if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
                 // check the pull request
-                if (slackMessage.metadata.event_payload.owner !== cx.owner) break;
-                if (slackMessage.metadata.event_payload.name !== cx.name) break;
-                if (slackMessage.metadata.event_payload.number == number) {
+                const { event_payload } = slackMessage.metadata;
+                if (event_payload.owner !== cx.owner) break;
+                if (event_payload.name !== cx.name) break;
+                if (event_payload.number === number) {
                     return slackMessage;
                 }
             }
@@ -33,9 +37,16 @@ export async function findSlackMessage(cx: ActionContext, number: number): Promi
     return undefined;
 }
 
-export async function postPullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
+export async function postPullRequestInfo(
+    cx: ActionContext,
+    model: RenderModel,
+): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
-    const event_payload: QueryVariables = { owner: model.owner, name: model.name, number: model.number };
+    const event_payload: QueryVariables = {
+        owner: model.owner,
+        name: model.name,
+        number: model.number,
+    };
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
         text: 'PRNotifier posted this message.',
@@ -51,10 +62,17 @@ export async function postPullRequestInfo(cx: ActionContext, model: RenderModel)
     console.error(result.error);
 }
 
-export async function updatePullRequestInfo(cx: ActionContext, model: RenderModel): Promise<string | undefined> {
+export async function updatePullRequestInfo(
+    cx: ActionContext,
+    model: RenderModel,
+): Promise<string | undefined> {
     if (model.ts) {
         const client = new WebClient(cx.slackToken);
-        const event_payload: QueryVariables = { owner: model.owner, name: model.name, number: model.number };
+        const event_payload: QueryVariables = {
+            owner: model.owner,
+            name: model.name,
+            number: model.number,
+        };
         const result = await client.chat.update({
             channel: cx.slackChannel,
             text: 'PRNotifier updated this message.',
@@ -73,7 +91,11 @@ export async function updatePullRequestInfo(cx: ActionContext, model: RenderMode
     return await postPullRequestInfo(cx, model);
 }
 
-export async function postChangeLog(cx: ActionContext, ts: string, log: () => JSX.Element): Promise<string | undefined> {
+export async function postChangeLog(
+    cx: ActionContext,
+    ts: string,
+    log: () => JSX.Element,
+): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
