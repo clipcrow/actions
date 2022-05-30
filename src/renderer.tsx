@@ -8,18 +8,21 @@ const UserLink = (props: { login: string, slack?: string }) => (
 const Commits = (props: RenderModel) => {
 	const {
 		merged,
+		state,
 		commits: { totalCount },
+		changedFiles,
 		author: { login },
 		baseRefName,
 		headRefName,
 	} = props.repository.pullRequest;
-	const text = merged ? 'merged' : 'wants to merge';
-	const unit = totalCount < 2 ? 'commit' : 'commits';
+	const text = merged ? ' merged' : ' wants to merge';
+	const commitUnit = totalCount < 2 ? 'commit' : 'commits';
+	const changeUnit = changedFiles < 2 ? 'change' : 'changes';
 	return (
 		<Context>
 			<span>
-				<UserLink login={login} slack={props.slackAccounts[login]} />
-				{` ${text} ${totalCount} ${unit} into `}
+				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]} />
+				{` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `}
 				<code>{baseRefName}</code> from <code>{headRefName}</code>
 			</span>
 		</Context>
@@ -131,16 +134,13 @@ const Description = (props: { text: string | null }) => (
 );
 
 export const PullRequest = (props: RenderModel) => {
-	const { url, number, state, changedFiles, body } = props.repository.pullRequest;
+	const { url, number, body } = props.repository.pullRequest;
 	return (
 		<Blocks>
 			<Commits {...props}/>
 			<Header>{props.repository.pullRequest.title}</Header>
+			<Context><PullNumber url={url} number={number}/></Context>
 			<Description text={body}/>
-			<Section>
-				<Field>Pull Request <PullNumber url={url} number={number}/>: <b>{state}</b></Field>
-				<Field>Change Files: <b>{changedFiles}</b></Field>
-			</Section>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
 			<Repository {...props}/>
