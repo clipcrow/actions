@@ -98,14 +98,14 @@ const ReviewRequestedLog = (props) => {
 };
 exports.ReviewRequestedLog = ReviewRequestedLog;
 const SubmittedLog = (props) => {
-    const { state, author: { login } } = props.review;
+    const { state, author: { login }, body } = props.review;
     if (state !== 'APPROVED') {
         return null;
     }
     const slack = props.slackAccounts[login];
     const authorLogin = props.repository.pullRequest.author.login;
     const authorSlack = props.slackAccounts[authorLogin];
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }) }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
 };
 exports.SubmittedLog = SubmittedLog;
 //# sourceMappingURL=renderer.js.map
