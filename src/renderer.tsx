@@ -146,20 +146,47 @@ export const PullRequest = (props: RenderModel) => {
 	);
 };
 
-export const ClosedLog = (props: RenderModel) => (
-	<Blocks>
-		<Context>{props.action}</Context>
-	</Blocks>
-);
+export const ClosedLog = (props: RenderModel) => {
+	const { merged } = props.repository.pullRequest;
+	if (!merged) {
+		return null;
+	}
+	return (
+		<Blocks>
+			<Context>
+				<b>This pull request was closed {merged ? 'and was merged' : 'without merge'}</b>
+			</Context>
+		</Blocks>
+	);
+};
 
-export const ReviewRequestedLog = (props: RenderModel) => (
-	<Blocks>
-		<Context>{props.action}</Context>
-	</Blocks>
-);
+export const ReviewRequestedLog = (props: RenderModel) => {
+	const { login } = props.reviewRequest!.requestedReviewer;
+	const slack = props.slackAccounts[login];
+	const msg = props.action === 'review_requested' ? 'Awaiting' : 'Removed';
+	return (
+		<Blocks>
+			<Context>
+				<b>{msg} requested review from<UserLink login={login} slack={slack}/></b>
+			</Context>
+		</Blocks>
+	);
+};
 
-export const SubmittedLog = (props: RenderModel) => (
-	<Blocks>
-		<Context>{props.action}</Context>
-	</Blocks>
-);
+export const SubmittedLog = (props: RenderModel) => {
+	const { state, author: { login } } = props.review!;
+	if (state !== 'APPROVED') {
+		return null;
+	}
+	const slack = props.slackAccounts[login];
+	const authorLogin = props.repository.pullRequest.author.login;
+	const authorSlack = props.slackAccounts[authorLogin];
+	return (
+		<Blocks>
+			<Context>
+				<b> <UserLink login={login} slack={slack}/> approved <UserLink
+					login={authorLogin} slack={authorSlack}/>'s changes.</b>
+			</Context>
+		</Blocks>
+	);
+};

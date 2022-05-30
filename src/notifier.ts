@@ -94,17 +94,20 @@ export async function updatePullRequestInfo(
 export async function postChangeLog(
     cx: ActionContext,
     ts: string,
-    log: () => JSX.Element,
+    log: () => JSX.Element | null,
 ): Promise<string | undefined> {
-    const client = new WebClient(cx.slackToken);
-    const result = await client.chat.postMessage({
-        channel: cx.slackChannel,
-        text: 'PRNotifier posted this change log.',
-        blocks: JSXSlack(log()),
-        thread_ts: ts,
-    });
-    if (result.ok) {
-        return result.ts;
+    const blocks = log();
+    if (blocks) {
+        const client = new WebClient(cx.slackToken);
+        const result = await client.chat.postMessage({
+            channel: cx.slackChannel,
+            text: 'PRNotifier posted this change log.',
+            blocks: JSXSlack(blocks),
+            thread_ts: ts,
+        });
+        if (result.ok) {
+            return result.ts;
+        }
+        console.log(result.error);
     }
-    console.log(result.error);
 }
