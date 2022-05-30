@@ -1,40 +1,41 @@
 import { Blocks, Context, Divider, Field, Fragment, Header, Section } from 'jsx-slack';
-import type { RenderModel } from './types';
+import type { SlackAccounts, RenderModel } from './types';
 
 const UserLink = (props: { login: string, slackAccount?: string }) => (
 	props.slackAccount ? <a href={`@${props.slackAccount}`} /> : <i>props.login</i>
 );
 
 const Commits = (props: RenderModel) => {
-	const text = props.repository.pullRequest.merged ? 'merged' : 'wants to merge';
-	const commits = props.repository.pullRequest.commits.totalCount < 2 ? 'commit' : 'commits';
+	const { merged, commits: { totalCount }, author: { login }, baseRefName, headRefName } = props.repository.pullRequest;
+	const text = merged ? 'merged' : 'wants to merge';
+	const unit = totalCount < 2 ? 'commit' : 'commits';
 	return (
 		<Context>
 			<span>
-				<UserLink {...props.repository.pullRequest.author} /> // slackアカウントを取得する
-				{` ${text} ${props.repository.pullRequest.commits} ${commits} into `}
-				<code>{props.repository.pullRequest.baseRefName}</code> from <code>{props.repository.pullRequest.headRefName}</code>
+				<UserLink login={login} slackAccount={props.slackAccounts[login]} />
+				{` ${text} ${totalCount} ${unit} into `}
+				<code>{baseRefName}</code> from <code>{headRefName}</code>
 			</span>
 		</Context>
 	);
 }
 
-const StatusSection = (props: { ok: boolean, text: string }) => (
-	<Section>{ props.ok ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
+const StatusSection = (props: { test: boolean, text: string }) => (
+	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: { [login: string]: string } }) => {
+const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: SlackAccounts }) => {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
 	}
-	const postfix = count > 1 ? 'reviewers' : 'reviewer';
+	const unit = count > 1 ? 'reviewers' : 'reviewer';
 	return (
 		<Context>
-			<span>&gt; {`${count} ${props.text} ${postfix}`}</span>
+			<span>&gt; {`${count} ${props.text} ${unit}`}</span>
 			{
-				props.reviewers.map((reviewer) => {
-					return <span><UserLink login={reviewer} slackAccount={props.slackAccounts[reviewer]}/></span>
+				props.reviewers.map((login) => {
+					return <span><UserLink login={login} slackAccount={props.slackAccounts[login]}/></span>
 				})
 			}
 		</Context>
@@ -70,71 +71,65 @@ const Approvals = (props: RenderModel) => {
 	}
 */
 
-	const ok = pendings.length == 0 && approvals.length > 0;
+	const test = pendings.length == 0 && approvals.length > 0;
 	const totalCount = pendings.length + approvals.length;
 
 	return (
 		<Fragment>
-			<StatusSection ok={ok} text={ok ? approved : (totalCount > 0 ? requested : no_review)}/>
+			<StatusSection test={test} text={test ? approved : (totalCount > 0 ? requested : no_review)}/>
 			<Reviewers reviewers={approvals} text='approved' slackAccounts={props.slackAccounts}/>
 			<Reviewers reviewers={pendings} text='pending' slackAccounts={props.slackAccounts}/>
 		</Fragment>
 	);
 }
 
+const no_conflicts = 'This branch has no conflicts with the base branch';
+const must_be_resolved = 'This branch has conflicts that must be resolved';
+
 const Conflicts = (props: RenderModel) => {
-	if (props.repository.pullRequest.state == 'closed') {
-		return null;
+	const { state, mergeable, merged } = props.repository.pullRequest;
+	if (state !== 'OPEN') {
+		const text = merged ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
+		return (<StatusSection test={merged} text={text}/>);
 	}
-	const no_conflicts = 'This branch has no conflicts with the base branch';
-	const must_be_resolved = 'This branch has conflicts that must be resolved';
-	const mergeable = props.repository.pullRequest.mergeable == 'MERGEABLE';
-	return <StatusSection ok={mergeable} text={mergeable ? no_conflicts : must_be_resolved}/>
+	const test = mergeable === 'MERGEABLE';
+	return <StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>
 }
 
-const Merged = (props: RenderModel) => {
-	if (props.repository.pullRequest.state == 'closed') {
-		const ok = props.repository.pullRequest.merged;
-		const text = ok ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
-		return (<StatusSection ok={ok} text={text}/>);
-	}
-	return null;
-}
-
-const PullRequestNumber = (props: { url: string, number: number }) => (
+const PullNumber = (props: { url: string, number: number }) => (
 	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
 );
 
 const Repository = (props: RenderModel) => {
-	const { name, url, owner } = props.repository;
-	const repo_info = (
-		<Fragment>
-			<a href={owner.url}>{owner.login}</a> &gt; <a href={url}>{name}</a>
-		</Fragment>
+	const { name, url, owner, pullRequest } = props.repository;
+	const repo = (
+		<Fragment>See github.com &gt; <a href={owner.url}>{owner.login}</a> &gt; <a href={url}>{name}</a></Fragment>
 	);
 	return (
 		<Context>
-			<span>See github.com &gt; {repo_info} &gt; pull &gt; <PullRequestNumber {...props.repository.pullRequest}/></span>
+			<span>{repo} &gt; pull &gt; <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
 		</Context>
 	);
 }
 
-export const PullRequest = (props: RenderModel) => (
-	<Blocks>
-		<Commits {...props}/>
-		<Header>{props.repository.pullRequest.title}</Header>
-		<Section>{props.repository.pullRequest.body}</Section>
-		<Section>
-			<Field><b>Pull Request <PullRequestNumber {...props.repository.pullRequest}/>:</b> {props.repository.pullRequest.state}</Field>
-			<Field><b>Change Files:</b> {props.repository.pullRequest.changedFiles}</Field>
-		</Section>
-		<Approvals {...props}/>
-		<Conflicts {...props}/>
-		<Merged {...props}/>
-		<Repository {...props}/>
-		<Divider/>
-	</Blocks>
-);
+export const PullRequest = (props: RenderModel) => {
+	const { url, number, state, changedFiles } = props.repository.pullRequest;
+	return (
+		<Blocks>
+			<Commits {...props}/>
+			<Header>{props.repository.pullRequest.title}</Header>
+			<Section>{props.repository.pullRequest.body}</Section>
+			<Section>
+				<Field><b>Pull Request <PullNumber url={url} number={number}/>:</b> {state}</Field>
+				<Field><b>Change Files:</b> {changedFiles}</Field>
+			</Section>
+			<Approvals {...props}/>
+			<Conflicts {...props}/>
+			<Repository {...props}/>
+			<Divider/>
+		</Blocks>
+	);
+};
 
 export const ChangeLog = (props: RenderModel) => (
 	<Blocks>
