@@ -79,7 +79,7 @@ const Repository = (props) => {
 const PullRequest = (props) => {
     const { url, number, state, changedFiles } = props.repository.pullRequest;
     // TODO: display workflow status.
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title })] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: props.repository.pullRequest.body })] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
