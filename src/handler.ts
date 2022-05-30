@@ -138,7 +138,7 @@ export async function handleAction (ev: TriggerEventPayload) {
 }
 
 export async function handleEvent () {
-    const { eventName, action } = github.context;
+    const { eventName, payload: { action } } = github.context;
     if (eventName === 'pull_request') {
         const payload = github.context.payload as PullRequestReviewRequestedEvent;
         const number = payload.pull_request.number;
@@ -148,7 +148,7 @@ export async function handleEvent () {
                 url: payload.requested_reviewer.html_url,
             },
         }; // <- undefined when action is 'closed'
-        handleAction({ event: 'pull_request', action, number, reviewRequest });
+        handleAction({ event: 'pull_request', action: action || '', number, reviewRequest });
     } else if (eventName === 'pull_request_review') {
         const payload = github.context.payload as PullRequestReviewEvent;
         const number = payload.pull_request.number;
@@ -162,7 +162,7 @@ export async function handleEvent () {
             state: (payload.review.state).toUpperCase(),
             updatedAt: payload.review.submitted_at,
         };
-        handleAction({ event: 'pull_request_review', action, number, review });
+        handleAction({ event: 'pull_request_review', action: action || '', number, review });
     } else {
         core.info(`Unsupported trigger event: "${eventName}"`);
     }
