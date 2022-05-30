@@ -5,10 +5,11 @@ const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
 const Commits = (props) => {
-    const { merged, commits: { totalCount }, author: { login }, baseRefName, headRefName, } = props.repository.pullRequest;
-    const text = merged ? 'merged' : 'wants to merge';
-    const unit = totalCount < 2 ? 'commit' : 'commits';
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [(0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${unit} into `, (0, jsx_runtime_1.jsx)("code", { children: baseRefName }), " from ", (0, jsx_runtime_1.jsx)("code", { children: headRefName })] }) }));
+    const { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName, headRefName, } = props.repository.pullRequest;
+    const text = merged ? ' merged' : ' wants to merge';
+    const commitUnit = totalCount < 2 ? 'commit' : 'commits';
+    const changeUnit = changedFiles < 2 ? 'change' : 'changes';
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["[", (0, jsx_runtime_1.jsx)("b", { children: state }), "] ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `, (0, jsx_runtime_1.jsx)("code", { children: baseRefName }), " from ", (0, jsx_runtime_1.jsx)("code", { children: headRefName })] }) }));
 };
 const StatusSection = (props) => ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [props.test ? ':large_green_circle:' : ':red_circle:', " ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }));
 const Reviewers = (props) => {
@@ -78,8 +79,8 @@ const Repository = (props) => {
 };
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: props.text }) : null);
 const PullRequest = (props) => {
-    const { url, number, state, changedFiles, body } = props.repository.pullRequest;
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [(0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: ["Pull Request ", (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }), ": ", (0, jsx_runtime_1.jsx)("b", { children: state })] }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: ["Change Files: ", (0, jsx_runtime_1.jsx)("b", { children: changedFiles })] })] }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
+    const { url, number, body } = props.repository.pullRequest;
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
