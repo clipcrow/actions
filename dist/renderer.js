@@ -94,7 +94,7 @@ const ReviewRequestedLog = (props) => {
     const { login } = props.reviewRequest.requestedReviewer;
     const slack = props.slackAccounts[login];
     const msg = props.action === 'review_requested' ? 'Awaiting' : 'Removed';
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [msg, " requested review from", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack })] }) }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [msg, " requested review from ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack })] }) }) }));
 };
 exports.ReviewRequestedLog = ReviewRequestedLog;
 const SubmittedLog = (props) => {
