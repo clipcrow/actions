@@ -1,6 +1,5 @@
 import { WebClient } from '@slack/web-api';
-import { JSXSlack } from 'jsx-slack';
-import { JSX } from 'jsx-slack/jsx-runtime';
+import type { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
 import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from './types';
@@ -50,7 +49,7 @@ export async function postPullRequestInfo(
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
         text: 'PRNotifier posted this message.',
-        blocks: JSXSlack(PullRequest(model)),
+        blocks: PullRequest(model) as any,
         metadata: {
             event_type: METADATA_EVENT_TYPE,
             event_payload,
@@ -76,7 +75,7 @@ export async function updatePullRequestInfo(
         const result = await client.chat.update({
             channel: cx.slackChannel,
             text: 'PRNotifier updated this message.',
-            blocks: JSXSlack(PullRequest(model)),
+            blocks: PullRequest(model) as any,
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
                 event_payload,
@@ -102,7 +101,7 @@ export async function postChangeLog(
         const result = await client.chat.postMessage({
             channel: cx.slackChannel,
             text: 'PRNotifier posted this change log.',
-            blocks: JSXSlack(blocks),
+            blocks: blocks as any,
             thread_ts: ts,
         });
         if (result.ok) {
