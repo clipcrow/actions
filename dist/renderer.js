@@ -76,10 +76,10 @@ const Repository = (props) => {
     const repo = ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: ["See github.com > ", (0, jsx_runtime_1.jsx)("a", { href: owner.url, children: owner.login }), " > ", (0, jsx_runtime_1.jsx)("a", { href: url, children: name })] }));
     return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " > pull > ", (0, jsx_runtime_1.jsx)(PullNumber, { url: pullRequest.url, number: pullRequest.number })] }) }));
 };
+const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: props.text }) : null);
 const PullRequest = (props) => {
-    const { url, number, state, changedFiles } = props.repository.pullRequest;
-    // TODO: display workflow status.
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [(0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: [(0, jsx_runtime_1.jsxs)("b", { children: ["Pull Request ", (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }), ":"] }), " ", state] }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: [(0, jsx_runtime_1.jsx)("b", { children: "Change Files:" }), " ", changedFiles] })] }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
+    const { url, number, state, changedFiles, body } = props.repository.pullRequest;
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [(0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: ["Pull Request ", (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }), ": ", (0, jsx_runtime_1.jsx)("b", { children: state })] }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Field, { children: ["Change Files: ", (0, jsx_runtime_1.jsx)("b", { children: changedFiles })] })] }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
