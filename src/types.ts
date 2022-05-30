@@ -49,7 +49,7 @@ export interface TriggerEventPayload {
     review?: Review;
 }
 
-interface Connection<T> {
+export interface Connection<T> {
     totalCount: number;
     edges: { node: T }[];
 }
@@ -86,4 +86,5 @@ export interface QueryResult {
     }
 }
 
-export type RenderModel = Omit<ActionContext, 'githubToken' | 'slackToken'> & TriggerEventPayload & QueryResult & { ts?: string };
+export type RenderModel = Omit<ActionContext, 'githubToken' | 'slackToken' | 'slackChannel'> &
+    TriggerEventPayload & QueryResult & { ts?: string };

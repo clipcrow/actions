@@ -1,8 +1,8 @@
 import { Blocks, Context, Divider, Field, Fragment, Header, Section } from 'jsx-slack';
-import type { SlackAccounts, RenderModel } from './types';
+import type { SlackAccounts, Connection, ReviewRequest, Review, RenderModel } from './types';
 
-const UserLink = (props: { login: string, slackAccount?: string }) => (
-	props.slackAccount ? <a href={`@${props.slackAccount}`} /> : <i>props.login</i>
+const UserLink = (props: { login: string, slack?: string }) => (
+	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
 const Commits = (props: RenderModel) => {
@@ -12,7 +12,7 @@ const Commits = (props: RenderModel) => {
 	return (
 		<Context>
 			<span>
-				<UserLink login={login} slackAccount={props.slackAccounts[login]} />
+				<UserLink login={login} slack={props.slackAccounts[login]} />
 				{` ${text} ${totalCount} ${unit} into `}
 				<code>{baseRefName}</code> from <code>{headRefName}</code>
 			</span>
@@ -35,48 +35,54 @@ const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: Sl
 			<span>&gt; {`${count} ${props.text} ${unit}`}</span>
 			{
 				props.reviewers.map((login) => {
-					return <span><UserLink login={login} slackAccount={props.slackAccounts[login]}/></span>
+					return <span><UserLink login={login} slack={props.slackAccounts[login]}/></span>
 				})
 			}
 		</Context>
 	);
 }
 
+export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>):
+	{ pendings: string[], approvals: string[] }
+{
+	const pendings: string[] = req.edges.map((edge) => {
+		return edge.node.requestedReviewer.login;
+	});
+	const submitters = rv.edges.reduce<{ [login: string]: string }>((previous, current) => {
+        const { author: { login }, state } = current.node;
+        if (pendings.includes(login)) {
+            return previous;
+        }
+        return { ...previous, [login]: state };
+	}, {});
+    const approvals: string[] = [];
+    for (const login in submitters) {
+        if (submitters[login] === 'APPROVED') {
+            approvals.push(login);
+        } else {
+            pendings.push(login);
+        }
+    }
+	return { pendings, approvals };
+}
+
+const pr_approved = 'Changes approved';
+const rv_requested = 'Review requested';
+const no_review = 'No requested review';
+
 const Approvals = (props: RenderModel) => {
-	const { state } = props.repository.pullRequest;
-	if (state == 'CLOSED' || state == 'MERGED') {
+	const { state, reviewRequests, reviews } = props.repository.pullRequest;
+	if (state !== 'OPEN') {
 		return null;
 	}
-	const approved = 'Changes approved';
-	const requested = 'Review requested';
-	const no_review = 'No requested review';
 
-	const approvals: string[] = [];  
-	const pendings: string[] = [];
-
-/*
-
-
-
-	// TODO: レビュワーの集約をおこなう。reviewsとrequestedReviewersを計算する。
-
-	
-
-	for (const reviewer of props.repository.pullRequest.requested_reviewers) {
-		if (reviewer.approved) {
-			approvals.push(reviewer);
-		} else {
-			pendings.push(reviewer);
-		}
-	}
-*/
-
+	const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
 	const test = pendings.length == 0 && approvals.length > 0;
 	const totalCount = pendings.length + approvals.length;
 
 	return (
 		<Fragment>
-			<StatusSection test={test} text={test ? approved : (totalCount > 0 ? requested : no_review)}/>
+			<StatusSection test={test} text={test ? pr_approved : (totalCount > 0 ? rv_requested : no_review)}/>
 			<Reviewers reviewers={approvals} text='approved' slackAccounts={props.slackAccounts}/>
 			<Reviewers reviewers={pendings} text='pending' slackAccounts={props.slackAccounts}/>
 		</Fragment>
@@ -85,11 +91,13 @@ const Approvals = (props: RenderModel) => {
 
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
+const already_merged = 'The merge has already been completed.'
+const closed_without_merge = 'This pull request have been closed without merge.';
 
 const Conflicts = (props: RenderModel) => {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state !== 'OPEN') {
-		const text = merged ? 'The merge has already been completed.' : 'This pull request have been closed without merge.';
+		const text = merged ? already_merged  : closed_without_merge;
 		return (<StatusSection test={merged} text={text}/>);
 	}
 	const test = mergeable === 'MERGEABLE';
@@ -114,6 +122,7 @@ const Repository = (props: RenderModel) => {
 
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, state, changedFiles } = props.repository.pullRequest;
+	// TODO: display workflow status.
 	return (
 		<Blocks>
 			<Commits {...props}/>
