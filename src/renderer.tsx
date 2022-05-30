@@ -1,8 +1,8 @@
 import { Blocks, Context, Divider, Field, Fragment, Header, Section } from 'jsx-slack';
 import type { RenderModel } from './types';
 
-const UserLink = (props: { login: string, slack?: string }) => (
-	props.slack ? <a href={`@${props.slack}`} /> : <i>props.login</i>
+const UserLink = (props: { login: string, slackAccount?: string }) => (
+	props.slackAccount ? <a href={`@${props.slackAccount}`} /> : <i>props.login</i>
 );
 
 const Commits = (props: RenderModel) => {
@@ -34,7 +34,7 @@ const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: { 
 			<span>&gt; {`${count} ${props.text} ${postfix}`}</span>
 			{
 				props.reviewers.map((reviewer) => {
-					return <span><UserLink login={reviewer} slack={props.slackAccounts[reviewer]}/></span>
+					return <span><UserLink login={reviewer} slackAccount={props.slackAccounts[reviewer]}/></span>
 				})
 			}
 		</Context>
