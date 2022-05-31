@@ -8,14 +8,7 @@ jest.setTimeout(5000 * 30);
 const env = dotenv.config();
 
 test('check files', () => {
-    const submitted = require('./event/pull_request_review.submitted.json');
-    const closed = require('./event/pull_request.closed.json');
-    const removed = require('./event/pull_request.review_request_removed.json');
     const requested = require('./event/pull_request.review_requested.json');
-
-    expect(submitted.pull_request.number).toBe(1);
-    expect(closed.pull_request.number).toBe(1);
-    expect(removed.pull_request.number).toBe(1);
     expect(requested.pull_request.number).toBe(1);
 })
 
