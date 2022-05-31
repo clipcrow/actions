@@ -5,16 +5,25 @@ const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
+const BranchLink = (props: { url: string, ref: string }) => (
+	<code>
+		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
+	</code>
+);
+
 const Commits = (props: RenderModel) => {
 	const {
-		merged,
-		state,
-		commits: { totalCount },
-		changedFiles,
-		author: { login },
-		baseRefName,
-		headRefName,
-	} = props.repository.pullRequest;
+		url,
+		pullRequest: {
+			merged,
+			state,
+			commits: { totalCount },
+			changedFiles,
+			author: { login },
+			baseRefName,
+			headRefName,
+		}
+	} = props.repository;
 	const text = merged ? ' merged' : ' wants to merge';
 	const commitUnit = totalCount < 2 ? 'commit' : 'commits';
 	const changeUnit = changedFiles < 2 ? 'change' : 'changes';
@@ -23,7 +32,7 @@ const Commits = (props: RenderModel) => {
 			<span>
 				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]} />
 				{` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `}
-				<code>{baseRefName}</code> from <code>{headRefName}</code>
+				<BranchLink url={url} ref={baseRefName}/> from <BranchLink url={url} ref={headRefName}/>
 			</span>
 		</Context>
 	);
