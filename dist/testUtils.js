@@ -91,4 +91,3 @@ exports.sampleRenderModel = {
         url: "https://github.com/someone/test"
     }
 };
-//# sourceMappingURL=testUtils.js.map

@@ -5,7 +5,7 @@ import type { JSX } from 'jsx-slack/jsx-runtime';
 import { PullRequest } from './renderer';
 import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from './types';
 
-const METADATA_EVENT_TYPE = 'pr-notify';
+const METADATA_EVENT_TYPE = 'pull-request-notify';
 
 export async function findSlackMessage(
     cx: ActionContext,
@@ -49,7 +49,7 @@ export async function postPullRequestInfo(
     };
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
-        text: 'pr-notify posted this message.',
+        text: 'pull-request-notify posted this message.',
         blocks: JSXSlack(PullRequest(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
@@ -75,7 +75,7 @@ export async function updatePullRequestInfo(
         };
         const result = await client.chat.update({
             channel: cx.slackChannel,
-            text: 'pr-notify updated this message.',
+            text: 'pull-request-notify updated this message.',
             blocks: JSXSlack(PullRequest(model)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
@@ -101,7 +101,7 @@ export async function postChangeLog(
         const client = new WebClient(cx.slackToken);
         const result = await client.chat.postMessage({
             channel: cx.slackChannel,
-            text: 'pr-notify posted this change log.',
+            text: 'pull-request-notify posted this change log.',
             blocks: JSXSlack(blocks),
             thread_ts: ts,
         });
