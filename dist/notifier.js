@@ -4,7 +4,7 @@ exports.postChangeLog = exports.updatePullRequestInfo = exports.postPullRequestI
 const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
-const METADATA_EVENT_TYPE = 'prnotifier';
+const METADATA_EVENT_TYPE = 'pr-notify';
 async function findSlackMessage(cx, number) {
     // Search for messages on the channel to get metadata.
     const client = new web_api_1.WebClient(cx.slackToken);
@@ -44,7 +44,7 @@ async function postPullRequestInfo(cx, model) {
     };
     const result = await client.chat.postMessage({
         channel: cx.slackChannel,
-        text: 'PRNotifier posted this message.',
+        text: 'pr-notify posted this message.',
         blocks: (0, jsx_slack_1.JSXSlack)((0, renderer_1.PullRequest)(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
@@ -67,7 +67,7 @@ async function updatePullRequestInfo(cx, model) {
         };
         const result = await client.chat.update({
             channel: cx.slackChannel,
-            text: 'PRNotifier updated this message.',
+            text: 'pr-notify updated this message.',
             blocks: (0, jsx_slack_1.JSXSlack)((0, renderer_1.PullRequest)(model)),
             metadata: {
                 event_type: METADATA_EVENT_TYPE,
@@ -89,7 +89,7 @@ async function postChangeLog(cx, ts, log) {
         const client = new web_api_1.WebClient(cx.slackToken);
         const result = await client.chat.postMessage({
             channel: cx.slackChannel,
-            text: 'PRNotifier posted this change log.',
+            text: 'pr-notify posted this change log.',
             blocks: (0, jsx_slack_1.JSXSlack)(blocks),
             thread_ts: ts,
         });

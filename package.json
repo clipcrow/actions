@@ -1,6 +1,6 @@
 {
     "name": "actions",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Pull Request notifier over the Github Actions",
     "main": "dist/index.js",
     "scripts": {
