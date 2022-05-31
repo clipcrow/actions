@@ -106,7 +106,7 @@ const Approvals = (props: RenderModel) => {
 
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
-const merge_completed = 'This merge has been completed.'
+const merge_completed = 'The merge is complete'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
 const Conflicts = (props: RenderModel) => {
@@ -163,7 +163,7 @@ export const ClosedLog = (props: RenderModel) => {
 	return (
 		<Blocks>
 			<Context>
-				<b>This pull request was closed {merged ? 'and was merged' : 'without merge'}</b>
+				<b>This pull request has been closed {merged ? 'and the merge is complete' : 'without merge'}</b>
 			</Context>
 		</Blocks>
 	);
