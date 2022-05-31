@@ -57,7 +57,7 @@ const Approvals = (props) => {
 };
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
-const merge_completed = 'This merge has been completed.';
+const merge_completed = 'The merge is complete';
 const closed_without_merge = 'This pull request have been closed without merge.';
 const Conflicts = (props) => {
     const { state, mergeable, merged } = props.repository.pullRequest;
@@ -85,7 +85,7 @@ const ClosedLog = (props) => {
     if (!merged) {
         return null;
     }
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["This pull request was closed ", merged ? 'and was merged' : 'without merge'] }) }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["This pull request has been closed ", merged ? 'and the merge is complete' : 'without merge'] }) }) }));
 };
 exports.ClosedLog = ClosedLog;
 const ReviewRequestedLog = (props) => {
