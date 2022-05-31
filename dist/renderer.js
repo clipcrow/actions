@@ -4,13 +4,18 @@ exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = exports.
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
-const BranchLink = (props) => ((0, jsx_runtime_1.jsx)("code", { children: (0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }) }));
+const BranchLink = (props) => {
+    if (props.static) {
+        return (0, jsx_runtime_1.jsx)("code", { children: props.ref });
+    }
+    return ((0, jsx_runtime_1.jsx)("code", { children: (0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }) }));
+};
 const Commits = (props) => {
-    const { url, pullRequest: { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName, headRefName, } } = props.repository;
+    const { url, pullRequest: { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName: base, headRefName: head, } } = props.repository;
     const text = merged ? ' merged' : ' wants to merge';
     const commitUnit = totalCount < 2 ? 'commit' : 'commits';
     const changeUnit = changedFiles < 2 ? 'change' : 'changes';
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["[", (0, jsx_runtime_1.jsx)("b", { children: state }), "] ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `, (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: baseRefName }), " from ", (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: headRefName })] }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["[", (0, jsx_runtime_1.jsx)("b", { children: state }), "] ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `, (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: base }), " from ", (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: head, static: merged })] }) }));
 };
 const StatusSection = (props) => ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [props.test ? ':large_green_circle:' : ':red_circle:', " ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }));
 const Reviewers = (props) => {
@@ -52,12 +57,12 @@ const Approvals = (props) => {
 };
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
-const already_merged = 'The merge has already been completed.';
+const merge_completed = 'This merge has been completed.';
 const closed_without_merge = 'This pull request have been closed without merge.';
 const Conflicts = (props) => {
     const { state, mergeable, merged } = props.repository.pullRequest;
     if (state !== 'OPEN') {
-        const text = merged ? already_merged : closed_without_merge;
+        const text = merged ? merge_completed : closed_without_merge;
         return ((0, jsx_runtime_1.jsx)(StatusSection, { test: merged, text: text }));
     }
     const test = mergeable === 'MERGEABLE';
@@ -92,12 +97,15 @@ const ReviewRequestedLog = (props) => {
 exports.ReviewRequestedLog = ReviewRequestedLog;
 const SubmittedLog = (props) => {
     const { state, author: { login }, body } = props.review;
-    if (state !== 'APPROVED') {
-        return null;
-    }
     const slack = props.slackAccounts[login];
-    const authorLogin = props.repository.pullRequest.author.login;
-    const authorSlack = props.slackAccounts[authorLogin];
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
+    if (state === 'APPROVED') {
+        const authorLogin = props.repository.pullRequest.author.login;
+        const authorSlack = props.slackAccounts[authorLogin];
+        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
+    }
+    if (body) {
+        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " commented."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
+    }
+    return null;
 };
 exports.SubmittedLog = SubmittedLog;
