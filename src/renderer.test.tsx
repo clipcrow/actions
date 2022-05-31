@@ -7,7 +7,7 @@ test('arrangeReviewers', () => {
 
     const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
 
-    expect(pendings).toEqual(['nobody', 'another']);
+    expect(pendings).toEqual(['nobody']);
     expect(approvals).toEqual(['someone']);
 });
 

@@ -56,7 +56,7 @@ test('queryActualPullRequest', async () => {
     expect(result.repository.name).toEqual(variables.name);
     expect(result.repository.pullRequest.number).toEqual(variables.number);
 
-    // console.dir(result, { depth: null });
+    console.dir(result, { depth: null });
 })
 
 test('handleEvent', async () => {

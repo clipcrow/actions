@@ -66,7 +66,7 @@ export const sampleRenderModel: RenderModel = {
                                 url: "https://github.com/another"
                             },
                             body: '',
-                            state: "CHANGES_REQUESTED",
+                            state: "COMMENTED",
                             updatedAt: "2022-05-27T09:23:28Z"
                         }
                     },
