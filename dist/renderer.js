@@ -27,22 +27,13 @@ function arrangeReviewers(req, rv) {
     const pendings = req.edges.map((edge) => {
         return edge.node.requestedReviewer.login;
     });
-    const submitters = rv.edges.reduce((previous, current) => {
+    const approvals = rv.edges.reduce((previous, current) => {
         const { author: { login }, state } = current.node;
-        if (pendings.includes(login)) {
+        if (pendings.includes(login) || previous.includes(login) || state !== 'APPROVED') {
             return previous;
         }
-        return { ...previous, [login]: state };
-    }, {});
-    const approvals = [];
-    for (const login in submitters) {
-        if (submitters[login] === 'APPROVED') {
-            approvals.push(login);
-        }
-        else {
-            pendings.push(login);
-        }
-    }
+        return [...previous, login];
+    }, []);
     return { pendings, approvals };
 }
 exports.arrangeReviewers = arrangeReviewers;
