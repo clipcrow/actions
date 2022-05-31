@@ -4,12 +4,13 @@ exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = exports.
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
+const BranchLink = (props) => ((0, jsx_runtime_1.jsx)("code", { children: (0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }) }));
 const Commits = (props) => {
-    const { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName, headRefName, } = props.repository.pullRequest;
+    const { url, pullRequest: { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName, headRefName, } } = props.repository;
     const text = merged ? ' merged' : ' wants to merge';
     const commitUnit = totalCount < 2 ? 'commit' : 'commits';
     const changeUnit = changedFiles < 2 ? 'change' : 'changes';
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["[", (0, jsx_runtime_1.jsx)("b", { children: state }), "] ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `, (0, jsx_runtime_1.jsx)("code", { children: baseRefName }), " from ", (0, jsx_runtime_1.jsx)("code", { children: headRefName })] }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["[", (0, jsx_runtime_1.jsx)("b", { children: state }), "] ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }), ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `, (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: baseRefName }), " from ", (0, jsx_runtime_1.jsx)(BranchLink, { url: url, ref: headRefName })] }) }));
 };
 const StatusSection = (props) => ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Section, { children: [props.test ? ':large_green_circle:' : ':red_circle:', " ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }));
 const Reviewers = (props) => {
