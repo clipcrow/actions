@@ -5,11 +5,16 @@ const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
-const BranchLink = (props: { url: string, ref: string }) => (
-	<code>
-		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
-	</code>
-);
+const BranchLink = (props: { url: string, ref: string, static?: boolean }) => {
+	if (props.static) {
+		return <code>{props.ref}</code>
+	}
+	return (
+		<code>
+			<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
+		</code>
+	);
+};
 
 const Commits = (props: RenderModel) => {
 	const {
@@ -20,8 +25,8 @@ const Commits = (props: RenderModel) => {
 			commits: { totalCount },
 			changedFiles,
 			author: { login },
-			baseRefName,
-			headRefName,
+			baseRefName: base,
+			headRefName: head,
 		}
 	} = props.repository;
 	const text = merged ? ' merged' : ' wants to merge';
@@ -32,7 +37,7 @@ const Commits = (props: RenderModel) => {
 			<span>
 				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]} />
 				{` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `}
-				<BranchLink url={url} ref={baseRefName}/> from <BranchLink url={url} ref={headRefName}/>
+				<BranchLink url={url} ref={base}/> from <BranchLink url={url} ref={head} static={merged}/>
 			</span>
 		</Context>
 	);
@@ -101,13 +106,13 @@ const Approvals = (props: RenderModel) => {
 
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
-const already_merged = 'The merge has already been completed.'
+const merge_completed = 'This merge has been completed.'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
 const Conflicts = (props: RenderModel) => {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state !== 'OPEN') {
-		const text = merged ? already_merged  : closed_without_merge;
+		const text = merged ? merge_completed  : closed_without_merge;
 		return (<StatusSection test={merged} text={text}/>);
 	}
 	const test = mergeable === 'MERGEABLE';
@@ -179,19 +184,29 @@ export const ReviewRequestedLog = (props: RenderModel) => {
 
 export const SubmittedLog = (props: RenderModel) => {
 	const { state, author: { login }, body } = props.review!;
-	if (state !== 'APPROVED') {
-		return null;
-	}
 	const slack = props.slackAccounts[login];
-	const authorLogin = props.repository.pullRequest.author.login;
-	const authorSlack = props.slackAccounts[authorLogin];
-	return (
-		<Blocks>
-			<Context>
-				<b> <UserLink login={login} slack={slack}/> approved <UserLink
-					login={authorLogin} slack={authorSlack}/>'s changes.</b>
-			</Context>
-			<Description text={body}/>
-		</Blocks>
-	);
+	if (state === 'APPROVED') {
+		const authorLogin = props.repository.pullRequest.author.login;
+		const authorSlack = props.slackAccounts[authorLogin];
+		return (
+			<Blocks>
+				<Context>
+					<b> <UserLink login={login} slack={slack}/> approved <UserLink
+						login={authorLogin} slack={authorSlack}/>'s changes.</b>
+				</Context>
+				<Description text={body}/>
+			</Blocks>
+		);
+	}
+	if (body) {
+		return (
+			<Blocks>
+				<Context>
+					<b> <UserLink login={login} slack={slack}/> commented.</b>
+				</Context>
+				<Description text={body}/>
+			</Blocks>
+		);
+	}
+	return null;
 };
