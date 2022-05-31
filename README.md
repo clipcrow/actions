@@ -83,11 +83,38 @@ I will write it in TypeScript, assuming the future of changing the location to
 
 ### .env file
 
+The .env file is needed when running tests locally, not when using actions.
+
 ```yml
 githubToken=ghp_abcdefghijklmnopqrstuvwxyz0123456789
 slackToken=xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
 slackChannel=C0123456789
-owner=your-login-account
-name=repository-name
-number=1
+owner=test-target-organization-or-account
+name=test-target-repository-name
+number=311 # test target number of pull request
+```
+
+### GitHub Workflow file
+
+```yml
+name: pull-request-notify
+on:
+  pull_request:
+    types: [closed, review_requested, review_request_removed]
+  pull_request_review:
+    types: [submitted]
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: masataka/pull-request-notify@v0.0.3
+        with:
+          # https://docs.github.com/ja/actions/security-guides/automatic-token-authentication
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          # it will be a big deal If the slack token is leaked,
+          # so I recommend using the secrets mechanism on github.
+          slackToken: ${{ secrets.SLACK_BOT_TOKEN }}
+          slackChannel: C56789X1234
+          slackAccounts: src/repository/accounts.json
 ```
