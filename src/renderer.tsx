@@ -1,4 +1,4 @@
-import { Blocks, Context, Divider, Field, Fragment, Header, Section } from 'jsx-slack';
+import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
 import type { SlackAccounts, Connection, ReviewRequest, Review, RenderModel } from './types';
 
 const UserLink = (props: { login: string, slack?: string }) => (
@@ -130,7 +130,7 @@ const Repository = (props: RenderModel) => {
 }
 
 const Description = (props: { text: string | null }) => (
-	props.text ? <Section>{props.text}</Section> : null
+	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
 
 export const PullRequest = (props: RenderModel) => {
