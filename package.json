@@ -1,7 +1,7 @@
 {
-    "name": "actions",
+    "name": "pull-request-notify",
     "version": "0.0.3",
-    "description": "Pull Request notifier over the Github Actions",
+    "description": "This bot notifies changes of your pull-request.",
     "main": "dist/index.js",
     "scripts": {
         "test": "jest",
