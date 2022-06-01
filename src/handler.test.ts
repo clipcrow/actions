@@ -8,6 +8,8 @@ jest.setTimeout(5000 * 30);
 const env = dotenv.config();
 
 test('createActionContext', async () => {
+    github.context.eventName = 'pull_request';
+    github.context.payload = require('./event/pull_request.review_requested.json');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
             githubToken: 'ghp_abcdefghijklmnopqrstuvwxyz0123456789',
