@@ -140,6 +140,9 @@ const Description = (props: { text: string | null }) => (
 
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
+
+	// TODO pushイベントへのリアクション
+
 	return (
 		<Blocks>
 			<Commits {...props}/>
@@ -209,3 +212,10 @@ export const SubmittedLog = (props: RenderModel) => {
 	}
 	return null;
 };
+
+export const DeployCompleteLog = (props: RenderModel) => {
+
+	// TODO 実装
+
+	return null;
+}

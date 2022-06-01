@@ -11,6 +11,7 @@ import {
     ClosedLog,
     ReviewRequestedLog,
     SubmittedLog,
+    DeployCompleteLog
 } from './renderer';
 
 import type {
@@ -214,13 +215,15 @@ export async function handleAction (ev: TriggerEventPayload) {
             await postChangeLog(cx, current, () => ReviewRequestedLog(model));
         } else if (ev.action === 'submitted') {
             await postChangeLog(cx, current, () => SubmittedLog(model));
+        } else if (ev.event === 'push') {
+            await postChangeLog(cx, current, () => DeployCompleteLog(model));
         }
     }
 }
 
 export async function handleEvent () {
     const event = github.context.eventName;
-    const action = github.context.action || '';;
+    const action = github.context.action || '';
 
     let ev: TriggerEventPayload | undefined;
     if (event === 'pull_request') {
@@ -231,7 +234,7 @@ export async function handleEvent () {
             ev = { event, action, number, sha };
         } else if (['review_requested', 'review_request_removed'].includes(action)) {
             const payload = github.context.payload as
-                PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent;
+                (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
             const number = payload.pull_request.number;
             const { login, html_url: url} = payload.requested_reviewer;
             const reviewRequest = { requestedReviewer: { login, url} };
@@ -252,7 +255,8 @@ export async function handleEvent () {
     if (ev) {
         handleAction(ev);
     } else {
-        core.info(`Unsupported trigger action: "${event}" > "${action}"`);
+        const actionType = action ? ` > "${action}"` : '';
+        core.info(`Unsupported trigger type: "${event}"${actionType}`);
     }
 }
 
