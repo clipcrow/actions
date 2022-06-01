@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as dotenv from 'dotenv';
 
-import { createActionContext, queryActualPullRequest, handleEvent } from './handler';
+import { createActionContext, queryActualPullRequest } from './handler';
 
 jest.setTimeout(5000 * 30);
 const env = dotenv.config();
@@ -44,14 +44,3 @@ test('queryActualPullRequest', async () => {
 
     console.dir(result, { depth: null });
 })
-
-test('handleEvent', async () => {
-    github.context.eventName = 'push';
-    const spy = jest.spyOn(core, 'info');
-
-    await handleEvent();
-
-    expect(spy.mock.calls.length).toBe(1);
-
-    spy.mockRestore();
-});
