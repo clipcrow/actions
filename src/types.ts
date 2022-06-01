@@ -15,6 +15,7 @@ export interface QueryVariables {
 	owner: string;
 	name: string;
 	number: number;
+    sha?: string;
 }
 
 export interface SlackMessage {
@@ -42,12 +43,28 @@ export interface Review {
     updatedAt: string;
 }
 
+export interface Commit {
+    messageBody: string | null;
+    messageHeadline: string | null;
+    sha: string;
+}
+
 export interface TriggerEventPayload {
     event: string; // GitHub Actions event & action
     action: string;
     number: number; // PR#
     reviewRequest?: ReviewRequest;
     review?: Review;
+    sha?: string; // === gihub.context.sha === github.context.payload.pull_request.merge_commit_sha
+}
+
+export interface PullRequestList {
+    pullRequests: {
+        nodes: {
+            number: number;
+            mergeCommit: Commit;
+        }[];
+    }
 }
 
 export interface Connection<T> {
@@ -74,6 +91,7 @@ export interface QueryResult {
                 totalCount: number;
             };
             headRefName: string;
+            mergeCommit: Commit | null;
             mergeable: string, // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
             merged: boolean;
             number: number;

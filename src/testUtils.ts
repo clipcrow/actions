@@ -29,6 +29,7 @@ export const sampleRenderModel: RenderModel = {
                 "totalCount": 9
             },
             headRefName: "feature-269",
+            mergeCommit: null,
             mergeable: "MERGEABLE",
             merged: false,
             number: 311,

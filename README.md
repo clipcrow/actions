@@ -89,9 +89,12 @@ The .env file is needed when running tests locally, not when using actions.
 githubToken=ghp_abcdefghijklmnopqrstuvwxyz0123456789
 slackToken=xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
 slackChannel=C0123456789
-owner=test-target-organization-or-account
-name=test-target-repository-name
-number=311 # test target number of pull request
+# The message you want to post when the push event that occurs after a merge commit is complete.
+mergeCommitlMessage=Deployment flow complete
+owner=<test target organization or login account>
+name=<test target repository name>
+# test target number of pull request
+number=311
 ```
 
 ### GitHub Workflow file
@@ -115,6 +118,7 @@ jobs:
           # it will be a big deal If the slack token is leaked,
           # so I recommend using the secrets mechanism on github.
           slackToken: ${{ secrets.SLACK_BOT_TOKEN }}
-          slackChannel: C56789X1234
+          slackChannel: C0123456789
+          # GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack ... } style
           slackAccounts: src/repository/accounts.json
 ```

@@ -7,10 +7,10 @@ import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from '.
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
-export async function findSlackMessage(
+export async function findPreviousSlackMessage(
     cx: ActionContext,
-    number: number,
-): Promise<SlackMessage | undefined> {
+    vars: QueryVariables,
+): Promise<string | undefined> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -26,15 +26,17 @@ export async function findSlackMessage(
                 if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (event_payload.owner !== cx.owner) break;
-                if (event_payload.name !== cx.name) break;
-                if (event_payload.number === number) {
-                    return slackMessage;
+                if (event_payload.owner !== vars.owner) break;
+                if (event_payload.name !== vars.name) break;
+                if (event_payload.number === vars.number) {
+                    if (vars.sha && event_payload.sha !== vars.sha) {
+                        break;
+                    }
+                    return slackMessage.ts;
                 }
             }
         }
     }
-    return undefined;
 }
 
 export async function postPullRequestInfo(
@@ -42,53 +44,36 @@ export async function postPullRequestInfo(
     model: RenderModel,
 ): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
+
+    // sanitize because of dirty model
     const event_payload: QueryVariables = {
         owner: model.owner,
         name: model.name,
         number: model.number,
+        sha: model.sha,
     };
-    const result = await client.chat.postMessage({
+
+//    const api = model.ts ? client.chat.postMessage : client.chat.update;
+    const param = {
         channel: cx.slackChannel,
         text: 'pull-request-notify posted this message.',
         blocks: JSXSlack(PullRequest(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
             event_payload,
-        }
-    });
+        },
+    }
+    let result;
+    if (model.ts) {
+        result = await client.chat.update({ ...param, ts: model.ts });
+    } else {
+        result = await client.chat.postMessage(param);
+    }
+
     if (result.ok) {
         return result.ts;
     }
     console.error(result.error);
-}
-
-export async function updatePullRequestInfo(
-    cx: ActionContext,
-    model: RenderModel,
-): Promise<string | undefined> {
-    if (model.ts) {
-        const client = new WebClient(cx.slackToken);
-        const event_payload: QueryVariables = {
-            owner: model.owner,
-            name: model.name,
-            number: model.number,
-        };
-        const result = await client.chat.update({
-            channel: cx.slackChannel,
-            text: 'pull-request-notify updated this message.',
-            blocks: JSXSlack(PullRequest(model)),
-            metadata: {
-                event_type: METADATA_EVENT_TYPE,
-                event_payload,
-            },
-            ts: model.ts,
-        });
-        if (result.ok) {
-            return result.ts;
-        }
-        console.error(result.error);
-    }
-    return await postPullRequestInfo(cx, model);
 }
 
 export async function postChangeLog(

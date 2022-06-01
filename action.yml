@@ -13,6 +13,9 @@ inputs:
     slackAccounts:
         description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
         default: "./github/accounts.json"
+    mergeCommitlMessage:
+        description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
+        default: "Deployment flow complete"
 runs:
     using: "node16"
     main: "dist/index.js"
