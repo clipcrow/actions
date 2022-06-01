@@ -52,10 +52,10 @@ const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: Sl
 	if (count == 0) {
 		return null;
 	}
-	const unit = count > 1 ? 'reviewers' : 'reviewer';
+	const unit = count > 1 ? 's' : '';
 	return (
 		<Context>
-			<span>&gt; {`${count} ${props.text} ${unit}`}</span>
+			<span>&gt; {`${count} ${props.text}${unit}`}</span>
 			{
 				props.reviewers.map((login) => {
 					return <span><UserLink login={login} slack={props.slackAccounts[login]}/></span>
@@ -94,12 +94,11 @@ const Approvals = (props: RenderModel) => {
 	const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
 	const test = pendings.length == 0 && approvals.length > 0;
 	const totalCount = pendings.length + approvals.length;
-
 	return (
 		<Fragment>
 			<StatusSection test={test} text={test ? pr_approved : (totalCount > 0 ? rv_requested : no_review)}/>
-			<Reviewers reviewers={approvals} text='approved' slackAccounts={props.slackAccounts}/>
-			<Reviewers reviewers={pendings} text='pending' slackAccounts={props.slackAccounts}/>
+			<Reviewers reviewers={approvals} text='approval' slackAccounts={props.slackAccounts}/>
+			<Reviewers reviewers={pendings} text='pending reviewer' slackAccounts={props.slackAccounts}/>
 		</Fragment>
 	);
 }

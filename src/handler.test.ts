@@ -7,14 +7,7 @@ import { createActionContext, queryActualPullRequest, handleEvent } from './hand
 jest.setTimeout(5000 * 30);
 const env = dotenv.config();
 
-test('check files', () => {
-    const requested = require('./event/pull_request.review_requested.json');
-    expect(requested.pull_request.number).toBe(1);
-})
-
 test('createActionContext', async () => {
-    github.context.eventName = 'pull_request';
-    github.context.payload = require('./event/pull_request.review_requested.json');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
             githubToken: 'ghp_abcdefghijklmnopqrstuvwxyz0123456789',
@@ -26,8 +19,6 @@ test('createActionContext', async () => {
 
     const cx = await createActionContext();
 
-    expect(cx.owner).toEqual('masataka');
-    expect(cx.name).toEqual('test');
     expect(cx.githubToken).toEqual('ghp_abcdefghijklmnopqrstuvwxyz0123456789');
     expect(cx.slackToken).toEqual('xoxb-123456789-1234');
     expect(cx.slackChannel).toEqual('C56789X1234');
