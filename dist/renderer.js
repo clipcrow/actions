@@ -23,8 +23,8 @@ const Reviewers = (props) => {
     if (count == 0) {
         return null;
     }
-    const unit = count > 1 ? 'reviewers' : 'reviewer';
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: [(0, jsx_runtime_1.jsxs)("span", { children: ["> ", `${count} ${props.text} ${unit}`] }), props.reviewers.map((login) => {
+    const unit = count > 1 ? 's' : '';
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: [(0, jsx_runtime_1.jsxs)("span", { children: ["> ", `${count} ${props.text}${unit}`] }), props.reviewers.map((login) => {
                 return (0, jsx_runtime_1.jsx)("span", { children: (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }) });
             })] }));
 };
@@ -53,7 +53,7 @@ const Approvals = (props) => {
     const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
     const test = pendings.length == 0 && approvals.length > 0;
     const totalCount = pendings.length + approvals.length;
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? pr_approved : (totalCount > 0 ? rv_requested : no_review) }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: approvals, text: 'approved', slackAccounts: props.slackAccounts }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: pendings, text: 'pending', slackAccounts: props.slackAccounts })] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? pr_approved : (totalCount > 0 ? rv_requested : no_review) }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: approvals, text: 'approval', slackAccounts: props.slackAccounts }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: pendings, text: 'pending reviewer', slackAccounts: props.slackAccounts })] }));
 };
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
