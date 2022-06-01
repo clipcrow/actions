@@ -9,6 +9,7 @@ export interface ActionContext {
 	slackToken: string;
 	slackChannel: string;
 	slackAccounts: SlackAccounts;
+    mergeCommitlMessage: string;
 }
 
 export interface QueryVariables {

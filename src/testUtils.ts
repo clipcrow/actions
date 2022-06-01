@@ -11,6 +11,7 @@ export const sampleRenderModel: RenderModel = {
         another: "U5678901234",
         nobody: "U8901234567",
     },
+    mergeCommitlMessage: 'Deployment flow complete',
     repository: {
         name: "test",
         owner: {

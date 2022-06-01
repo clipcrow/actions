@@ -34,6 +34,7 @@ export async function createActionContext(): Promise<ActionContext> {
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
+    const mergeCommitlMessage = core.getInput('mergeCommitlMessage');
 
     const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
     const slackAccounts: SlackAccounts = JSON.parse(file);
@@ -45,6 +46,7 @@ export async function createActionContext(): Promise<ActionContext> {
         slackToken,
         slackChannel,
         slackAccounts,
+        mergeCommitlMessage,
     };
 }
 
