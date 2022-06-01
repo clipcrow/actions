@@ -63,18 +63,25 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
+export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList | null> {
+    const oktokit = github.getOctokit(token);
+    try {
+        return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
+    } catch(err) {
+        core.info('' + err);
+    }
+    return null;
+}
+
 export async function findPullRequestNumber(token: string, vars: QueryVariables): Promise<number> {
     if (vars.sha) {
-        const oktokit = github.getOctokit(token);
-        try {
-            const result = await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
-            for (const pullRequest of result.pullRequests.nodes) {
+        const list = await listPullRequests(token, vars);
+        if (list) {
+            for (const pullRequest of list.pullRequests.nodes) {
                 if (pullRequest.mergeCommit.sha === vars.sha) {
                     return pullRequest.number;
                 }
             }
-        } catch(err) {
-            core.info('' + err);
         }
     }
     return 0;
