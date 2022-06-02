@@ -1,6 +1,10 @@
 import type { RenderModel } from './types';
 
 export const sampleRenderModel: RenderModel = {
+    sender: {
+        login: 'someone',
+        url: "https://github.com/someone",
+    },
     event: "pull_request_review",
     action: "submitted",
     owner: 'someone',
@@ -9,7 +13,7 @@ export const sampleRenderModel: RenderModel = {
         another: "U5678901234",
         nobody: "U8901234567",
     },
-    mergeCommitlMessage: 'Deployment flow complete',
+    pushMessage: 'Deployment flow complete',
     repository: {
         name: "test",
         owner: {

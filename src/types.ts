@@ -1,4 +1,4 @@
-export interface SlackAccounts {
+export interface KeyValueStore {
     [login: string]: string;
 }
 
@@ -8,8 +8,8 @@ export interface ActionContext {
     githubToken: string;
 	slackToken: string;
 	slackChannel: string;
-	slackAccounts: SlackAccounts;
-    mergeCommitlMessage: string;
+	slackAccounts: KeyValueStore;
+    pushMessage: string;
 }
 
 export interface QueryVariables {
@@ -17,6 +17,11 @@ export interface QueryVariables {
 	name: string;
 	number: number;
     sha?: string;
+}
+
+export interface GitHubUser {
+    login: string;
+    url: string;
 }
 
 export interface SlackMessage {
@@ -28,17 +33,11 @@ export interface SlackMessage {
 }
 
 export interface ReviewRequest {
-    requestedReviewer: {
-        login: string;
-        url: string;
-    };
+    requestedReviewer: GitHubUser;
 }
 
 export interface Review {
-    author: {
-        login: string;
-        url: string;
-    };
+    author: GitHubUser;
     body: string | null;
     state: string, // 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
     updatedAt: string;
@@ -50,7 +49,8 @@ export interface Commit {
     sha: string;
 }
 
-export interface TriggerEventPayload {
+export interface EventPayload {
+    sender: GitHubUser;
     event: string; // GitHub Actions event & action
     action: string;
     number: number; // PR#
@@ -74,19 +74,11 @@ export interface Connection<T> {
 }
 
 export interface QueryResult {
-    // owner slackAccounts mergeCommitlMessage
-    // event action reviewRequest? review?
     repository: {
         name: string;
-        owner: {
-            login: string;
-            url: string;
-        };
+        owner: GitHubUser;
         pullRequest: {
-            author: {
-                login: string;
-                url: string;
-            };
+            author: GitHubUser;
             baseRefName: string;
             body: string | null;
             changedFiles: number;
@@ -109,6 +101,6 @@ export interface QueryResult {
 }
 
 export type RenderModel =
-    Pick<ActionContext, 'owner' | 'slackAccounts' | 'mergeCommitlMessage'> &
-    Pick<TriggerEventPayload, 'event' | 'action' | 'reviewRequest' | 'review'> &
+    Pick<ActionContext, 'owner' | 'slackAccounts' | 'pushMessage'> &
+    Pick<EventPayload, 'sender' | 'event' | 'action' | 'reviewRequest' | 'review'> &
     QueryResult;

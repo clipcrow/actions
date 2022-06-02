@@ -1,11 +1,36 @@
-import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
-import type { SlackAccounts, Connection, ReviewRequest, Review, RenderModel } from './types';
+import {
+	Blocks,
+	Context,
+	Divider,
+	Fragment,
+	Header,
+	Section,
+} from 'jsx-slack';
 
-const UserLink = (props: { login: string, slack?: string }) => (
+import type {
+	KeyValueStore,
+	Connection,
+	ReviewRequest,
+	Review,
+	RenderModel
+} from './types';
+
+const UserLink = (
+	props: {
+		login: string,
+		slack?: string,
+	},
+) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
-const BranchLink = (props: { url: string, ref: string, static?: boolean }) => {
+const BranchLink = (
+	props: {
+		url: string,
+		ref: string,
+		static?: boolean,
+	},
+) => {
 	if (props.static) {
 		return <code>{props.ref}</code>
 	}
@@ -43,11 +68,22 @@ const Commits = (props: RenderModel) => {
 	);
 }
 
-const StatusSection = (props: { test: boolean, text: string }) => (
+const StatusSection = (
+	props: {
+		test: boolean,
+		text: string,
+	},
+) => (
 	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const Reviewers = (props: { slackAccounts: SlackAccounts, reviewers: string[], text: string }) => {
+const Reviewers = (
+	props: {
+		slackAccounts: KeyValueStore,
+		reviewers: string[],
+		text: string,
+	},
+) => {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
@@ -64,22 +100,21 @@ const Reviewers = (props: { slackAccounts: SlackAccounts, reviewers: string[], t
 	);
 }
 
-interface ReviewDetails {
-	[login: string]: string;
-}
-
 interface ArrangeResult {
 	approvals: string[];
 	changeRequesteds: string[];
 	pendings: string[];
 }
 
-export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>): ArrangeResult {
-	const requestedReviewer: ReviewDetails = req.edges.reduce<ReviewDetails>((previous, current) => {
+export function arrangeReviewers(
+	req: Connection<ReviewRequest>,
+	rv: Connection<Review>,
+): ArrangeResult {
+	const requestedReviewer: KeyValueStore = req.edges.reduce<KeyValueStore>((previous, current) => {
 		return { ...previous, [current.node.requestedReviewer.login]: 'PENDING' };
 	}, {});
 	// Caution! here is "reduceRight"
-	const reviewDetails = rv.edges.reduceRight<ReviewDetails>((previous, current) => {
+	const reviewDetails = rv.edges.reduceRight<KeyValueStore>((previous, current) => {
         const { author: { login }, state } = current.node;
 		// Prohibit excessive overwriting
         if (previous[login]) {
@@ -107,7 +142,7 @@ const no_review = 'No requested reviewer';
 const ch_requested = 'Changes requested'
 const rv_requested = 'Review requested';
 
-const Approvals = (props: RenderModel) => {
+const Approvals = (props: RenderModel,) => {
 	const { state, reviewRequests, reviews } = props.repository.pullRequest;
 	if (state !== 'OPEN') {
 		return null;
@@ -156,7 +191,12 @@ const Conflicts = (props: RenderModel) => {
 	return <StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>
 }
 
-const PullNumber = (props: { url: string, number: number }) => (
+const PullNumber = (
+	props: {
+		url: string,
+		number: number,
+	},
+) => (
 	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
 );
 
@@ -172,14 +212,19 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
-const Description = (props: { text: string | null }) => (
+const Description = (
+	props: {
+		text: string | null,
+	},
+) => (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
 
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
 
-	// TODO pushイベントへのリアクション
+	// react "push" event
+	const pushMessage = props.event === 'push' ? props.pushMessage : null;
 
 	return (
 		<Blocks>
@@ -190,6 +235,7 @@ export const PullRequest = (props: RenderModel) => {
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
 			<Repository {...props}/>
+			<Description text={pushMessage}/>
 			<Divider/>
 		</Blocks>
 	);
@@ -231,7 +277,7 @@ export const SubmittedLog = (props: RenderModel) => {
 		return (
 			<Blocks>
 				<Context>
-					<b> <UserLink login={login} slack={slack}/> approved <UserLink
+					<b><UserLink login={login} slack={slack}/> approved <UserLink
 						login={authorLogin} slack={authorSlack}/>'s changes.</b>
 				</Context>
 				<Description text={body}/>
@@ -242,7 +288,7 @@ export const SubmittedLog = (props: RenderModel) => {
 		return (
 			<Blocks>
 				<Context>
-					<b> <UserLink login={login} slack={slack}/> commented.</b>
+					<b><UserLink login={login} slack={slack}/> commented.</b>
 				</Context>
 				<Description text={body}/>
 			</Blocks>
@@ -252,8 +298,13 @@ export const SubmittedLog = (props: RenderModel) => {
 };
 
 export const DeployCompleteLog = (props: RenderModel) => {
-
-	// TODO 実装
-
-	return null;
+	const { login } = props.sender;
+	const slack = props.slackAccounts[login];
+	return (
+		<Blocks>
+			<Context>
+				<b>The workflow launched by <UserLink login={login} slack={slack}/> 's merge commit is complete.</b>
+			</Context>
+		</Blocks>
+	);
 }

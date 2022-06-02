@@ -90,7 +90,7 @@ githubToken=ghp_abcdefghijklmnopqrstuvwxyz0123456789
 slackToken=xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
 slackChannel=C0123456789
 # The message you want to post when the push event that occurs after a merge commit is complete.
-mergeCommitlMessage=Deployment flow complete
+pushMessage=Deployment flow complete
 owner=<test target organization or login account>
 name=<test target repository name>
 # test target number of pull request

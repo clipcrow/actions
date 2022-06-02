@@ -3,11 +3,19 @@ import { JSXSlack } from 'jsx-slack';
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from './types';
+import type {
+    ActionContext,
+    QueryVariables,
+    RenderModel,
+    SlackMessage,
+} from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
-function payloadEquals(payload: QueryVariables, vars: QueryVariables): boolean {
+function payloadEquals(
+    payload: QueryVariables,
+    vars: QueryVariables,
+): boolean {
     return (
         payload.owner === vars.owner &&
         payload.name === vars.name &&
@@ -58,7 +66,6 @@ export async function postPullRequestInfo(
 
     const param = {
         channel: cx.slackChannel,
-        text: 'pull-request-notify posted this message.',
         blocks: JSXSlack(PullRequest(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
@@ -67,9 +74,9 @@ export async function postPullRequestInfo(
     }
     let result;
     if (ts) {
-        result = await client.chat.update({ ...param, ts });
+        result = await client.chat.update({ ...param, text: 'pull-request-notify updates', ts });
     } else {
-        result = await client.chat.postMessage(param);
+        result = await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' });
     }
 
     if (result.ok) {
@@ -81,9 +88,9 @@ export async function postPullRequestInfo(
 export async function postChangeLog(
     cx: ActionContext,
     ts: string,
-    log: () => JSX.Element | null,
+    logMessage: () => JSX.Element | null,
 ): Promise<string | undefined> {
-    const blocks = log();
+    const blocks = logMessage();
     if (blocks) {
         const client = new WebClient(cx.slackToken);
         const result = await client.chat.postMessage({

@@ -21,13 +21,17 @@ import type {
     PullRequestReviewEvent,
 } from '@octokit/webhooks-definitions/schema';
 import type {
-    SlackAccounts,
+    KeyValueStore,
+    GitHubUser,
     ActionContext,
     QueryVariables,
     PullRequestList,
     QueryResult,
-    TriggerEventPayload,
+    EventPayload,
 } from './types';
+import type {
+    WebhookPayload
+} from '@actions/github/lib/interfaces';
 
 export async function createActionContext(): Promise<ActionContext> {
     const owner = github.context.repo.owner;
@@ -35,10 +39,10 @@ export async function createActionContext(): Promise<ActionContext> {
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
-    const mergeCommitlMessage = core.getInput('mergeCommitlMessage');
+    const pushMessage = core.getInput('pushMessage');
 
     const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
-    const slackAccounts: SlackAccounts = JSON.parse(file);
+    const slackAccounts: KeyValueStore = JSON.parse(file);
 
     return {
         owner,
@@ -47,8 +51,20 @@ export async function createActionContext(): Promise<ActionContext> {
         slackToken,
         slackChannel,
         slackAccounts,
-        mergeCommitlMessage,
+        pushMessage,
     };
+}
+
+export function dumpSlackAccounts(
+    cx: ActionContext
+) {
+    core.info('- cx.slackAccounts')
+    let count = 0;
+    for (const login in cx.slackAccounts) {
+        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
+        count += 1;
+    }
+    core.info(`    - (total ${count} accounts)`);
 }
 
 const pull_request_list_string = `
@@ -66,7 +82,10 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
-export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList | null> {
+export async function listPullRequests(
+    token: string,
+    vars: QueryVariables,
+): Promise<PullRequestList | null> {
     const oktokit = github.getOctokit(token);
     try {
         return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
@@ -76,7 +95,10 @@ export async function listPullRequests(token: string, vars: QueryVariables): Pro
     return null;
 }
 
-export async function findPullRequestNumber(token: string, vars: QueryVariables): Promise<number> {
+export async function findPullRequestNumber(
+    token: string,
+    vars: QueryVariables,
+): Promise<number> {
     if (vars.sha) {
         const list = await listPullRequests(token, vars);
         if (list) {
@@ -159,7 +181,10 @@ query ($owner: String!, $name: String!, $number: Int!) {
     }
 }
 `;
-export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+export async function queryActualPullRequest(
+    token: string,
+    vars: QueryVariables,
+): Promise<QueryResult | null> {
     const oktokit = github.getOctokit(token);
     try {
         return await oktokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
@@ -169,7 +194,10 @@ export async function queryActualPullRequest(token: string, vars: QueryVariables
     }
 }
 
-export async function findActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+export async function findActualPullRequest(
+    token: string,
+    vars: QueryVariables,
+): Promise<QueryResult | null> {
     let number = vars.number;
     if (number == 0) {
         number = await findPullRequestNumber(token, vars);
@@ -181,21 +209,11 @@ export async function findActualPullRequest(token: string, vars: QueryVariables)
     return await queryActualPullRequest(token, { ...vars, number });
 }
 
-function dumpSlackAccounts(cx: ActionContext) {
-    core.info('- cx.slackAccounts')
-    let count = 0;
-    for (const login in cx.slackAccounts) {
-        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
-        count += 1;
-    }
-    core.info(`    - (total ${count} accounts)`);
-}
-
-export async function handleAction (ev: TriggerEventPayload) {
-    const cx = await createActionContext();
-    dumpSlackAccounts(cx);
-
-    const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha }
+export async function processEvent (
+    cx: ActionContext,
+    ev: EventPayload,
+) {
+    const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
     const result = await findActualPullRequest(cx.githubToken, vars1);
 
     if (!result) {
@@ -205,58 +223,81 @@ export async function handleAction (ev: TriggerEventPayload) {
 
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
-    const previous = await findPreviousSlackMessage(cx, vars2);
+    const previousTS = await findPreviousSlackMessage(cx, vars2);
     const model = { ...cx, ...ev, ...result };
-    const current = await postPullRequestInfo(cx, model, previous);
-    if (current) {
+    const currentTS = await postPullRequestInfo(cx, model, previousTS);
+    if (currentTS) {
         if (ev.action === 'closed') {
-            await postChangeLog(cx, current, () => ClosedLog(model));
-        } else if (['review_requested', 'review_request_removed'].includes(ev.action)) {
-            await postChangeLog(cx, current, () => ReviewRequestedLog(model));
-        } else if (ev.action === 'submitted') {
-            await postChangeLog(cx, current, () => SubmittedLog(model));
-        } else if (ev.event === 'push') {
-            await postChangeLog(cx, current, () => DeployCompleteLog(model));
+            return await postChangeLog(cx, currentTS, () => ClosedLog(model));
         }
+        if (['review_requested', 'review_request_removed'].includes(ev.action)) {
+            return await postChangeLog(cx, currentTS, () => ReviewRequestedLog(model));
+        }
+        if (ev.action === 'submitted') {
+            return await postChangeLog(cx, currentTS, () => SubmittedLog(model));
+        }
+        if (ev.event === 'push') {
+            return await postChangeLog(cx, currentTS, () => DeployCompleteLog(model));
+        }
+    }
+    return currentTS;
+}
+
+export function extractPayload(
+    sender: GitHubUser,
+    event: string,
+    action: string,
+    payload: WebhookPayload,
+    sha: string,
+): EventPayload | undefined {
+    if (event === 'push') {
+        return { sender, event, action, number: 0, sha };
+    }
+    if (event === 'pull_request') {
+        if (action === 'closed') {
+            const closedEvent = payload as PullRequestClosedEvent;
+            const number = closedEvent.pull_request.number;
+            const sha = github.context.sha;
+            return { sender, event, action, number, sha };
+        }
+        if (['review_requested', 'review_request_removed'].includes(action)) {
+            const reviewerEvent = payload as
+                (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
+            const number = reviewerEvent.pull_request.number;
+            const { login, html_url: url} = reviewerEvent.requested_reviewer;
+            const reviewRequest = { requestedReviewer: { login, url} };
+            return { sender, event, action, number, reviewRequest };
+        }
+    }
+    if (event === 'pull_request_review') {
+        const reviewEvent = payload as PullRequestReviewEvent;
+        const number = reviewEvent.pull_request.number;
+        const { user: { login, html_url: url} , body, submitted_at: updatedAt } = reviewEvent.review;
+        // Since it is uppercase in the definition of GitHub GraphQL, align it
+        const state = (reviewEvent.review.state).toUpperCase();
+        const review = { author: { login, url }, body, state, updatedAt };
+        return { sender, event, action, number, review };
     }
 }
 
 export async function handleEvent () {
     const event = github.context.eventName;
     const action = github.context.action || '';
-
-    let ev: TriggerEventPayload | undefined;
-    if (event === 'pull_request') {
-        if (action === 'closed') {
-            const payload = github.context.payload as PullRequestClosedEvent;
-            const number = payload.pull_request.number;
-            const sha = github.context.sha;
-            ev = { event, action, number, sha };
-        } else if (['review_requested', 'review_request_removed'].includes(action)) {
-            const payload = github.context.payload as
-                (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
-            const number = payload.pull_request.number;
-            const { login, html_url: url} = payload.requested_reviewer;
-            const reviewRequest = { requestedReviewer: { login, url} };
-            ev = { event, action, number, reviewRequest };
-        }
-    } else if (event === 'pull_request_review') {
-        const payload = github.context.payload as PullRequestReviewEvent;
-        const number = payload.pull_request.number;
-        const { user: { login, html_url: url} , body, submitted_at: updatedAt } = payload.review;
-        // Since it is uppercase in the definition of GitHub GraphQL, align it
-        const state = (payload.review.state).toUpperCase();
-        const review = { author: { login, url }, body, state, updatedAt };
-        ev = { event, action, number, review };
-    } else if (event === 'push') {
-        ev = { event, action, number: 0, sha: github.context.sha };
-    }
-
+    const { actor, sha } = github.context;
+    const ev = extractPayload(
+        { login: actor, url: `https://github.com/${actor}` },
+        event,
+        action,
+        github.context.payload,
+        sha,
+    );
     if (ev) {
-        handleAction(ev);
+        const cx = await createActionContext();
+        dumpSlackAccounts(cx);
+        processEvent(cx, ev);
     } else {
-        const actionType = action ? ` > "${action}"` : '';
-        core.info(`Unsupported trigger type: "${event}"${actionType}`);
+        const caption = action ? ` > "${action}"` : '';
+        core.info(`Unsupported trigger type: "${event}"${caption}`);
     }
 }
 
