@@ -28,6 +28,7 @@ import type {
     PullRequestList,
     QueryResult,
     EventPayload,
+    RenderModel,
 } from './types';
 import type {
     WebhookPayload
@@ -210,6 +211,20 @@ export async function findActualPullRequest(
     return await queryActualPullRequest(token, { ...vars, number });
 }
 
+export function createRenderModel(
+    cx: ActionContext,
+    ev: EventPayload,
+    result: QueryResult,
+): RenderModel {
+    const { owner, slackAccounts, pushMessage } = cx;
+    const { sender, event, action, reviewRequest, review, sha } = ev;
+    return {
+        owner, slackAccounts, pushMessage,
+        sender, event, action, reviewRequest, review, sha,
+        ...result,
+    };
+}
+
 export async function processEvent (
     cx: ActionContext,
     ev: EventPayload,
@@ -232,7 +247,7 @@ export async function processEvent (
     core.info(JSON.stringify(vars2, null, '\t'));
     const previousTS = await findPreviousSlackMessage(cx, vars2);
     core.info(`previous ts: ${previousTS}`);
-    const model = { ...cx, ...ev, ...result };
+    const model = createRenderModel(cx, ev, result);
     core.info('posting slack message...');
     core.info(JSON.stringify(model, null, '\t'));
     const currentTS = await postPullRequestInfo(cx, model, previousTS);
@@ -317,7 +332,7 @@ export async function handleEvent () {
         core.info('context creating...');
         const cx = await createActionContext();
         dumpSlackAccounts(cx);
-        processEvent(cx, ev);
+        await processEvent(cx, ev);
     }
     core.info(`...ending handle "${event}"`);
 }
