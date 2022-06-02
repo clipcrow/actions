@@ -198,10 +198,11 @@ async function processEvent(cx, ev) {
     return currentTS;
 }
 exports.processEvent = processEvent;
-function extractPayload(sender, event, action, payload, sha) {
+function extractPayload(sender, event, payload, sha) {
     if (event === 'push') {
-        return { sender, event, action, number: 0, sha };
+        return { sender, event, action: '', number: 0, sha };
     }
+    const action = payload.action;
     if (event === 'pull_request') {
         if (action === 'closed') {
             const closedEvent = payload;
@@ -209,7 +210,7 @@ function extractPayload(sender, event, action, payload, sha) {
             const sha = github.context.sha;
             return { sender, event, action, number, sha };
         }
-        if (['review_requested', 'review_request_removed'].includes(action)) {
+        if (action === 'review_requested' || action === 'review_request_removed') {
             const reviewerEvent = payload;
             const number = reviewerEvent.pull_request.number;
             const { login, html_url: url } = reviewerEvent.requested_reviewer;
@@ -219,6 +220,7 @@ function extractPayload(sender, event, action, payload, sha) {
     }
     if (event === 'pull_request_review') {
         const reviewEvent = payload;
+        const action = reviewEvent.action;
         const number = reviewEvent.pull_request.number;
         const { user: { login, html_url: url }, body, submitted_at: updatedAt } = reviewEvent.review;
         // Since it is uppercase in the definition of GitHub GraphQL, align it
@@ -226,21 +228,18 @@ function extractPayload(sender, event, action, payload, sha) {
         const review = { author: { login, url }, body, state, updatedAt };
         return { sender, event, action, number, review };
     }
+    const caption = action ? ` > "${action}"` : '';
+    core.info(`Unsupported trigger type: "${event}"${caption}`);
 }
 exports.extractPayload = extractPayload;
 async function handleEvent() {
     const event = github.context.eventName;
-    const action = github.context.action || '';
     const { actor, sha } = github.context;
-    const ev = extractPayload({ login: actor, url: `https://github.com/${actor}` }, event, action, github.context.payload, sha);
+    const ev = extractPayload({ login: actor, url: `https://github.com/${actor}` }, event, github.context.payload, sha);
     if (ev) {
         const cx = await createActionContext();
         dumpSlackAccounts(cx);
         processEvent(cx, ev);
-    }
-    else {
-        const caption = action ? ` > "${action}"` : '';
-        core.info(`Unsupported trigger type: "${event}"${caption}`);
     }
 }
 exports.handleEvent = handleEvent;
