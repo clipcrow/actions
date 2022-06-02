@@ -5,6 +5,11 @@ const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
 const METADATA_EVENT_TYPE = 'pull-request-notify';
+function payloadEquals(payload, vars) {
+    return (payload.owner === vars.owner &&
+        payload.name === vars.name &&
+        payload.number === vars.number);
+}
 async function findPreviousSlackMessage(cx, vars) {
     // Search for messages on the channel to get metadata.
     const client = new web_api_1.WebClient(cx.slackToken);
@@ -22,14 +27,7 @@ async function findPreviousSlackMessage(cx, vars) {
                     break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (event_payload.owner !== vars.owner)
-                    break;
-                if (event_payload.name !== vars.name)
-                    break;
-                if (event_payload.number === vars.number) {
-                    if (vars.sha && event_payload.sha !== vars.sha) {
-                        break;
-                    }
+                if (payloadEquals(slackMessage.metadata.event_payload, vars)) {
                     return slackMessage.ts;
                 }
             }
@@ -37,19 +35,16 @@ async function findPreviousSlackMessage(cx, vars) {
     }
 }
 exports.findPreviousSlackMessage = findPreviousSlackMessage;
-async function postPullRequestInfo(cx, model) {
+async function postPullRequestInfo(cx, model, ts) {
     const client = new web_api_1.WebClient(cx.slackToken);
     // sanitize because of dirty model
     const event_payload = {
         owner: model.owner,
-        name: model.name,
-        number: model.number,
-        sha: model.sha,
+        name: model.repository.name,
+        number: model.repository.pullRequest.number,
     };
-    //    const api = model.ts ? client.chat.postMessage : client.chat.update;
     const param = {
         channel: cx.slackChannel,
-        text: 'pull-request-notify posted this message.',
         blocks: (0, jsx_slack_1.JSXSlack)((0, renderer_1.PullRequest)(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
@@ -57,11 +52,11 @@ async function postPullRequestInfo(cx, model) {
         },
     };
     let result;
-    if (model.ts) {
-        result = await client.chat.update({ ...param, ts: model.ts });
+    if (ts) {
+        result = await client.chat.update({ ...param, text: 'pull-request-notify updates', ts });
     }
     else {
-        result = await client.chat.postMessage(param);
+        result = await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' });
     }
     if (result.ok) {
         return result.ts;
@@ -69,8 +64,8 @@ async function postPullRequestInfo(cx, model) {
     console.error(result.error);
 }
 exports.postPullRequestInfo = postPullRequestInfo;
-async function postChangeLog(cx, ts, log) {
-    const blocks = log();
+async function postChangeLog(cx, ts, logMessage) {
+    const blocks = logMessage();
     if (blocks) {
         const client = new web_api_1.WebClient(cx.slackToken);
         const result = await client.chat.postMessage({

@@ -2,17 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sampleRenderModel = void 0;
 exports.sampleRenderModel = {
+    sender: {
+        login: 'someone',
+        url: "https://github.com/someone",
+    },
     event: "pull_request_review",
     action: "submitted",
-    number: 311,
     owner: 'someone',
-    name: 'test',
     slackAccounts: {
         someone: "U1234567890",
         another: "U5678901234",
         nobody: "U8901234567",
     },
-    mergeCommitlMessage: 'Deployment flow complete',
+    pushMessage: 'Deployment flow complete',
     repository: {
         name: "test",
         owner: {

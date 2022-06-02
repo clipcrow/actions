@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.handleAction = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.createActionContext = void 0;
+exports.handleEvent = exports.extractPayload = exports.processEvent = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.dumpSlackAccounts = exports.createActionContext = void 0;
 const core = require("@actions/core");
 const github = require("@actions/github");
 const fs = require("fs/promises");
@@ -12,7 +12,7 @@ async function createActionContext() {
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
-    const mergeCommitlMessage = core.getInput('mergeCommitlMessage');
+    const pushMessage = core.getInput('pushMessage');
     const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
     const slackAccounts = JSON.parse(file);
     return {
@@ -22,19 +22,29 @@ async function createActionContext() {
         slackToken,
         slackChannel,
         slackAccounts,
-        mergeCommitlMessage,
+        pushMessage,
     };
 }
 exports.createActionContext = createActionContext;
+function dumpSlackAccounts(cx) {
+    core.info('- cx.slackAccounts');
+    let count = 0;
+    for (const login in cx.slackAccounts) {
+        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
+        count += 1;
+    }
+    core.info(`    - (total ${count} accounts)`);
+}
+exports.dumpSlackAccounts = dumpSlackAccounts;
 const pull_request_list_string = `
 query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
         pullRequests(last: 100) {
             nodes {
                 mergeCommit {
-                messageBody
-                messageHeadline
-                sha: oid
+                    messageBody
+                    messageHeadline
+                    sha: oid
                 }
             }
         }
@@ -158,19 +168,8 @@ async function findActualPullRequest(token, vars) {
     return await queryActualPullRequest(token, { ...vars, number });
 }
 exports.findActualPullRequest = findActualPullRequest;
-function dumpSlackAccounts(cx) {
-    core.info('- cx.slackAccounts');
-    let count = 0;
-    for (const login in cx.slackAccounts) {
-        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
-        count += 1;
-    }
-    core.info(`    - (total ${count} accounts)`);
-}
-async function handleAction(ev) {
-    const cx = await createActionContext();
-    dumpSlackAccounts(cx);
-    const vars1 = { owner: cx.owner, name: cx.name, ...ev };
+async function processEvent(cx, ev) {
+    const vars1 = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
     const result = await findActualPullRequest(cx.githubToken, vars1);
     if (!result) {
         // PullRequest Not Found
@@ -178,62 +177,69 @@ async function handleAction(ev) {
     }
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
-    const previous = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
-    const model = { ...cx, ...ev, ...result, ts: previous };
-    const current = await (0, notifier_1.postPullRequestInfo)(cx, model);
-    if (current) {
+    const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
+    const model = { ...cx, ...ev, ...result };
+    const currentTS = await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS);
+    if (currentTS) {
         if (ev.action === 'closed') {
-            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.ClosedLog)(model));
+            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.ClosedLog)(model));
         }
-        else if (['review_requested', 'review_request_removed'].includes(ev.action)) {
-            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.ReviewRequestedLog)(model));
+        if (['review_requested', 'review_request_removed'].includes(ev.action)) {
+            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.ReviewRequestedLog)(model));
         }
-        else if (ev.action === 'submitted') {
-            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.SubmittedLog)(model));
+        if (ev.action === 'submitted') {
+            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.SubmittedLog)(model));
         }
-        else if (ev.event === 'push') {
-            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.DeployCompleteLog)(model));
+        if (ev.event === 'push') {
+            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.DeployCompleteLog)(model));
         }
     }
+    return currentTS;
 }
-exports.handleAction = handleAction;
+exports.processEvent = processEvent;
+function extractPayload(sender, event, action, payload, sha) {
+    if (event === 'push') {
+        return { sender, event, action, number: 0, sha };
+    }
+    if (event === 'pull_request') {
+        if (action === 'closed') {
+            const closedEvent = payload;
+            const number = closedEvent.pull_request.number;
+            const sha = github.context.sha;
+            return { sender, event, action, number, sha };
+        }
+        if (['review_requested', 'review_request_removed'].includes(action)) {
+            const reviewerEvent = payload;
+            const number = reviewerEvent.pull_request.number;
+            const { login, html_url: url } = reviewerEvent.requested_reviewer;
+            const reviewRequest = { requestedReviewer: { login, url } };
+            return { sender, event, action, number, reviewRequest };
+        }
+    }
+    if (event === 'pull_request_review') {
+        const reviewEvent = payload;
+        const number = reviewEvent.pull_request.number;
+        const { user: { login, html_url: url }, body, submitted_at: updatedAt } = reviewEvent.review;
+        // Since it is uppercase in the definition of GitHub GraphQL, align it
+        const state = (reviewEvent.review.state).toUpperCase();
+        const review = { author: { login, url }, body, state, updatedAt };
+        return { sender, event, action, number, review };
+    }
+}
+exports.extractPayload = extractPayload;
 async function handleEvent() {
     const event = github.context.eventName;
     const action = github.context.action || '';
-    let ev;
-    if (event === 'pull_request') {
-        if (action === 'closed') {
-            const payload = github.context.payload;
-            const number = payload.pull_request.number;
-            const sha = github.context.sha;
-            ev = { event, action, number, sha };
-        }
-        else if (['review_requested', 'review_request_removed'].includes(action)) {
-            const payload = github.context.payload;
-            const number = payload.pull_request.number;
-            const { login, html_url: url } = payload.requested_reviewer;
-            const reviewRequest = { requestedReviewer: { login, url } };
-            ev = { event, action, number, reviewRequest };
-        }
-    }
-    else if (event === 'pull_request_review') {
-        const payload = github.context.payload;
-        const number = payload.pull_request.number;
-        const { user: { login, html_url: url }, body, submitted_at: updatedAt } = payload.review;
-        // Since it is uppercase in the definition of GitHub GraphQL, align it
-        const state = (payload.review.state).toUpperCase();
-        const review = { author: { login, url }, body, state, updatedAt };
-        ev = { event, action, number, review };
-    }
-    else if (event === 'push') {
-        ev = { event, action, number: 0, sha: github.context.sha };
-    }
+    const { actor, sha } = github.context;
+    const ev = extractPayload({ login: actor, url: `https://github.com/${actor}` }, event, action, github.context.payload, sha);
     if (ev) {
-        handleAction(ev);
+        const cx = await createActionContext();
+        dumpSlackAccounts(cx);
+        processEvent(cx, ev);
     }
     else {
-        const actionType = action ? ` > "${action}"` : '';
-        core.info(`Unsupported trigger type: "${event}"${actionType}`);
+        const caption = action ? ` > "${action}"` : '';
+        core.info(`Unsupported trigger type: "${event}"${caption}`);
     }
 }
 exports.handleEvent = handleEvent;

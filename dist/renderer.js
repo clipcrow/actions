@@ -56,7 +56,7 @@ function arrangeReviewers(req, rv) {
 }
 exports.arrangeReviewers = arrangeReviewers;
 const pr_approved = 'Changes approved';
-const no_review = 'No requested review';
+const no_review = 'No requested reviewer';
 const ch_requested = 'Changes requested';
 const rv_requested = 'Review requested';
 const Approvals = (props) => {
@@ -82,7 +82,7 @@ const Approvals = (props) => {
         }
     }
     const unit = (list) => (list.length > 1 ? 's' : '');
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: everybodyApproved, text: text }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: approvals, text: `approval${unit(approvals)}` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: changeRequesteds, text: `review${unit(approvals)} requesting changes` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: pendings, text: `pending reviewer${unit(approvals)}` })] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: everybodyApproved, text: text }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: approvals, text: `approval${unit(approvals)}` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: changeRequesteds, text: `reviewer${unit(approvals)} requested changes` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: pendings, text: `pending reviewer${unit(approvals)}` })] }));
 };
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
@@ -106,8 +106,9 @@ const Repository = (props) => {
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("pre", { children: props.text }) }) : null);
 const PullRequest = (props) => {
     const { url, number, body } = props.repository.pullRequest;
-    // TODO pushイベントへのリアクション
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
+    // react "push" event
+    const pushMessage = props.event === 'push' ? props.pushMessage : null;
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(Description, { text: pushMessage }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
@@ -131,17 +132,18 @@ const SubmittedLog = (props) => {
     if (state === 'APPROVED') {
         const authorLogin = props.repository.pullRequest.author.login;
         const authorSlack = props.slackAccounts[authorLogin];
-        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
+        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [(0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " approved ", (0, jsx_runtime_1.jsx)(UserLink, { login: authorLogin, slack: authorSlack }), "'s changes."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
     }
     if (body) {
-        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [" ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " commented."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
+        return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [(0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " commented."] }) }), (0, jsx_runtime_1.jsx)(Description, { text: body })] }));
     }
     return null;
 };
 exports.SubmittedLog = SubmittedLog;
 const DeployCompleteLog = (props) => {
-    // TODO 実装
-    return null;
+    const { login } = props.sender;
+    const slack = props.slackAccounts[login];
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["The workflow launched by ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " 's merge commit is complete."] }) }) }));
 };
 exports.DeployCompleteLog = DeployCompleteLog;
 //# sourceMappingURL=renderer.js.map
