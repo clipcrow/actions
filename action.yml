@@ -11,8 +11,8 @@ inputs:
         description: "Slack Channel ID"
         required: true
     slackAccounts:
-        description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
-        default: "./github/accounts.json"
+        description: "GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style"
+        default: "{}"
     pushMessage:
         description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
         default: "Deployment flow complete"
