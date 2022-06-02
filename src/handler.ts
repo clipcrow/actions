@@ -1,12 +1,12 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import * as fs from 'fs/promises';
 
 import {
     findPreviousSlackMessage,
     postPullRequestInfo,
     postChangeLog,
 } from './notifier';
+
 import {
     ClosedLog,
     ReviewRequestedLog,
@@ -20,6 +20,7 @@ import type {
     PullRequestReviewRequestRemovedEvent,
     PullRequestReviewEvent,
 } from '@octokit/webhooks-definitions/schema';
+
 import type {
     KeyValueStore,
     GitHubUser,
@@ -30,9 +31,19 @@ import type {
     EventPayload,
     RenderModel,
 } from './types';
+
 import type {
     WebhookPayload
 } from '@actions/github/lib/interfaces';
+
+export async function readSlackAccounts(input: string): Promise<KeyValueStore> {
+    try {
+        return JSON.parse(input);
+    } catch(err) {
+        core.info('' + err);
+    }
+    return {};
+}
 
 export async function createActionContext(): Promise<ActionContext> {
     const owner = github.context.repo.owner;
@@ -42,8 +53,7 @@ export async function createActionContext(): Promise<ActionContext> {
     const slackChannel = core.getInput('slackChannel');
     const pushMessage = core.getInput('pushMessage');
 
-    const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
-    const slackAccounts: KeyValueStore = JSON.parse(file);
+    const slackAccounts = await readSlackAccounts(core.getInput('slackAccounts'));
 
     return {
         owner,

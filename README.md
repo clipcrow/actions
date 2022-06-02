@@ -78,8 +78,8 @@ slackToken=xoxb-1234567890123-1234567890123-abcdefghijklmnopqrstuvwx
 slackChannel=C0123456789
 # The message you want to post when the push event that occurs after a merge commit is complete.
 pushMessage=Deployment flow complete
-owner=<test target organization or login account>
-name=<test target repository name>
+owner=test-target-organization-or-login-account
+name=test-target-repository-name
 # test target number of pull request
 number=311
 ```
@@ -99,9 +99,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: masataka/pull-request-notify@v0.0.4
+      - uses: masataka/pull-request-notify@v0.0.5
         env:
           NODE_OPTIONS: --enable-source-maps
         with:
@@ -109,10 +107,10 @@ jobs:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           # it will be a big deal If the slack token is leaked,
           # so I recommend using the secrets mechanism on github.
-          slackToken: ${{ secrets.SLACK_BOT_TOKEN }}
-          slackChannel: C0123456789
-          # GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack ... } style
-          slackAccounts: src/repository/accounts.json
+          slackToken: ${{ secrets.SLACK_TOKEN }}
+          slackChannel: ${{ secrets.SLACK_CHANNEL }}
+          # GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style
+          slackAccounts: ${{ secrets.SLACK_ACCOUNTS }}
 ```
 
 ```yml
@@ -124,8 +122,6 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
       - Your CI steps here
 
       - Your CD steps here
@@ -133,9 +129,9 @@ jobs:
       - uses: masataka/pull-request-notify@v0.0.4
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          slackToken: ${{ secrets.SLACK_BOT_TOKEN }}
-          slackChannel: C0123456789
-          slackAccounts: src/repository/accounts.json
+          slackToken: ${{ secrets.SLACK_TOKEN }}
+          slackChannel: ${{ secrets.SLACK_CHANNEL }}
+          slackAccounts: ${{ secrets.SLACK_ACCOUNTS }}
           # You can send a message in a workflow with a merge commit fired by a pull request merge operation.
           pushMessage: Deployment flow complete
 ```

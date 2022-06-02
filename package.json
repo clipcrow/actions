@@ -1,6 +1,6 @@
 {
     "name": "pull-request-notify",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "This bot notifies changes of your pull-request to your slack channel.",
     "main": "dist/index.js",
     "scripts": {
