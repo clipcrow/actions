@@ -1,11 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.extractPayload = exports.processEvent = exports.createRenderModel = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.dumpSlackAccounts = exports.createActionContext = void 0;
+exports.handleEvent = exports.extractPayload = exports.processEvent = exports.createRenderModel = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.dumpSlackAccounts = exports.createActionContext = exports.readSlackAccounts = void 0;
 const core = require("@actions/core");
 const github = require("@actions/github");
-const fs = require("fs/promises");
 const notifier_1 = require("./notifier");
 const renderer_1 = require("./renderer");
+async function readSlackAccounts(input) {
+    try {
+        return JSON.parse(input);
+    }
+    catch (err) {
+        core.info('' + err);
+    }
+    return {};
+}
+exports.readSlackAccounts = readSlackAccounts;
 async function createActionContext() {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
@@ -13,8 +22,7 @@ async function createActionContext() {
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
     const pushMessage = core.getInput('pushMessage');
-    const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
-    const slackAccounts = JSON.parse(file);
+    const slackAccounts = await readSlackAccounts(core.getInput('slackAccounts'));
     return {
         owner,
         name,
