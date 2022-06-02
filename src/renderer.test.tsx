@@ -1,6 +1,6 @@
 import { arrangeReviewers } from './renderer';
 import { PullRequest } from './renderer';
-import { sampleRenderModel } from './testUtils';
+import { sampleRenderModel, closedModel } from './testUtils';
 
 test('arrangeReviewers', () => {
     const { reviewRequests, reviews } = sampleRenderModel.repository.pullRequest;
@@ -12,5 +12,5 @@ test('arrangeReviewers', () => {
 });
 
 test('PullRequestInfo', () => {
-    console.log(`{"blocks":${JSON.stringify(<PullRequest {...sampleRenderModel} event='push' />)}}`);
+    console.log(`{"blocks":${JSON.stringify(<PullRequest {...closedModel}/>)}}`);
 });

@@ -181,14 +181,27 @@ const must_be_resolved = 'This branch has conflicts that must be resolved';
 const merge_completed = 'The merge is complete'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
+const Complete = (
+	props: {
+		text: string | null,
+	}
+) => (
+	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
+);
+
 const Conflicts = (props: RenderModel) => {
 	const { state, mergeable, merged } = props.repository.pullRequest;
-	if (state !== 'OPEN') {
-		const text = merged ? merge_completed  : closed_without_merge;
-		return (<StatusSection test={merged} text={text}/>);
+	if (state === 'OPEN') {
+		const test = mergeable === 'MERGEABLE';
+		return <StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>
 	}
-	const test = mergeable === 'MERGEABLE';
-	return <StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>
+	const text = merged ? merge_completed  : closed_without_merge;
+	return (
+		<Fragment>
+			<StatusSection test={true} text={text}/>
+			<Complete text={props.event === 'push' ? props.pushMessage : null }/>
+		</Fragment>
+	);
 }
 
 const PullNumber = (
@@ -228,14 +241,6 @@ const Description = (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
 
-const Complete = (
-	props: {
-		text: string | null,
-	}
-) => (
-	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
-);
-
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
 
@@ -247,7 +252,6 @@ export const PullRequest = (props: RenderModel) => {
 			<Description text={body}/>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
-			<Complete text={props.event === 'push' ? props.pushMessage : null}/>
 			<Repository {...props}/>
 			<Divider/>
 		</Blocks>
