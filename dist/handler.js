@@ -68,7 +68,7 @@ async function findPullRequestNumber(token, vars) {
         const list = await listPullRequests(token, vars);
         if (list) {
             for (const pullRequest of list.repository.pullRequests.nodes) {
-                if (pullRequest.mergeCommit.sha === vars.sha) {
+                if (pullRequest.mergeCommit && pullRequest.mergeCommit.sha === vars.sha) {
                     return pullRequest.number;
                 }
             }
