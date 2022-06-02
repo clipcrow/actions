@@ -36,7 +36,7 @@ import type {
     WebhookPayload
 } from '@actions/github/lib/interfaces';
 
-export async function readSlackAccounts(input: string): Promise<KeyValueStore> {
+export function readSlackAccounts(input: string): KeyValueStore {
     try {
         return JSON.parse(input);
     } catch(err) {
@@ -45,7 +45,7 @@ export async function readSlackAccounts(input: string): Promise<KeyValueStore> {
     return {};
 }
 
-export async function createActionContext(): Promise<ActionContext> {
+export function createActionContext(): ActionContext {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
     const githubToken = core.getInput('githubToken');
@@ -53,7 +53,7 @@ export async function createActionContext(): Promise<ActionContext> {
     const slackChannel = core.getInput('slackChannel');
     const pushMessage = core.getInput('pushMessage');
 
-    const slackAccounts = await readSlackAccounts(core.getInput('slackAccounts'));
+    const slackAccounts = readSlackAccounts(core.getInput('slackAccounts'));
 
     return {
         owner,

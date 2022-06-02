@@ -22,7 +22,7 @@ test('createActionContext', async () => {
         }[arg] || 'n/a';
     });
 
-    const cx = await createActionContext();
+    const cx = createActionContext();
 
     expect(cx.githubToken).toEqual('ghp_abcdefghijklmnopqrstuvwxyz0123456789');
     expect(cx.slackToken).toEqual('xoxb-123456789-1234');
