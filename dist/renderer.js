@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = exports.PullRequest = exports.arrangeReviewers = void 0;
+exports.DeployCompleteLog = exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = exports.PullRequest = exports.arrangeReviewers = void 0;
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
@@ -23,37 +23,66 @@ const Reviewers = (props) => {
     if (count == 0) {
         return null;
     }
-    const unit = count > 1 ? 's' : '';
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: [(0, jsx_runtime_1.jsxs)("span", { children: ["> ", `${count} ${props.text}${unit}`] }), props.reviewers.map((login) => {
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: [(0, jsx_runtime_1.jsxs)("span", { children: ["> ", `${count} ${props.text}`] }), props.reviewers.map((login) => {
                 return (0, jsx_runtime_1.jsx)("span", { children: (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: props.slackAccounts[login] }) });
             })] }));
 };
 function arrangeReviewers(req, rv) {
-    const pendings = req.edges.map((edge) => {
-        return edge.node.requestedReviewer.login;
-    });
-    const approvals = rv.edges.reduce((previous, current) => {
+    const requestedReviewer = req.edges.reduce((previous, current) => {
+        return { ...previous, [current.node.requestedReviewer.login]: 'PENDING' };
+    }, {});
+    // Caution! here is "reduceRight"
+    const reviewDetails = rv.edges.reduceRight((previous, current) => {
         const { author: { login }, state } = current.node;
-        if (pendings.includes(login) || previous.includes(login) || state !== 'APPROVED') {
+        // Prohibit excessive overwriting
+        if (previous[login]) {
             return previous;
         }
-        return [...previous, login];
-    }, []);
-    return { pendings, approvals };
+        return { ...previous, [login]: state };
+    }, requestedReviewer);
+    return Object.keys(reviewDetails).reduce((previous, current) => {
+        const state = reviewDetails[current];
+        if (state === 'APPROVED') {
+            return { ...previous, approvals: [...previous.pendings, current] };
+        }
+        if (state === 'CHANGES_REQUESTED') {
+            return { ...previous, changeRequesteds: [...previous.pendings, current] };
+        }
+        if (state === 'PENDING') {
+            return { ...previous, pendings: [...previous.pendings, current] };
+        }
+        return previous;
+    }, { approvals: [], changeRequesteds: [], pendings: [] });
 }
 exports.arrangeReviewers = arrangeReviewers;
 const pr_approved = 'Changes approved';
-const rv_requested = 'Review requested';
 const no_review = 'No requested review';
+const ch_requested = 'Changes requested';
+const rv_requested = 'Review requested';
 const Approvals = (props) => {
     const { state, reviewRequests, reviews } = props.repository.pullRequest;
     if (state !== 'OPEN') {
         return null;
     }
-    const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
-    const test = pendings.length == 0 && approvals.length > 0;
-    const totalCount = pendings.length + approvals.length;
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? pr_approved : (totalCount > 0 ? rv_requested : no_review) }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: approvals, text: 'approval', slackAccounts: props.slackAccounts }), (0, jsx_runtime_1.jsx)(Reviewers, { reviewers: pendings, text: 'pending reviewer', slackAccounts: props.slackAccounts })] }));
+    const { approvals, changeRequesteds, pendings } = arrangeReviewers(reviewRequests, reviews);
+    const everybodyApproved = approvals.length > 0 && changeRequesteds.length == 0 && pendings.length == 0;
+    let text = '';
+    if (approvals.length > 0 && changeRequesteds.length == 0 && pendings.length == 0) {
+        text = pr_approved;
+    }
+    else {
+        if (approvals.length + changeRequesteds.length + pendings.length == 0) {
+            text = no_review;
+        }
+        else if (changeRequesteds.length > 0) {
+            text = ch_requested;
+        }
+        else {
+            text = rv_requested;
+        }
+    }
+    const unit = (list) => (list.length > 1 ? 's' : '');
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: everybodyApproved, text: text }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: approvals, text: `approval${unit(approvals)}` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: changeRequesteds, text: `review${unit(approvals)} requesting changes` }), (0, jsx_runtime_1.jsx)(Reviewers, { slackAccounts: props.slackAccounts, reviewers: pendings, text: `pending reviewer${unit(approvals)}` })] }));
 };
 const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
@@ -77,6 +106,7 @@ const Repository = (props) => {
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("pre", { children: props.text }) }) : null);
 const PullRequest = (props) => {
     const { url, number, body } = props.repository.pullRequest;
+    // TODO pushイベントへのリアクション
     return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
@@ -109,3 +139,9 @@ const SubmittedLog = (props) => {
     return null;
 };
 exports.SubmittedLog = SubmittedLog;
+const DeployCompleteLog = (props) => {
+    // TODO 実装
+    return null;
+};
+exports.DeployCompleteLog = DeployCompleteLog;
+//# sourceMappingURL=renderer.js.map

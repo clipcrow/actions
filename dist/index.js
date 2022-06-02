@@ -5,3 +5,4 @@ const handler_1 = require("./handler");
 (0, handler_1.handleEvent)().catch(err => {
     core.setFailed(err);
 });
+//# sourceMappingURL=index.js.map

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.handleAction = exports.queryActualPullRequest = exports.createActionContext = void 0;
+exports.handleEvent = exports.handleAction = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.createActionContext = void 0;
 const core = require("@actions/core");
 const github = require("@actions/github");
 const fs = require("fs/promises");
@@ -12,6 +12,7 @@ async function createActionContext() {
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
+    const mergeCommitlMessage = core.getInput('mergeCommitlMessage');
     const file = await fs.readFile(core.getInput('slackAccounts'), 'utf8');
     const slackAccounts = JSON.parse(file);
     return {
@@ -21,72 +22,142 @@ async function createActionContext() {
         slackToken,
         slackChannel,
         slackAccounts,
+        mergeCommitlMessage,
     };
 }
 exports.createActionContext = createActionContext;
-async function queryActualPullRequest(token, vars) {
-    const queryString = `
-    query ($owner: String!, $name: String!, $number: Int!) {
-        repository(owner: $owner, name: $name) {
-            name
-            owner {
+const pull_request_list_string = `
+query ($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+        pullRequests(last: 100) {
+            nodes {
+                mergeCommit {
+                messageBody
+                messageHeadline
+                sha: oid
+                }
+            }
+        }
+    }
+}
+`;
+async function listPullRequests(token, vars) {
+    const oktokit = github.getOctokit(token);
+    try {
+        return await oktokit.graphql(pull_request_list_string, { ...vars });
+    }
+    catch (err) {
+        core.info('' + err);
+    }
+    return null;
+}
+exports.listPullRequests = listPullRequests;
+async function findPullRequestNumber(token, vars) {
+    if (vars.sha) {
+        const list = await listPullRequests(token, vars);
+        if (list) {
+            for (const pullRequest of list.pullRequests.nodes) {
+                if (pullRequest.mergeCommit.sha === vars.sha) {
+                    return pullRequest.number;
+                }
+            }
+        }
+    }
+    return 0;
+}
+exports.findPullRequestNumber = findPullRequestNumber;
+const pull_request_query_string = `
+query ($owner: String!, $name: String!, $number: Int!) {
+    repository(owner: $owner, name: $name) {
+        name
+        owner {
+            login
+            url
+        }
+        pullRequest(number: $number) {
+            author {
                 login
                 url
             }
-            pullRequest(number: $number) {
-                author {
-                    login
-                    url
-                }
-                baseRefName
-                body
-                changedFiles
-                commits {
-                    totalCount
-                }
-                headRefName
-                mergeable
-                merged
-                number
-                reviewRequests(last: 100) {
-                    totalCount
-                    edges {
-                        node {
-                            requestedReviewer {
-                                ... on User {
-                                    login
-                                    url
-                                }
+            baseRefName
+            body
+            changedFiles
+            commits {
+                totalCount
+            }
+            headRefName
+            mergeCommit {
+                messageBody
+                messageHeadline
+                sha: oid
+            }
+            mergeable
+            merged
+            number
+            reviewRequests(last: 100) {
+                totalCount
+                edges {
+                    node {
+                        requestedReviewer {
+                            ... on Team {
+                                __typename
+                                login: name
+                                url
+                            }
+                            ... on User {
+                                __typename
+                                login
+                                url
                             }
                         }
                     }
                 }
-                reviews(last: 100) {
-                    totalCount
-                    edges {
-                        node {
-                        author {
-                            login
-                            url
-                        }
-                        body
-                        state
-                        updatedAt
-                        }
+            }
+            reviews(last: 100) {
+                totalCount
+                edges {
+                    node {
+                    author {
+                        login
+                        url
+                    }
+                    body
+                    state
+                    updatedAt
                     }
                 }
-                state
-                title
-                url
             }
+            state
+            title
             url
         }
+        url
     }
-    `;
+}
+`;
+async function queryActualPullRequest(token, vars) {
     const oktokit = github.getOctokit(token);
-    return await oktokit.graphql(queryString, { ...vars });
+    try {
+        return await oktokit.graphql(pull_request_query_string, { ...vars });
+    }
+    catch (err) {
+        core.info('' + err);
+        return null;
+    }
 }
 exports.queryActualPullRequest = queryActualPullRequest;
+async function findActualPullRequest(token, vars) {
+    let number = vars.number;
+    if (number == 0) {
+        number = await findPullRequestNumber(token, vars);
+    }
+    if (number == 0) {
+        // PullRequest Not Found
+        return null;
+    }
+    return await queryActualPullRequest(token, { ...vars, number });
+}
+exports.findActualPullRequest = findActualPullRequest;
 function dumpSlackAccounts(cx) {
     core.info('- cx.slackAccounts');
     let count = 0;
@@ -97,68 +168,94 @@ function dumpSlackAccounts(cx) {
     core.info(`    - (total ${count} accounts)`);
 }
 async function handleAction(ev) {
-    const { action, number } = ev;
-    if (['closed', 'review_request_removed', 'review_requested', 'submitted'].includes(action)) {
-        const cx = await createActionContext();
-        dumpSlackAccounts(cx);
-        const { owner, name } = cx;
-        const result = await queryActualPullRequest(cx.githubToken, { owner, name, number });
-        const message = await (0, notifier_1.findSlackMessage)(cx, number);
-        let ts = message?.ts; // So the message not found, ts is undefined.
-        const model = { ...cx, ...ev, ...result, ts };
-        if (message) {
-            ts = await (0, notifier_1.updatePullRequestInfo)(cx, model);
-        }
-        else {
-            ts = await (0, notifier_1.postPullRequestInfo)(cx, model);
-        }
-        if (ts) {
-            if (action === 'closed') {
-                await (0, notifier_1.postChangeLog)(cx, ts, () => (0, renderer_1.ClosedLog)(model));
-            }
-            else if (['review_requested', 'review_request_removed'].includes(action)) {
-                await (0, notifier_1.postChangeLog)(cx, ts, () => (0, renderer_1.ReviewRequestedLog)(model));
-            }
-            else if (action === 'submitted') {
-                await (0, notifier_1.postChangeLog)(cx, ts, () => (0, renderer_1.SubmittedLog)(model));
-            }
-        }
+    const cx = await createActionContext();
+    dumpSlackAccounts(cx);
+    const vars1 = { owner: cx.owner, name: cx.name, ...ev };
+    const result = await findActualPullRequest(cx.githubToken, vars1);
+    if (!result) {
+        // PullRequest Not Found
+        return;
     }
-    else {
-        core.info(`Unsupported trigger action: ${ev.event} > "${action}"`);
+    // number of vars1 is 0 when "push"
+    const vars2 = { ...vars1, number: result.repository.pullRequest.number };
+    const previous = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
+    const model = { ...cx, ...ev, ...result, ts: previous };
+    const current = await (0, notifier_1.postPullRequestInfo)(cx, model);
+    if (current) {
+        if (ev.action === 'closed') {
+            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.ClosedLog)(model));
+        }
+        else if (['review_requested', 'review_request_removed'].includes(ev.action)) {
+            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.ReviewRequestedLog)(model));
+        }
+        else if (ev.action === 'submitted') {
+            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.SubmittedLog)(model));
+        }
+        else if (ev.event === 'push') {
+            await (0, notifier_1.postChangeLog)(cx, current, () => (0, renderer_1.DeployCompleteLog)(model));
+        }
     }
 }
 exports.handleAction = handleAction;
 async function handleEvent() {
-    const { eventName, payload: { action } } = github.context;
-    if (eventName === 'pull_request') {
-        const payload = github.context.payload;
-        const number = payload.pull_request.number;
-        const reviewRequest = (payload.requested_reviewer) && {
-            requestedReviewer: {
-                login: payload.requested_reviewer.login,
-                url: payload.requested_reviewer.html_url,
-            },
-        }; // <- undefined when action is 'closed'
-        handleAction({ event: 'pull_request', action: action || '', number, reviewRequest });
+    const event = github.context.eventName;
+    const action = github.context.action || '';
+    let ev;
+    if (event === 'pull_request') {
+        if (action === 'closed') {
+            const payload = github.context.payload;
+            const number = payload.pull_request.number;
+            const sha = github.context.sha;
+            ev = { event, action, number, sha };
+        }
+        else if (['review_requested', 'review_request_removed'].includes(action)) {
+            const payload = github.context.payload;
+            const number = payload.pull_request.number;
+            const { login, html_url: url } = payload.requested_reviewer;
+            const reviewRequest = { requestedReviewer: { login, url } };
+            ev = { event, action, number, reviewRequest };
+        }
     }
-    else if (eventName === 'pull_request_review') {
+    else if (event === 'pull_request_review') {
         const payload = github.context.payload;
         const number = payload.pull_request.number;
-        const review = {
-            author: {
-                login: payload.review.user.login,
-                url: payload.review.user.html_url,
-            },
-            body: payload.review.body,
-            // Since it is uppercase in the definition of GitHub GraphQL, align it
-            state: (payload.review.state).toUpperCase(),
-            updatedAt: payload.review.submitted_at,
-        };
-        handleAction({ event: 'pull_request_review', action: action || '', number, review });
+        const { user: { login, html_url: url }, body, submitted_at: updatedAt } = payload.review;
+        // Since it is uppercase in the definition of GitHub GraphQL, align it
+        const state = (payload.review.state).toUpperCase();
+        const review = { author: { login, url }, body, state, updatedAt };
+        ev = { event, action, number, review };
+    }
+    else if (event === 'push') {
+        ev = { event, action, number: 0, sha: github.context.sha };
+    }
+    if (ev) {
+        handleAction(ev);
     }
     else {
-        core.info(`Unsupported trigger event: "${eventName}"`);
+        const actionType = action ? ` > "${action}"` : '';
+        core.info(`Unsupported trigger type: "${event}"${actionType}`);
     }
 }
 exports.handleEvent = handleEvent;
+/*
+query ($owner: String!, $name: String!, $branch: String!) {
+    repository(owner: $owner, name: $name) {
+        ref(qualifiedName: $branch) {
+            target {
+                ... on Commit {
+                    history(first: 10) {
+                        edges {
+                            node {
+                                messageBody
+                                messageHeadline
+                                sha: oid
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+*/
+//# sourceMappingURL=handler.js.map

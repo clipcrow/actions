@@ -12,6 +12,7 @@ exports.sampleRenderModel = {
         another: "U5678901234",
         nobody: "U8901234567",
     },
+    mergeCommitlMessage: 'Deployment flow complete',
     repository: {
         name: "test",
         owner: {
@@ -30,6 +31,7 @@ exports.sampleRenderModel = {
                 "totalCount": 9
             },
             headRefName: "feature-269",
+            mergeCommit: null,
             mergeable: "MERGEABLE",
             merged: false,
             number: 311,
@@ -91,3 +93,4 @@ exports.sampleRenderModel = {
         url: "https://github.com/someone/test"
     }
 };
+//# sourceMappingURL=testUtils.js.map
