@@ -103,7 +103,7 @@ export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<
 }
 
 const pr_approved = 'Changes approved';
-const no_review = 'No requested review';
+const no_review = 'No requested reviewer';
 const ch_requested = 'Changes requested'
 const rv_requested = 'Review requested';
 
@@ -134,7 +134,7 @@ const Approvals = (props: RenderModel) => {
 			<Reviewers slackAccounts={props.slackAccounts}
 				reviewers={approvals} text={`approval${unit(approvals)}`}/>
 			<Reviewers slackAccounts={props.slackAccounts}
-				 reviewers={changeRequesteds} text={`review${unit(approvals)} requesting changes`}/>
+				 reviewers={changeRequesteds} text={`reviewer${unit(approvals)} requested changes`}/>
 			<Reviewers slackAccounts={props.slackAccounts}
 				reviewers={pendings} text={`pending reviewer${unit(approvals)}`}/>
 		</Fragment>

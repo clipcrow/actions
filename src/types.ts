@@ -74,6 +74,8 @@ export interface Connection<T> {
 }
 
 export interface QueryResult {
+    // owner slackAccounts mergeCommitlMessage
+    // event action reviewRequest? review?
     repository: {
         name: string;
         owner: {
@@ -106,5 +108,7 @@ export interface QueryResult {
     }
 }
 
-export type RenderModel = Omit<ActionContext, 'githubToken' | 'slackToken' | 'slackChannel'> &
-    TriggerEventPayload & QueryResult & { ts?: string };
+export type RenderModel =
+    Pick<ActionContext, 'owner' | 'slackAccounts' | 'mergeCommitlMessage'> &
+    Pick<TriggerEventPayload, 'event' | 'action' | 'reviewRequest' | 'review'> &
+    QueryResult;

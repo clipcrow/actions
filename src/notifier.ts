@@ -7,6 +7,14 @@ import type { ActionContext, QueryVariables, RenderModel, SlackMessage } from '.
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
+function payloadEquals(payload: QueryVariables, vars: QueryVariables): boolean {
+    return (
+        payload.owner === vars.owner &&
+        payload.name === vars.name &&
+        payload.number === vars.number
+    );
+}
+
 export async function findPreviousSlackMessage(
     cx: ActionContext,
     vars: QueryVariables,
@@ -26,12 +34,7 @@ export async function findPreviousSlackMessage(
                 if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (event_payload.owner !== vars.owner) break;
-                if (event_payload.name !== vars.name) break;
-                if (event_payload.number === vars.number) {
-                    if (vars.sha && event_payload.sha !== vars.sha) {
-                        break;
-                    }
+                if (payloadEquals(slackMessage.metadata.event_payload, vars)) {
                     return slackMessage.ts;
                 }
             }
@@ -42,18 +45,17 @@ export async function findPreviousSlackMessage(
 export async function postPullRequestInfo(
     cx: ActionContext,
     model: RenderModel,
+    ts?: string,
 ): Promise<string | undefined> {
     const client = new WebClient(cx.slackToken);
 
     // sanitize because of dirty model
     const event_payload: QueryVariables = {
         owner: model.owner,
-        name: model.name,
-        number: model.number,
-        sha: model.sha,
+        name: model.repository.name,
+        number: model.repository.pullRequest.number,
     };
 
-//    const api = model.ts ? client.chat.postMessage : client.chat.update;
     const param = {
         channel: cx.slackChannel,
         text: 'pull-request-notify posted this message.',
@@ -64,8 +66,8 @@ export async function postPullRequestInfo(
         },
     }
     let result;
-    if (model.ts) {
-        result = await client.chat.update({ ...param, ts: model.ts });
+    if (ts) {
+        result = await client.chat.update({ ...param, ts });
     } else {
         result = await client.chat.postMessage(param);
     }

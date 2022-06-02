@@ -3,9 +3,7 @@ import type { RenderModel } from './types';
 export const sampleRenderModel: RenderModel = {
     event: "pull_request_review",
     action: "submitted",
-    number: 311,
     owner: 'someone',
-    name: 'test',
     slackAccounts: {
         someone: "U1234567890",
         another: "U5678901234",

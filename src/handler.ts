@@ -57,9 +57,9 @@ query ($owner: String!, $name: String!) {
         pullRequests(last: 100) {
             nodes {
                 mergeCommit {
-                messageBody
-                messageHeadline
-                sha: oid
+                    messageBody
+                    messageHeadline
+                    sha: oid
                 }
             }
         }
@@ -195,7 +195,7 @@ export async function handleAction (ev: TriggerEventPayload) {
     const cx = await createActionContext();
     dumpSlackAccounts(cx);
 
-    const vars1: QueryVariables = { owner: cx.owner, name: cx.name, ...ev }
+    const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha }
     const result = await findActualPullRequest(cx.githubToken, vars1);
 
     if (!result) {
@@ -206,8 +206,8 @@ export async function handleAction (ev: TriggerEventPayload) {
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
     const previous = await findPreviousSlackMessage(cx, vars2);
-    const model = { ...cx, ...ev, ...result, ts: previous };
-    const current = await postPullRequestInfo(cx, model);
+    const model = { ...cx, ...ev, ...result };
+    const current = await postPullRequestInfo(cx, model, previous);
     if (current) {
         if (ev.action === 'closed') {
             await postChangeLog(cx, current, () => ClosedLog(model));
