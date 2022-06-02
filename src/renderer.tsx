@@ -47,15 +47,14 @@ const StatusSection = (props: { test: boolean, text: string }) => (
 	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: SlackAccounts }) => {
+const Reviewers = (props: { slackAccounts: SlackAccounts, reviewers: string[], text: string }) => {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
 	}
-	const unit = count > 1 ? 's' : '';
 	return (
 		<Context>
-			<span>&gt; {`${count} ${props.text}${unit}`}</span>
+			<span>&gt; {`${count} ${props.text}`}</span>
 			{
 				props.reviewers.map((login) => {
 					return <span><UserLink login={login} slack={props.slackAccounts[login]}/></span>
@@ -65,25 +64,48 @@ const Reviewers = (props: { reviewers: string[], text: string, slackAccounts: Sl
 	);
 }
 
-export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>):
-	{ pendings: string[], approvals: string[] }
-{
-	const pendings: string[] = req.edges.map((edge) => {
-		return edge.node.requestedReviewer.login;
-	});
-	const approvals = rv.edges.reduce<string[]>((previous, current) => {
+interface ReviewDetails {
+	[login: string]: string;
+}
+
+interface ArrangeResult {
+	approvals: string[];
+	changeRequesteds: string[];
+	pendings: string[];
+}
+
+export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>): ArrangeResult {
+	const requestedReviewer: ReviewDetails = req.edges.reduce<ReviewDetails>((previous, current) => {
+		return { ...previous, [current.node.requestedReviewer.login]: 'PENDING' };
+	}, {});
+	// Caution! here is "reduceRight"
+	const reviewDetails = rv.edges.reduceRight<ReviewDetails>((previous, current) => {
         const { author: { login }, state } = current.node;
-        if (pendings.includes(login) || previous.includes(login) || state !== 'APPROVED') {
+		// Prohibit excessive overwriting
+        if (previous[login]) {
             return previous;
         }
-        return [ ...previous, login ];
-	}, []);
-	return { pendings, approvals };
+        return { ...previous, [login]: state };
+	}, requestedReviewer);
+	return Object.keys(reviewDetails).reduce<ArrangeResult>((previous, current) => {
+		const state = reviewDetails[current];
+		if (state === 'APPROVED') {
+			return { ...previous, approvals: [...previous.pendings, current] };
+		}
+		if (state === 'CHANGES_REQUESTED') {
+			return { ...previous, changeRequesteds: [...previous.pendings, current] };
+		}
+		if (state === 'PENDING') {
+			return { ...previous, pendings: [...previous.pendings, current] };
+		}
+		return previous;
+	}, { approvals: [], changeRequesteds: [], pendings: [] });
 }
 
 const pr_approved = 'Changes approved';
-const rv_requested = 'Review requested';
 const no_review = 'No requested review';
+const ch_requested = 'Changes requested'
+const rv_requested = 'Review requested';
 
 const Approvals = (props: RenderModel) => {
 	const { state, reviewRequests, reviews } = props.repository.pullRequest;
@@ -91,14 +113,30 @@ const Approvals = (props: RenderModel) => {
 		return null;
 	}
 
-	const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
-	const test = pendings.length == 0 && approvals.length > 0;
-	const totalCount = pendings.length + approvals.length;
+	const { approvals, changeRequesteds, pendings } = arrangeReviewers(reviewRequests, reviews);
+	const everybodyApproved = approvals.length > 0 && changeRequesteds.length == 0 && pendings.length == 0;
+	let text = '';
+	if (approvals.length > 0 && changeRequesteds.length == 0 && pendings.length == 0) {
+		text = pr_approved;
+	} else {
+		if (approvals.length + changeRequesteds.length + pendings.length == 0) {
+			text = no_review;
+		} else if (changeRequesteds.length > 0) {
+			text = ch_requested;
+		} else {
+			text = rv_requested;
+		}
+	}
+	const unit = (list: string[]) => (list.length > 1 ? 's' : '');
 	return (
 		<Fragment>
-			<StatusSection test={test} text={test ? pr_approved : (totalCount > 0 ? rv_requested : no_review)}/>
-			<Reviewers reviewers={approvals} text='approval' slackAccounts={props.slackAccounts}/>
-			<Reviewers reviewers={pendings} text='pending reviewer' slackAccounts={props.slackAccounts}/>
+			<StatusSection test={everybodyApproved} text={text}/>
+			<Reviewers slackAccounts={props.slackAccounts}
+				reviewers={approvals} text={`approval${unit(approvals)}`}/>
+			<Reviewers slackAccounts={props.slackAccounts}
+				 reviewers={changeRequesteds} text={`review${unit(approvals)} requesting changes`}/>
+			<Reviewers slackAccounts={props.slackAccounts}
+				reviewers={pendings} text={`pending reviewer${unit(approvals)}`}/>
 		</Fragment>
 	);
 }

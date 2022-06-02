@@ -7,8 +7,8 @@ test('arrangeReviewers', () => {
 
     const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
 
-    expect(pendings).toEqual(['nobody']);
-    expect(approvals).toEqual(['someone']);
+    expect(pendings.includes('nobody')).toBeTruthy();
+    expect(approvals.includes('someone')).toBeTruthy();
 });
 
 test('PullRequestInfo', () => {
