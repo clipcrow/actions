@@ -60,11 +60,13 @@ export interface EventPayload {
 }
 
 export interface PullRequestList {
-    pullRequests: {
-        nodes: {
-            number: number;
-            mergeCommit: Commit;
-        }[];
+    repository: {
+        pullRequests: {
+            nodes: {
+                number: number;
+                mergeCommit: Commit;
+            }[];
+        }
     }
 }
 
@@ -101,6 +103,6 @@ export interface QueryResult {
 }
 
 export type RenderModel =
-    Pick<ActionContext, 'owner' | 'slackAccounts' | 'pushMessage'> &
-    Pick<EventPayload, 'sender' | 'event' | 'action' | 'reviewRequest' | 'review'> &
+    Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
+    Omit<EventPayload, 'number'> &
     QueryResult;

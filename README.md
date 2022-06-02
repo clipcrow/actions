@@ -100,7 +100,7 @@ number=311
 ### GitHub Workflow file
 
 ```yml
-name: pull-request-notify
+name: handle-pull-request
 on:
   pull_request:
     types: [closed, review_requested, review_request_removed]
@@ -111,7 +111,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: masataka/pull-request-notify@v0.0.3
+      - uses: masataka/pull-request-notify@v0.0.4
+        env:
+          NODE_OPTIONS: --enable-source-maps
         with:
           # https://docs.github.com/ja/actions/security-guides/automatic-token-authentication
           githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -121,4 +123,23 @@ jobs:
           slackChannel: C0123456789
           # GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack ... } style
           slackAccounts: src/repository/accounts.json
+```
+
+```yml
+name: handle-push
+on:
+  push: # Push events occur frequently, so it's a good idea to set a filter.
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: masataka/pull-request-notify@v0.0.4
+        with:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          slackToken: ${{ secrets.SLACK_BOT_TOKEN }}
+          slackChannel: C0123456789
+          slackAccounts: src/repository/accounts.json
+          # You can send a message in a workflow with a merge commit fired by a pull request merge operation.
+          pushMessage: Deployment flow complete
 ```

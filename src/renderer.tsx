@@ -305,6 +305,7 @@ export const DeployCompleteLog = (props: RenderModel) => {
 			<Context>
 				<b>The workflow launched by <UserLink login={login} slack={slack}/> 's merge commit is complete.</b>
 			</Context>
+			<Context>sha: {props.sha}</Context>
 		</Blocks>
 	);
 }
