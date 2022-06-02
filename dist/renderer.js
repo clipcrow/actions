@@ -143,7 +143,7 @@ exports.SubmittedLog = SubmittedLog;
 const DeployCompleteLog = (props) => {
     const { login } = props.sender;
     const slack = props.slackAccounts[login];
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["The workflow launched by ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " 's merge commit is complete."] }) }) }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["The workflow launched by ", (0, jsx_runtime_1.jsx)(UserLink, { login: login, slack: slack }), " 's merge commit is complete."] }) }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: ["sha: ", props.sha] })] }));
 };
 exports.DeployCompleteLog = DeployCompleteLog;
 //# sourceMappingURL=renderer.js.map

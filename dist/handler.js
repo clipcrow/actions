@@ -46,6 +46,7 @@ query ($owner: String!, $name: String!) {
                     messageHeadline
                     sha: oid
                 }
+                number
             }
         }
     }
@@ -66,7 +67,7 @@ async function findPullRequestNumber(token, vars) {
     if (vars.sha) {
         const list = await listPullRequests(token, vars);
         if (list) {
-            for (const pullRequest of list.pullRequests.nodes) {
+            for (const pullRequest of list.repository.pullRequests.nodes) {
                 if (pullRequest.mergeCommit.sha === vars.sha) {
                     return pullRequest.number;
                 }
