@@ -103,12 +103,11 @@ const Repository = (props) => {
     const repo = ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: ["See github.com > ", (0, jsx_runtime_1.jsx)("a", { href: owner.url, children: owner.login }), " > ", (0, jsx_runtime_1.jsx)("a", { href: url, children: name })] }));
     return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " > pull > ", (0, jsx_runtime_1.jsx)(PullNumber, { url: pullRequest.url, number: pullRequest.number })] }) }));
 };
+const Title = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.text }) : null);
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("pre", { children: props.text }) }) : null);
 const PullRequest = (props) => {
     const { url, number, body } = props.repository.pullRequest;
-    // react "push" event
-    const pushMessage = props.event === 'push' ? props.pushMessage : null;
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(Description, { text: pushMessage }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(Title, { text: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(Title, { text: props.event === 'push' ? props.pushMessage : null }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
