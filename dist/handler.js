@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.extractPayload = exports.processEvent = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.dumpSlackAccounts = exports.createActionContext = void 0;
+exports.handleEvent = exports.extractPayload = exports.processEvent = exports.createRenderModel = exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = exports.dumpSlackAccounts = exports.createActionContext = void 0;
 const core = require("@actions/core");
 const github = require("@actions/github");
 const fs = require("fs/promises");
@@ -169,6 +169,16 @@ async function findActualPullRequest(token, vars) {
     return await queryActualPullRequest(token, { ...vars, number });
 }
 exports.findActualPullRequest = findActualPullRequest;
+function createRenderModel(cx, ev, result) {
+    const { owner, slackAccounts, pushMessage } = cx;
+    const { sender, event, action, reviewRequest, review, sha } = ev;
+    return {
+        owner, slackAccounts, pushMessage,
+        sender, event, action, reviewRequest, review, sha,
+        ...result,
+    };
+}
+exports.createRenderModel = createRenderModel;
 async function processEvent(cx, ev) {
     core.info('processing...');
     const vars1 = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
@@ -186,7 +196,7 @@ async function processEvent(cx, ev) {
     core.info(JSON.stringify(vars2, null, '\t'));
     const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
     core.info(`previous ts: ${previousTS}`);
-    const model = { ...cx, ...ev, ...result };
+    const model = createRenderModel(cx, ev, result);
     core.info('posting slack message...');
     core.info(JSON.stringify(model, null, '\t'));
     const currentTS = await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS);
@@ -260,7 +270,7 @@ async function handleEvent() {
         core.info('context creating...');
         const cx = await createActionContext();
         dumpSlackAccounts(cx);
-        processEvent(cx, ev);
+        await processEvent(cx, ev);
     }
     core.info(`...ending handle "${event}"`);
 }
