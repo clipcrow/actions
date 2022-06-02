@@ -228,6 +228,14 @@ const Description = (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
 
+const Complete = (
+	props: {
+		text: string | null,
+	}
+) => (
+	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
+);
+
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
 
@@ -239,8 +247,8 @@ export const PullRequest = (props: RenderModel) => {
 			<Description text={body}/>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
+			<Complete text={props.event === 'push' ? props.pushMessage : null}/>
 			<Repository {...props}/>
-			<Title text={props.event === 'push' ? props.pushMessage : null}/>
 			<Divider/>
 		</Blocks>
 	);

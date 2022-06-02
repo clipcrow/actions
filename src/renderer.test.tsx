@@ -12,5 +12,5 @@ test('arrangeReviewers', () => {
 });
 
 test('PullRequestInfo', () => {
-    console.log(`{"blocks":${JSON.stringify(<PullRequest {...sampleRenderModel} />)}}`);
+    console.log(`{"blocks":${JSON.stringify(<PullRequest {...sampleRenderModel} event='push' />)}}`);
 });
