@@ -214,20 +214,30 @@ export async function processEvent (
     cx: ActionContext,
     ev: EventPayload,
 ) {
+    core.info('processing...');
     const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
+    core.info('finding actual pull-request...');
+    core.info(JSON.stringify(vars1, null, '\t'));
     const result = await findActualPullRequest(cx.githubToken, vars1);
 
     if (!result) {
         // PullRequest Not Found
+        core.info('pull-request Not Found!');
         return;
     }
 
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
+    core.info('finding slack message...');
+    core.info(JSON.stringify(vars2, null, '\t'));
     const previousTS = await findPreviousSlackMessage(cx, vars2);
+    core.info(`previous ts: ${previousTS}`);
     const model = { ...cx, ...ev, ...result };
+    core.info('posting slack message...');
+    core.info(JSON.stringify(model, null, '\t'));
     const currentTS = await postPullRequestInfo(cx, model, previousTS);
     if (currentTS) {
+        core.info('success!');
         if (ev.action === 'closed') {
             return await postChangeLog(cx, currentTS, () => ClosedLog(model));
         }
@@ -241,6 +251,7 @@ export async function processEvent (
             return await postChangeLog(cx, currentTS, () => DeployCompleteLog(model));
         }
     }
+    core.info(`current ts: ${currentTS}`);
     return currentTS;
 }
 
@@ -251,17 +262,21 @@ export function extractPayload(
     sha: string,
 ): EventPayload | undefined {
     if (event === 'push') {
+        core.info('extract "push" event...');
         return { sender, event, action: '', number: 0, sha };
     }
     const action = payload.action;
     if (event === 'pull_request') {
+        core.info('extract "pull_request" event...');
         if (action === 'closed') {
+            core.info('extract "closed"...');
             const closedEvent = payload as PullRequestClosedEvent;
             const number = closedEvent.pull_request.number;
             const sha = github.context.sha;
             return { sender, event, action, number, sha };
         }
         if (action === 'review_requested' || action === 'review_request_removed') {
+            core.info(`extract "${action}" action...`);
             const reviewerEvent = payload as
                 (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
             const number = reviewerEvent.pull_request.number;
@@ -271,8 +286,10 @@ export function extractPayload(
         }
     }
     if (event === 'pull_request_review') {
+        core.info('extract "pull_request_review" event...');
         const reviewEvent = payload as PullRequestReviewEvent;
         const action = reviewEvent.action;
+        core.info(`extract "${action}" action...`);
         const number = reviewEvent.pull_request.number;
         const { user: { login, html_url: url} , body, submitted_at: updatedAt } = reviewEvent.review;
         // Since it is uppercase in the definition of GitHub GraphQL, align it
@@ -286,6 +303,7 @@ export function extractPayload(
 
 export async function handleEvent () {
     const event = github.context.eventName;
+    core.info(`starting handle "${event}"...`);
     const { actor, sha } = github.context;
     const ev = extractPayload(
         { login: actor, url: `https://github.com/${actor}` },
@@ -294,10 +312,14 @@ export async function handleEvent () {
         sha,
     );
     if (ev) {
+        core.info('extracted payload is');
+        core.info(JSON.stringify(ev, null , '\t'));
+        core.info('context creating...');
         const cx = await createActionContext();
         dumpSlackAccounts(cx);
         processEvent(cx, ev);
     }
+    core.info(`...ending handle "${event}"`);
 }
 
 /*

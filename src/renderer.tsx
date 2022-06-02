@@ -212,6 +212,14 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
+const Title = (
+	props: {
+		text: string | null,
+	},
+) => (
+	props.text ? <Header>{props.text}</Header> : null
+);
+
 const Description = (
 	props: {
 		text: string | null,
@@ -223,19 +231,16 @@ const Description = (
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
 
-	// react "push" event
-	const pushMessage = props.event === 'push' ? props.pushMessage : null;
-
 	return (
 		<Blocks>
 			<Commits {...props}/>
-			<Header>{props.repository.pullRequest.title}</Header>
+			<Title text={props.repository.pullRequest.title}/>
 			<Context><PullNumber url={url} number={number}/></Context>
 			<Description text={body}/>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
 			<Repository {...props}/>
-			<Description text={pushMessage}/>
+			<Title text={props.event === 'push' ? props.pushMessage : null}/>
 			<Divider/>
 		</Blocks>
 	);
