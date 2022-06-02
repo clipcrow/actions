@@ -12,5 +12,5 @@ test('arrangeReviewers', () => {
 });
 
 test('PullRequestInfo', () => {
-    console.dir(<PullRequest {...sampleRenderModel} />, { depth: null });
+    console.log(JSON.stringify(<PullRequest {...sampleRenderModel} />));
 });
