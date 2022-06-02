@@ -28,7 +28,7 @@ will be written in the workflow YAML too.
 I will write it in TypeScript, assuming the future of changing the location to
 [Slack's next-generation platform](https://api.slack.com/future).
 
-## GitHub Actions Trigger
+## handle event of GitHub Actions
 
 - Event
     - **pull_request**
@@ -53,37 +53,24 @@ I will write it in TypeScript, assuming the future of changing the location to
         - dismissed
             - Change the state of the review, but not the state of the PR.
 
-## Slack API
+## Call Slack API
 
 - **chat.postMessage**
     - scope
         - `chat:write`
-    - arg
-        - channel
-        - blocks
-        - thread_ts
-        - reply_broadcast
 - **chat.update**
     - scope
         - `chat:write`
-    - arg
-        - channel
-        - ts
 - **conversations.history**
     - scope
         - `channels:history`
         - `groups:history`
         - `im:history`
         - `mpim:history`
-    - arg
-        - channel
-        - include_all_metadata
-        - oldest
-        - latest
 
 ### .env file
 
-The .env file is needed when running tests locally, not when using actions.
+The .env file is needed when running tests locally, not for using actions.
 
 ```yml
 githubToken=ghp_abcdefghijklmnopqrstuvwxyz0123456789
@@ -104,13 +91,16 @@ name: handle-pull-request
 on:
   pull_request:
     types: [closed, review_requested, review_request_removed]
+
   pull_request_review:
     types: [submitted]
+
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
       - uses: masataka/pull-request-notify@v0.0.4
         env:
           NODE_OPTIONS: --enable-source-maps
@@ -129,11 +119,17 @@ jobs:
 name: handle-push
 on:
   push: # Push events occur frequently, so it's a good idea to set a filter.
+
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - Your CI steps here
+
+      - Your CD steps here
+
       - uses: masataka/pull-request-notify@v0.0.4
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
