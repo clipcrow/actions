@@ -14,7 +14,7 @@ inputs:
         description: "GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style"
         default: "{}"
     pushMessage:
-        description: "GitHub - Slack Account Pairing JSON File Path, { github: slack, github: slack } style"
+        description: "You can send a message in a workflow with a merge commit fired by a pull request merge operation."
         default: "Deployment flow complete"
 runs:
     using: "node16"
