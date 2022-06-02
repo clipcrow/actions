@@ -88,14 +88,15 @@ const no_conflicts = 'This branch has no conflicts with the base branch';
 const must_be_resolved = 'This branch has conflicts that must be resolved';
 const merge_completed = 'The merge is complete';
 const closed_without_merge = 'This pull request have been closed without merge.';
+const Complete = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["> ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }) }) : null);
 const Conflicts = (props) => {
     const { state, mergeable, merged } = props.repository.pullRequest;
-    if (state !== 'OPEN') {
-        const text = merged ? merge_completed : closed_without_merge;
-        return ((0, jsx_runtime_1.jsx)(StatusSection, { test: merged, text: text }));
+    if (state === 'OPEN') {
+        const test = mergeable === 'MERGEABLE';
+        return (0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? no_conflicts : must_be_resolved });
     }
-    const test = mergeable === 'MERGEABLE';
-    return (0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? no_conflicts : must_be_resolved });
+    const text = merged ? merge_completed : closed_without_merge;
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(StatusSection, { test: true, text: text }), (0, jsx_runtime_1.jsx)(Complete, { text: props.event === 'push' ? props.pushMessage : null })] }));
 };
 const PullNumber = (props) => ((0, jsx_runtime_1.jsx)(jsx_slack_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("a", { href: props.url, children: ["#", props.number] }) }));
 const Repository = (props) => {
@@ -105,10 +106,9 @@ const Repository = (props) => {
 };
 const Title = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.text }) : null);
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("pre", { children: props.text }) }) : null);
-const Complete = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["> ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }) }) : null);
 const PullRequest = (props) => {
     const { url, number, body } = props.repository.pullRequest;
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(Title, { text: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Complete, { text: props.event === 'push' ? props.pushMessage : null }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(Commits, { ...props }), (0, jsx_runtime_1.jsx)(Title, { text: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), (0, jsx_runtime_1.jsx)(Description, { text: body }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 };
 exports.PullRequest = PullRequest;
 const ClosedLog = (props) => {
