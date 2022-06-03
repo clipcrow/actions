@@ -103,16 +103,12 @@ export function extractPayload(
                 (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
             const { login, html_url: url} = reviewRequestEvent.requested_reviewer;
             const reviewRequest = { requestedReviewer: { login, url} };
-            return { sender, event, action, number, reviewRequest, upsert: true };
+            return { sender, event, action, number, reviewRequest, upsert: true, logMessage: ReviewRequestedLog  };
         }
-        const upsert = ['closed', 'review_requested', 'review_request_removed'].includes(action);
         if (action === 'closed') {
-            return { sender, event, action, number, sha, upsert, logMessage: ClosedLog };
+            return { sender, event, action, number, sha, upsert: true, logMessage: ClosedLog };
         }
-        if (['review_requested', 'review_request_removed'].includes(action)) {
-            return { sender, event, action, number, sha, upsert, logMessage: ReviewRequestedLog };
-        }
-        return { sender, event, action, number, sha, upsert };
+        return { sender, event, action, number, sha, upsert: false };
     }
 
     if (event === 'pull_request_review') {
@@ -125,7 +121,10 @@ export function extractPayload(
         // Since it is uppercase in the definition of GitHub GraphQL, align it
         const state = (reviewEvent.review.state).toUpperCase();
         const review = { author: { login, url }, body, state, updatedAt };
-        return { sender, event, action, number, review, upsert: true, logMessage: SubmittedLog };
+        if (action === 'submitted') {
+            return { sender, event, action, number, review, upsert: true, logMessage: SubmittedLog };
+        }
+        return { sender, event, action, number, review, upsert: false };
     }
 
     // if (event === pull_request_review_comment) { TODO: }
