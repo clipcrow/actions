@@ -125,10 +125,10 @@ export function arrangeReviewers(
 	return Object.keys(reviewDetails).reduce<ArrangeResult>((previous, current) => {
 		const state = reviewDetails[current];
 		if (state === 'APPROVED') {
-			return { ...previous, approvals: [...previous.pendings, current] };
+			return { ...previous, approvals: [...previous.approvals, current] };
 		}
 		if (state === 'CHANGES_REQUESTED') {
-			return { ...previous, changeRequesteds: [...previous.pendings, current] };
+			return { ...previous, changeRequesteds: [...previous.changeRequesteds, current] };
 		}
 		if (state === 'PENDING') {
 			return { ...previous, pendings: [...previous.pendings, current] };
