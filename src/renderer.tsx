@@ -6,14 +6,9 @@ const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
-const BranchLink = (props: { url: string, ref: string, static?: boolean }) => {
-	if (props.static) {
-		return <i>{props.ref}</i>
-	}
-	return (
-		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
-	);
-};
+const BranchLink = (props: { url: string, ref: string, static?: boolean }) => (
+	props.static ? <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a> : <i>{props.ref}</i>
+);
 
 const Commits = (props: RenderModel) => {
 	const {
