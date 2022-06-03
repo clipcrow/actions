@@ -85,16 +85,12 @@ function extractPayload(sender, event, payload, sha) {
             const reviewRequestEvent = payload;
             const { login, html_url: url } = reviewRequestEvent.requested_reviewer;
             const reviewRequest = { requestedReviewer: { login, url } };
-            return { sender, event, action, number, reviewRequest, upsert: true };
+            return { sender, event, action, number, reviewRequest, upsert: true, logMessage: renderer_1.ReviewRequestedLog };
         }
-        const upsert = ['closed', 'review_requested', 'review_request_removed'].includes(action);
         if (action === 'closed') {
-            return { sender, event, action, number, sha, upsert, logMessage: renderer_1.ClosedLog };
+            return { sender, event, action, number, sha, upsert: true, logMessage: renderer_1.ClosedLog };
         }
-        if (['review_requested', 'review_request_removed'].includes(action)) {
-            return { sender, event, action, number, sha, upsert, logMessage: renderer_1.ReviewRequestedLog };
-        }
-        return { sender, event, action, number, sha, upsert };
+        return { sender, event, action, number, sha, upsert: false };
     }
     if (event === 'pull_request_review') {
         const reviewEvent = payload;
@@ -104,7 +100,10 @@ function extractPayload(sender, event, payload, sha) {
         // Since it is uppercase in the definition of GitHub GraphQL, align it
         const state = (reviewEvent.review.state).toUpperCase();
         const review = { author: { login, url }, body, state, updatedAt };
-        return { sender, event, action, number, review, upsert: true, logMessage: renderer_1.SubmittedLog };
+        if (action === 'submitted') {
+            return { sender, event, action, number, review, upsert: true, logMessage: renderer_1.SubmittedLog };
+        }
+        return { sender, event, action, number, review, upsert: false };
     }
     // if (event === pull_request_review_comment) { TODO: }
     console.log(`Unsupported trigger event: "${event}"`);
