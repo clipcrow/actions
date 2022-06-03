@@ -30,28 +30,28 @@ I will write it in TypeScript, assuming the future of changing the location to
 
 ## handle event of GitHub Actions
 
-- Event
+- Event > Activity Type
     - **pull_request**
-    - Activity Type
         - opened
             - Even if a review request is made at the same time as the PR opens, the events will occur separately.
         - **closed**
             - When a pull request merges, the `pull_request` is automatically `closed`.
             - with a conditional that checks the `merged` value of the event. also `merged_by`.
+        - edited
         - reopened
             - I don't know...
         - **review_requested**
             - see `payload.requested_reviewer`.
         - **review_request_removed**
             - see `payload.requested_reviewer`.
-- Event
     - **pull_request_review**
-    - Activity Type
         - **submitted**
             - when a pull request has been approved
             - check the `payload.review.state`, state == `approved` then PR was approved.
         - dismissed
             - Change the state of the review, but not the state of the PR.
+    - pull_request_review_comment
+        - created
 
 ## Call Slack API
 

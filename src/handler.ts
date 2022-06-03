@@ -16,7 +16,7 @@ import {
 } from './renderer';
 
 import type {
-    PullRequestClosedEvent,
+    PullRequestEvent,
     PullRequestReviewRequestedEvent,
     PullRequestReviewRequestRemovedEvent,
     PullRequestReviewEvent,
@@ -309,25 +309,20 @@ export function extractPayload(
         core.info('extract "push" event...');
         return { sender, event, action: '', number: 0, sha };
     }
-    const action = payload.action;
     if (event === 'pull_request') {
         core.info('extract "pull_request" event...');
-        if (action === 'closed') {
-            core.info('extract "closed"...');
-            const closedEvent = payload as PullRequestClosedEvent;
-            const number = closedEvent.pull_request.number;
-            const sha = github.context.sha;
-            return { sender, event, action, number, sha };
-        }
+        const pullRequestEvent = payload as PullRequestEvent;
+        const action = pullRequestEvent.action;
+        const number = pullRequestEvent.pull_request.number;
+        core.info(`extract "${action}" action...`);
         if (action === 'review_requested' || action === 'review_request_removed') {
-            core.info(`extract "${action}" action...`);
-            const reviewerEvent = payload as
+            const reviewRequestEvent = payload as
                 (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
-            const number = reviewerEvent.pull_request.number;
-            const { login, html_url: url} = reviewerEvent.requested_reviewer;
+            const { login, html_url: url} = reviewRequestEvent.requested_reviewer;
             const reviewRequest = { requestedReviewer: { login, url} };
             return { sender, event, action, number, reviewRequest };
         }
+        return { sender, event, action, number, sha };
     }
     if (event === 'pull_request_review') {
         core.info('extract "pull_request_review" event...');
@@ -341,8 +336,10 @@ export function extractPayload(
         const review = { author: { login, url }, body, state, updatedAt };
         return { sender, event, action, number, review };
     }
-    const caption = action ? ` > "${action}"` : ''
-    core.info(`Unsupported trigger type: "${event}"${caption}`);
+
+    // if (event === pull_request_review_comment) { TODO: }
+
+    core.info(`Unsupported trigger event: "${event}"`);
     return null;
 }
 
