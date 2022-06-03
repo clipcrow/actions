@@ -32,6 +32,12 @@ export interface SlackMessage {
     ts: string;
 }
 
+export interface SlackResult {
+    ok: boolean;
+    error: string;
+    ts: string;
+}
+
 export interface ReviewRequest {
     requestedReviewer: GitHubUser;
 }

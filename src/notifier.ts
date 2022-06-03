@@ -1,4 +1,8 @@
-import { WebClient } from '@slack/web-api';
+import {
+    WebClient,
+    ChatPostMessageResponse,
+    ChatUpdateResponse,
+ } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
@@ -8,6 +12,7 @@ import type {
     QueryVariables,
     RenderModel,
     SlackMessage,
+    SlackResult,
 } from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
@@ -50,11 +55,15 @@ export async function findPreviousSlackMessage(
     }
 }
 
+export function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse) {
+    return { ok: !!result.ok, error: result.error || '', ts: result.ts || ''};
+}
+
 export async function postPullRequestInfo(
     cx: ActionContext,
     model: RenderModel,
     ts?: string,
-): Promise<string | undefined> {
+): Promise<SlackResult> {
     const client = new WebClient(cx.slackToken);
 
     // sanitize because of dirty model
@@ -72,36 +81,26 @@ export async function postPullRequestInfo(
             event_payload,
         },
     }
-    let result;
     if (ts) {
-        result = await client.chat.update({ ...param, text: 'pull-request-notify updates', ts });
-    } else {
-        result = await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' });
+        createSlackResult(await client.chat.update({ ...param, text: 'pull-request-notify updates', ts }));
     }
-
-    if (result.ok) {
-        return result.ts;
-    }
-    console.error(result.error);
+    return createSlackResult(await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' }));
 }
 
 export async function postChangeLog(
     cx: ActionContext,
     ts: string,
     logMessage: () => JSX.Element | null,
-): Promise<string | undefined> {
+): Promise<SlackResult | null> {
     const blocks = logMessage();
     if (blocks) {
         const client = new WebClient(cx.slackToken);
-        const result = await client.chat.postMessage({
+        return createSlackResult(await client.chat.postMessage({
             channel: cx.slackChannel,
             text: 'pull-request-notify posted this change log.',
             blocks: JSXSlack(blocks),
             thread_ts: ts,
-        });
-        if (result.ok) {
-            return result.ts;
-        }
-        console.log(result.error);
+        }));
     }
+    return null;
 }
