@@ -90,7 +90,7 @@ function extractPayload(sender, event, payload, sha) {
         if (action === 'closed') {
             return { sender, event, action, number, sha, upsert: true, logMessage: renderer_1.ClosedLog };
         }
-        return { sender, event, action, number, sha, upsert: false };
+        return { sender, event, action, number, sha, upsert: action === 'edited' };
     }
     if (event === 'pull_request_review') {
         const reviewEvent = payload;
