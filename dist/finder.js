@@ -21,13 +21,7 @@ query ($owner: String!, $name: String!) {
 `;
 async function listPullRequests(token, vars) {
     const oktokit = github.getOctokit(token);
-    try {
-        return await oktokit.graphql(pull_request_list_string, { ...vars });
-    }
-    catch (err) {
-        core.info('' + err);
-    }
-    return null;
+    return await oktokit.graphql(pull_request_list_string, { ...vars });
 }
 exports.listPullRequests = listPullRequests;
 async function findPullRequestNumber(token, vars) {
@@ -116,13 +110,7 @@ query ($owner: String!, $name: String!, $number: Int!) {
 `;
 async function queryActualPullRequest(token, vars) {
     const oktokit = github.getOctokit(token);
-    try {
-        return await oktokit.graphql(pull_request_query_string, { ...vars });
-    }
-    catch (err) {
-        core.info('' + err);
-        return null;
-    }
+    return await oktokit.graphql(pull_request_query_string, { ...vars });
 }
 exports.queryActualPullRequest = queryActualPullRequest;
 async function findActualPullRequest(token, vars) {

@@ -61,33 +61,40 @@ function createSlackResult(result, api) {
 exports.createSlackResult = createSlackResult;
 async function postPullRequestInfo(cx, model) {
     const client = new web_api_1.WebClient(cx.slackToken);
-    const param = createSlackCallPayload(cx.slackChannel, model);
-    return createSlackResult(await client.chat.postMessage({
-        ...param,
+    const param = {
+        ...createSlackCallPayload(cx.slackChannel, model),
         text: 'pull-request-notify posts',
-    }), 'chat.postMessage');
+    };
+    console.log('postPullRequestInfo:');
+    console.dir({ ...param, channel: 'privacy' }, { depth: null });
+    return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
 }
 exports.postPullRequestInfo = postPullRequestInfo;
 async function updatePullRequestInfo(cx, model, ts) {
     const client = new web_api_1.WebClient(cx.slackToken);
-    const param = createSlackCallPayload(cx.slackChannel, model);
-    return createSlackResult(await client.chat.update({
-        ...param,
+    const param = {
+        ...createSlackCallPayload(cx.slackChannel, model),
         text: 'pull-request-notify updates',
         ts,
-    }), 'chat.update');
+    };
+    console.log('updatePullRequestInfo:');
+    console.dir({ ...param, channel: 'privacy' }, { depth: null });
+    return createSlackResult(await client.chat.update(param), 'chat.update');
 }
 exports.updatePullRequestInfo = updatePullRequestInfo;
-async function postChangeLog(cx, model, ts, changeLog) {
-    const blocks = changeLog(model);
+async function postChangeLog(cx, model, ts, logMessage) {
+    const blocks = logMessage(model);
     if (blocks) {
         const client = new web_api_1.WebClient(cx.slackToken);
-        return createSlackResult(await client.chat.postMessage({
+        const param = {
             channel: cx.slackChannel,
             text: 'pull-request-notify posted this change log.',
             blocks: (0, jsx_slack_1.JSXSlack)(blocks),
             thread_ts: ts,
-        }), 'chat.postMessage');
+        };
+        console.log('postChangeLog:');
+        console.dir({ ...param, channel: 'privacy' }, { depth: null });
+        return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
     }
     return null;
 }
