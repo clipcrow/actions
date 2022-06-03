@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postChangeLog = exports.postPullRequestInfo = exports.findPreviousSlackMessage = void 0;
+exports.postChangeLog = exports.postPullRequestInfo = exports.createSlackResult = exports.findPreviousSlackMessage = void 0;
 const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
@@ -35,6 +35,10 @@ async function findPreviousSlackMessage(cx, vars) {
     }
 }
 exports.findPreviousSlackMessage = findPreviousSlackMessage;
+function createSlackResult(result) {
+    return { ok: !!result.ok, error: result.error || '', ts: result.ts || '' };
+}
+exports.createSlackResult = createSlackResult;
 async function postPullRequestInfo(cx, model, ts) {
     const client = new web_api_1.WebClient(cx.slackToken);
     // sanitize because of dirty model
@@ -51,34 +55,24 @@ async function postPullRequestInfo(cx, model, ts) {
             event_payload,
         },
     };
-    let result;
     if (ts) {
-        result = await client.chat.update({ ...param, text: 'pull-request-notify updates', ts });
+        createSlackResult(await client.chat.update({ ...param, text: 'pull-request-notify updates', ts }));
     }
-    else {
-        result = await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' });
-    }
-    if (result.ok) {
-        return result.ts;
-    }
-    console.error(result.error);
+    return createSlackResult(await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' }));
 }
 exports.postPullRequestInfo = postPullRequestInfo;
 async function postChangeLog(cx, ts, logMessage) {
     const blocks = logMessage();
     if (blocks) {
         const client = new web_api_1.WebClient(cx.slackToken);
-        const result = await client.chat.postMessage({
+        return createSlackResult(await client.chat.postMessage({
             channel: cx.slackChannel,
             text: 'pull-request-notify posted this change log.',
             blocks: (0, jsx_slack_1.JSXSlack)(blocks),
             thread_ts: ts,
-        });
-        if (result.ok) {
-            return result.ts;
-        }
-        console.log(result.error);
+        }));
     }
+    return null;
 }
 exports.postChangeLog = postChangeLog;
 //# sourceMappingURL=notifier.js.map

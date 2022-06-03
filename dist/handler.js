@@ -5,7 +5,7 @@ const core = require("@actions/core");
 const github = require("@actions/github");
 const notifier_1 = require("./notifier");
 const renderer_1 = require("./renderer");
-async function readSlackAccounts(input) {
+function readSlackAccounts(input) {
     try {
         return JSON.parse(input);
     }
@@ -15,14 +15,14 @@ async function readSlackAccounts(input) {
     return {};
 }
 exports.readSlackAccounts = readSlackAccounts;
-async function createActionContext() {
+function createActionContext() {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
     const pushMessage = core.getInput('pushMessage');
-    const slackAccounts = await readSlackAccounts(core.getInput('slackAccounts'));
+    const slackAccounts = readSlackAccounts(core.getInput('slackAccounts'));
     return {
         owner,
         name,
@@ -38,7 +38,7 @@ function dumpSlackAccounts(cx) {
     core.info('- cx.slackAccounts');
     let count = 0;
     for (const login in cx.slackAccounts) {
-        core.info(`    - ${login}: ${cx.slackAccounts[login]}`);
+        core.info(`    - github: ${login}, slack: {privacy}`);
         count += 1;
     }
     core.info(`    - (total ${count} accounts)`);
@@ -77,6 +77,7 @@ async function findPullRequestNumber(token, vars) {
         if (list) {
             for (const pullRequest of list.repository.pullRequests.nodes) {
                 if (pullRequest.mergeCommit && pullRequest.mergeCommit.sha === vars.sha) {
+                    core.info(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
                     return pullRequest.number;
                 }
             }
@@ -194,37 +195,48 @@ async function processEvent(cx, ev) {
     core.info(JSON.stringify(vars1, null, '\t'));
     const result = await findActualPullRequest(cx.githubToken, vars1);
     if (!result) {
-        // PullRequest Not Found
-        core.info('pull-request Not Found!');
-        return;
+        core.info('Related pull-request not found!');
+        return null;
     }
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
     core.info('finding slack message...');
     core.info(JSON.stringify(vars2, null, '\t'));
-    const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
-    core.info(`previous ts: ${previousTS}`);
-    const model = createRenderModel(cx, ev, result);
-    core.info('posting slack message...');
-    core.info(JSON.stringify(model, null, '\t'));
-    const currentTS = await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS);
-    if (currentTS) {
-        core.info('success!');
-        if (ev.action === 'closed') {
-            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.ClosedLog)(model));
+    try {
+        const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
+        core.info(`previous ts: ${previousTS}`);
+        const model = createRenderModel(cx, ev, result);
+        core.info('posting slack message...');
+        core.info(JSON.stringify(model, null, '\t'));
+        const currentResult = await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS);
+        if (currentResult.ok) {
+            core.info('success!');
+            if (ev.action === 'closed') {
+                core.info('posting log for "closed"...');
+                return await (0, notifier_1.postChangeLog)(cx, currentResult.ts, () => (0, renderer_1.ClosedLog)(model));
+            }
+            if (['review_requested', 'review_request_removed'].includes(ev.action)) {
+                core.info(`posting log for "${ev.action}"...`);
+                return await (0, notifier_1.postChangeLog)(cx, currentResult.ts, () => (0, renderer_1.ReviewRequestedLog)(model));
+            }
+            if (ev.action === 'submitted') {
+                core.info('posting log for "submitted"...');
+                return await (0, notifier_1.postChangeLog)(cx, currentResult.ts, () => (0, renderer_1.SubmittedLog)(model));
+            }
+            if (ev.event === 'push') {
+                core.info('posting log for "push"...');
+                return await (0, notifier_1.postChangeLog)(cx, currentResult.ts, () => (0, renderer_1.DeployCompleteLog)(model));
+            }
         }
-        if (['review_requested', 'review_request_removed'].includes(ev.action)) {
-            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.ReviewRequestedLog)(model));
+        else {
+            core.info(`Slack Error: ${currentResult.error}`);
         }
-        if (ev.action === 'submitted') {
-            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.SubmittedLog)(model));
-        }
-        if (ev.event === 'push') {
-            return await (0, notifier_1.postChangeLog)(cx, currentTS, () => (0, renderer_1.DeployCompleteLog)(model));
-        }
+        return currentResult;
     }
-    core.info(`current ts: ${currentTS}`);
-    return currentTS;
+    catch (err) {
+        core.info(JSON.stringify(err, null, '\t'));
+        return null;
+    }
 }
 exports.processEvent = processEvent;
 function extractPayload(sender, event, payload, sha) {
@@ -265,6 +277,7 @@ function extractPayload(sender, event, payload, sha) {
     }
     const caption = action ? ` > "${action}"` : '';
     core.info(`Unsupported trigger type: "${event}"${caption}`);
+    return null;
 }
 exports.extractPayload = extractPayload;
 async function handleEvent() {
@@ -278,9 +291,10 @@ async function handleEvent() {
         core.info('context creating...');
         const cx = await createActionContext();
         dumpSlackAccounts(cx);
-        await processEvent(cx, ev);
+        return await processEvent(cx, ev);
     }
     core.info(`...ending handle "${event}"`);
+    return null;
 }
 exports.handleEvent = handleEvent;
 /*
