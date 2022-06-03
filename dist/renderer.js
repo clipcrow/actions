@@ -6,7 +6,7 @@ const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
 const BranchLink = (props) => {
     if (props.static) {
-        return (0, jsx_runtime_1.jsx)("code", { children: props.ref });
+        return (0, jsx_runtime_1.jsx)("i", { children: props.ref });
     }
     return ((0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }));
 };
