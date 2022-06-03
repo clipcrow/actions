@@ -4,12 +4,7 @@ exports.DeployCompleteLog = exports.SubmittedLog = exports.ReviewRequestedLog = 
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
-const BranchLink = (props) => {
-    if (props.static) {
-        return (0, jsx_runtime_1.jsx)("i", { children: props.ref });
-    }
-    return ((0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }));
-};
+const BranchLink = (props) => (props.static ? (0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }) : (0, jsx_runtime_1.jsx)("i", { children: props.ref }));
 const Commits = (props) => {
     const { url, pullRequest: { merged, state, commits: { totalCount }, changedFiles, author: { login }, baseRefName: base, headRefName: head, } } = props.repository;
     const text = merged ? ' merged' : ' wants to merge';
