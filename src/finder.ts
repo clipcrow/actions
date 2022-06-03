@@ -19,14 +19,9 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
-export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList | null> {
+export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList> {
     const oktokit = github.getOctokit(token);
-    try {
-        return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
-    } catch(err) {
-        core.info('' + err);
-    }
-    return null;
+    return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
 }
 
 export async function findPullRequestNumber(token: string, vars: QueryVariables): Promise<number> {
@@ -113,14 +108,9 @@ query ($owner: String!, $name: String!, $number: Int!) {
     }
 }
 `;
-export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult> {
     const oktokit = github.getOctokit(token);
-    try {
-        return await oktokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
-    } catch(err) {
-        core.info('' + err);
-        return null;
-    }
+    return await oktokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
 }
 
 export async function findActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {

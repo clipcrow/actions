@@ -3,7 +3,7 @@ import { JSXSlack } from 'jsx-slack';
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { ActionContext, QueryVariables, RenderModel, SlackMessage, SlackResult } from './types';
+import type { ActionContext, QueryVariables, RenderModel, SlackMessage, SlackResult, LogMessage } from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
@@ -72,47 +72,45 @@ export function createSlackResult(result: ChatPostMessageResponse | ChatUpdateRe
 
 export async function postPullRequestInfo(cx: ActionContext, model: RenderModel): Promise<SlackResult> {
     const client = new WebClient(cx.slackToken);
-    const param = createSlackCallPayload(cx.slackChannel, model);
-    return createSlackResult(
-        await client.chat.postMessage({
-            ...param,
-            text: 'pull-request-notify posts',
-        }),
-        'chat.postMessage',
-    );
+    const param = {
+        ...createSlackCallPayload(cx.slackChannel, model),
+        text: 'pull-request-notify posts',
+    };
+    console.log('postPullRequestInfo:');
+    console.dir({ ...param, channel: 'privacy' }, { depth: null });
+
+    return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
 }
 
 export async function updatePullRequestInfo(cx: ActionContext, model: RenderModel, ts: string): Promise<SlackResult> {
     const client = new WebClient(cx.slackToken);
-    const param = createSlackCallPayload(cx.slackChannel, model);
-    return createSlackResult(
-        await client.chat.update({
-            ...param,
-            text: 'pull-request-notify updates',
-            ts,
-        }),
-        'chat.update',
-    );
+    const param = {
+        ...createSlackCallPayload(cx.slackChannel, model),
+        text: 'pull-request-notify updates',
+        ts,
+    };
+    console.log('updatePullRequestInfo:');
+    console.dir({ ...param, channel: 'privacy' }, { depth: null });
+
+    return createSlackResult(await client.chat.update(param), 'chat.update');
 }
 
 export async function postChangeLog(
-    cx: ActionContext,
-    model: RenderModel,
-    ts: string,
-    changeLog: (props: RenderModel) => JSX.Element | null,
+    cx: ActionContext, model: RenderModel, ts: string, logMessage: LogMessage,
 ): Promise<SlackResult | null> {
-    const blocks = changeLog(model);
+    const blocks = logMessage(model);
     if (blocks) {
         const client = new WebClient(cx.slackToken);
-        return createSlackResult(
-            await client.chat.postMessage({
-                channel: cx.slackChannel,
-                text: 'pull-request-notify posted this change log.',
-                blocks: JSXSlack(blocks),
-                thread_ts: ts,
-            }),
-            'chat.postMessage',
-        );
+        const param = {
+            channel: cx.slackChannel,
+            text: 'pull-request-notify posted this change log.',
+            blocks: JSXSlack(blocks),
+            thread_ts: ts,
+        };
+        console.log('postChangeLog:');
+        console.dir({ ...param, channel: 'privacy' }, { depth: null });
+
+        return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
     }
     return null;
 }

@@ -59,6 +59,10 @@ export interface Commit {
     sha: string;
 }
 
+export interface LogMessage {
+    (props: RenderModel): JSX.Element | null;
+}
+
 export interface EventPayload {
     sender: GitHubUser;
     event: string; // GitHub Actions event & action
@@ -68,7 +72,7 @@ export interface EventPayload {
     review?: Review;
     sha?: string; // === gihub.context.sha === github.context.payload.pull_request.merge_commit_sha
     upsert: boolean; // true: chat.update with ts & chat.postMessage without ts / false: chat.update with ts only
-    logMessage?: (props: RenderModel) => JSX.Element | null;
+    logMessage?: LogMessage;
 }
 
 export interface PullRequestList {
