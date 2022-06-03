@@ -1,43 +1,17 @@
-import {
-	Blocks,
-	Context,
-	Divider,
-	Fragment,
-	Header,
-	Section,
-} from 'jsx-slack';
+import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
 
-import type {
-	KeyValueStore,
-	Connection,
-	ReviewRequest,
-	Review,
-	RenderModel
-} from './types';
+import type { KeyValueStore, Connection, ReviewRequest, Review, RenderModel } from './types';
 
-const UserLink = (
-	props: {
-		login: string,
-		slack?: string,
-	},
-) => (
+const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
 
-const BranchLink = (
-	props: {
-		url: string,
-		ref: string,
-		static?: boolean,
-	},
-) => {
+const BranchLink = (props: { url: string, ref: string, static?: boolean }) => {
 	if (props.static) {
 		return <code>{props.ref}</code>
 	}
 	return (
-		<code>
-			<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
-		</code>
+		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
 	);
 };
 
@@ -68,22 +42,11 @@ const Commits = (props: RenderModel) => {
 	);
 }
 
-const StatusSection = (
-	props: {
-		test: boolean,
-		text: string,
-	},
-) => (
+const StatusSection = (props: { test: boolean, text: string }) => (
 	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const Reviewers = (
-	props: {
-		slackAccounts: KeyValueStore,
-		reviewers: string[],
-		text: string,
-	},
-) => {
+const Reviewers = (props: { slackAccounts: KeyValueStore, reviewers: string[], text: string }) => {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
@@ -106,10 +69,7 @@ interface ArrangeResult {
 	pendings: string[];
 }
 
-export function arrangeReviewers(
-	req: Connection<ReviewRequest>,
-	rv: Connection<Review>,
-): ArrangeResult {
+export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>): ArrangeResult {
 	const requestedReviewer: KeyValueStore = req.edges.reduce<KeyValueStore>((previous, current) => {
 		return { ...previous, [current.node.requestedReviewer.login]: 'PENDING' };
 	}, {});
@@ -181,11 +141,7 @@ const must_be_resolved = 'This branch has conflicts that must be resolved';
 const merge_completed = 'The merge is complete'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
-const Complete = (
-	props: {
-		text: string | null,
-	}
-) => (
+const Complete = (props: { text: string | null }) => (
 	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
 );
 
@@ -204,12 +160,7 @@ const Conflicts = (props: RenderModel) => {
 	);
 }
 
-const PullNumber = (
-	props: {
-		url: string,
-		number: number,
-	},
-) => (
+const PullNumber = (props: { url: string, number: number }) => (
 	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
 );
 
@@ -225,21 +176,21 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
-const Title = (
-	props: {
-		text: string | null,
-	},
-) => (
+const Title = (props: { text: string | null }) => (
 	props.text ? <Header>{props.text}</Header> : null
 );
 
-const Description = (
-	props: {
-		text: string | null,
-	},
-) => (
+const Description = (props: { text: string | null }) => (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
+
+const Body = (props: { text: string | null, warning: string }) => {
+	if (props.text) {
+		return <Description text={props.text}/>
+	} else {
+		return <Section><code>{props.warning}</code></Section>
+	}
+};
 
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
@@ -249,7 +200,7 @@ export const PullRequest = (props: RenderModel) => {
 			<Commits {...props}/>
 			<Title text={props.repository.pullRequest.title}/>
 			<Context><PullNumber url={url} number={number}/></Context>
-			<Description text={body}/>
+			<Body text={body} warning={props.emptyBodyWarning}/>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
 			<Repository {...props}/>
