@@ -17,7 +17,7 @@ import type {
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
-function payloadEquals(
+export function simpleEquals(
     payload: QueryVariables,
     vars: QueryVariables,
 ): boolean {
@@ -31,14 +31,18 @@ function payloadEquals(
 export async function findPreviousSlackMessage(
     cx: ActionContext,
     vars: QueryVariables,
-): Promise<string | undefined> {
+    equals: (actual: QueryVariables, test: QueryVariables, total: number, index: number) => boolean,
+): Promise<string | null> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
         channel: cx.slackChannel,
         include_all_metadata: true,
+        limit: 100,
     });
-    if (result.messages) {
+    let index = 0;
+    if (result.ok && result.messages) {
+        const total = result.messages.length;
         for (const message of result.messages) {
             // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {
@@ -47,12 +51,13 @@ export async function findPreviousSlackMessage(
                 if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (payloadEquals(slackMessage.metadata.event_payload, vars)) {
+                if (equals(slackMessage.metadata.event_payload, vars, total, index++)) {
                     return slackMessage.ts;
                 }
             }
         }
     }
+    return null;
 }
 
 export function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse) {
@@ -62,7 +67,7 @@ export function createSlackResult(result: ChatPostMessageResponse | ChatUpdateRe
 export async function postPullRequestInfo(
     cx: ActionContext,
     model: RenderModel,
-    ts?: string,
+    ts: string | null,
 ): Promise<SlackResult> {
     const client = new WebClient(cx.slackToken);
 

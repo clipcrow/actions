@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 
 import {
+    simpleEquals,
     findPreviousSlackMessage,
     postPullRequestInfo,
     postChangeLog,
@@ -257,8 +258,8 @@ export async function processEvent (
     core.info('finding slack message...');
     core.info(JSON.stringify(vars2, null, '\t'));
     try {
-        const previousTS = await findPreviousSlackMessage(cx, vars2);
-        core.info(`previous ts: ${previousTS}`);
+        const previousTS = await findPreviousSlackMessage(cx, vars2, simpleEquals);
+        core.info(`previous ts: ${previousTS ? previousTS : 'Not Found'}`);
         const model = createRenderModel(cx, ev, result);
         core.info('posting slack message...');
         core.info(JSON.stringify(model, null, '\t'));
