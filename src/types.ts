@@ -75,17 +75,6 @@ export interface EventPayload {
     logMessage?: LogMessage;
 }
 
-export interface PullRequestList {
-    repository: {
-        pullRequests: {
-            nodes: {
-                number: number;
-                mergeCommit: Commit;
-            }[];
-        }
-    }
-}
-
 export interface Connection<T> {
     totalCount: number;
     edges: { node: T }[];

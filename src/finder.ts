@@ -1,11 +1,30 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 
-import type { QueryVariables, PullRequestList, QueryResult } from './types';
+import type { Commit, QueryVariables, QueryResult } from './types';
+
+export interface PullRequestList {
+    repository: {
+        owner: {
+            login: string;
+        };
+        name: string;
+        pullRequests: {
+            nodes: {
+                number: number;
+                mergeCommit: Commit;
+            }[];
+        }
+    }
+}
 
 const pull_request_list_string = `
 query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
+        owner {
+            login
+        }
+        name
         pullRequests(last: 100) {
             nodes {
                 mergeCommit {

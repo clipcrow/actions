@@ -1,4 +1,20 @@
-import type { RenderModel } from './types';
+import * as dotenv from 'dotenv';
+
+import type { RenderModel, QueryVariables } from './types';
+
+const env = dotenv.config();
+
+export function getTestGitHubToken(): string {
+    return env.parsed!.githubToken;
+}
+
+export function getTestQueryVariables(): QueryVariables {
+    return {
+        owner: env.parsed!.owner,
+        name: env.parsed!.name,
+        number: parseInt(env.parsed!.number),
+    };
+}
 
 export const sampleRenderModel: RenderModel = {
     sender: {
