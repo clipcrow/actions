@@ -27,14 +27,6 @@ export interface GitHubUser {
     url: string;
 }
 
-export interface SlackMessage {
-    metadata: {
-        event_type: string;
-        event_payload: QueryVariables;
-    };
-    ts: string;
-}
-
 export interface SlackResult {
     ok: boolean;
     error: string;

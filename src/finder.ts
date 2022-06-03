@@ -3,7 +3,7 @@ import * as github from '@actions/github';
 
 import type { Commit, QueryVariables, QueryResult } from './types';
 
-export interface PullRequestList {
+interface PullRequestList {
     repository: {
         owner: {
             login: string;

@@ -5,7 +5,6 @@ import * as fs from 'fs/promises';
 
 import { createActionContext } from './handler';
 
-jest.setTimeout(5000 * 30);
 const env = dotenv.config();
 
 test('createActionContext', async () => {
@@ -31,4 +30,4 @@ test('createActionContext', async () => {
     expect(cx.slackAccounts['nobody']).toEqual('U8901234567');
 
     spy.mockRestore();
-});
+}, 1000 * 30);

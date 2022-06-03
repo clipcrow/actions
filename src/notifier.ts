@@ -1,27 +1,20 @@
 import { WebClient, ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
-import type { JSX } from 'jsx-slack/jsx-runtime';
 
 import { PullRequest } from './renderer';
-import type { ActionContext, QueryVariables, RenderModel, SlackMessage, SlackResult, LogMessage } from './types';
+import type { ActionContext, QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
-export interface VariablesTest {
-    (actual: QueryVariables, test: QueryVariables): boolean;
+interface SlackMessage {
+    metadata: {
+        event_type: string;
+        event_payload: QueryVariables;
+    };
+    ts: string;
 }
 
-export const simpleEquals: VariablesTest = (payload, vars) => {
-    return (
-        payload.owner === vars.owner &&
-        payload.name === vars.name &&
-        payload.number === vars.number
-    );
-};
-
-export async function findPreviousSlackMessage(
-    cx: ActionContext, vars: QueryVariables,
-): Promise<string | null> {
+export async function findPreviousSlackMessage(cx: ActionContext, vars: QueryVariables): Promise<string | null> {
     // Search for messages on the channel to get metadata.
     const client = new WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -39,7 +32,8 @@ export async function findPreviousSlackMessage(
                 if (slackMessage.metadata.event_type !== METADATA_EVENT_TYPE) break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (simpleEquals(slackMessage.metadata.event_payload, vars)) {
+                const actual = slackMessage.metadata.event_payload;
+                if (actual.owner === vars.owner && actual.name === vars.name && actual.number === vars.number) {
                     return slackMessage.ts;
                 }
             }
@@ -66,7 +60,7 @@ export function createSlackCallPayload(channel: string, model: RenderModel) {
     }
 }
 
-export function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse, api: string): SlackResult {
+function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse, api: string): SlackResult {
     return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
 }
 
