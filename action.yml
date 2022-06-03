@@ -13,6 +13,9 @@ inputs:
     slackAccounts:
         description: "GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style"
         default: "{}"
+    emptyBodyWarning:
+        description: "Display template content to project contributors when the body of the pull request is empty."
+        default: "Caution, body of this pull request is empty."
     pushMessage:
         description: "You can send a message in a workflow with a merge commit fired by a pull request merge operation."
         default: "Deployment flow complete"

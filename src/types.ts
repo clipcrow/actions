@@ -9,6 +9,7 @@ export interface ActionContext {
 	slackToken: string;
 	slackChannel: string;
 	slackAccounts: KeyValueStore;
+    emptyBodyWarning: string;
     pushMessage: string;
 }
 

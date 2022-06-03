@@ -13,6 +13,7 @@ export const sampleRenderModel: RenderModel = {
         another: "U5678901234",
         nobody: "U8901234567",
     },
+    emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
     repository: {
         name: "test",
@@ -109,6 +110,7 @@ export const closedModel: RenderModel = {
         another: "U5678901234",
         nobody: "U8901234567",
     },
+    emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
     repository: {
         name: "test",

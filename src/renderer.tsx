@@ -35,9 +35,7 @@ const BranchLink = (
 		return <code>{props.ref}</code>
 	}
 	return (
-		<code>
-			<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
-		</code>
+		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
 	);
 };
 
@@ -225,21 +223,21 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
-const Title = (
-	props: {
-		text: string | null,
-	},
-) => (
+const Title = (props: { text: string | null }) => (
 	props.text ? <Header>{props.text}</Header> : null
 );
 
-const Description = (
-	props: {
-		text: string | null,
-	},
-) => (
+const Description = (props: { text: string | null }) => (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
+
+const Body = (props: { text: string | null, warning: string }) => {
+	if (props.text) {
+		return <Description text={props.text}/>
+	} else {
+		return <Section><code>{props.warning}</code></Section>
+	}
+};
 
 export const PullRequest = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
@@ -249,7 +247,7 @@ export const PullRequest = (props: RenderModel) => {
 			<Commits {...props}/>
 			<Title text={props.repository.pullRequest.title}/>
 			<Context><PullNumber url={url} number={number}/></Context>
-			<Description text={body}/>
+			<Body text={body} warning={props.emptyBodyWarning}/>
 			<Approvals {...props}/>
 			<Conflicts {...props}/>
 			<Repository {...props}/>

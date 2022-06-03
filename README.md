@@ -111,6 +111,7 @@ jobs:
           slackChannel: ${{ secrets.SLACK_CHANNEL }}
           # GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style
           slackAccounts: ${{ secrets.SLACK_ACCOUNTS }}
+          emptyBodyWarning: "Caution, body of this pull request is empty."
 ```
 
 ```yml
@@ -127,6 +128,8 @@ jobs:
       - Your CD steps here
 
       - uses: masataka/pull-request-notify@v0.0.4
+        env:
+          NODE_OPTIONS: --enable-source-maps
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           slackToken: ${{ secrets.SLACK_TOKEN }}

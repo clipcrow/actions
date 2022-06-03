@@ -53,6 +53,7 @@ export function createActionContext(): ActionContext {
     const githubToken = core.getInput('githubToken');
     const slackToken = core.getInput('slackToken');
     const slackChannel = core.getInput('slackChannel');
+    const emptyBodyWarning = core.getInput('emptyBodyWarning');
     const pushMessage = core.getInput('pushMessage');
 
     const slackAccounts = readSlackAccounts(core.getInput('slackAccounts'));
@@ -64,6 +65,7 @@ export function createActionContext(): ActionContext {
         slackToken,
         slackChannel,
         slackAccounts,
+        emptyBodyWarning,
         pushMessage,
     };
 }
@@ -229,10 +231,10 @@ export function createRenderModel(
     ev: EventPayload,
     result: QueryResult,
 ): RenderModel {
-    const { owner, slackAccounts, pushMessage } = cx;
+    const { owner, slackAccounts, emptyBodyWarning, pushMessage } = cx;
     const { sender, event, action, reviewRequest, review, sha } = ev;
     return {
-        owner, slackAccounts, pushMessage,
+        owner, slackAccounts, emptyBodyWarning, pushMessage,
         sender, event, action, reviewRequest, review, sha,
         ...result,
     };
