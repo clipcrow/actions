@@ -1,23 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postChangeLog = exports.postPullRequestInfo = exports.createSlackResult = exports.findPreviousSlackMessage = void 0;
+exports.postChangeLog = exports.postPullRequestInfo = exports.createSlackResult = exports.findPreviousSlackMessage = exports.simpleEquals = void 0;
 const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
 const METADATA_EVENT_TYPE = 'pull-request-notify';
-function payloadEquals(payload, vars) {
+function simpleEquals(payload, vars) {
     return (payload.owner === vars.owner &&
         payload.name === vars.name &&
         payload.number === vars.number);
 }
-async function findPreviousSlackMessage(cx, vars) {
+exports.simpleEquals = simpleEquals;
+async function findPreviousSlackMessage(cx, vars, equals) {
     // Search for messages on the channel to get metadata.
     const client = new web_api_1.WebClient(cx.slackToken);
     const result = await client.conversations.history({
         channel: cx.slackChannel,
         include_all_metadata: true,
+        limit: 100,
     });
-    if (result.messages) {
+    let index = 0;
+    if (result.ok && result.messages) {
+        const total = result.messages.length;
         for (const message of result.messages) {
             // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {
@@ -27,12 +31,13 @@ async function findPreviousSlackMessage(cx, vars) {
                     break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (payloadEquals(slackMessage.metadata.event_payload, vars)) {
+                if (equals(slackMessage.metadata.event_payload, vars, total, index++)) {
                     return slackMessage.ts;
                 }
             }
         }
     }
+    return null;
 }
 exports.findPreviousSlackMessage = findPreviousSlackMessage;
 function createSlackResult(result) {

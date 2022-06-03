@@ -203,8 +203,8 @@ async function processEvent(cx, ev) {
     core.info('finding slack message...');
     core.info(JSON.stringify(vars2, null, '\t'));
     try {
-        const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
-        core.info(`previous ts: ${previousTS}`);
+        const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2, notifier_1.simpleEquals);
+        core.info(`previous ts: ${previousTS ? previousTS : 'Not Found'}`);
         const model = createRenderModel(cx, ev, result);
         core.info('posting slack message...');
         core.info(JSON.stringify(model, null, '\t'));
