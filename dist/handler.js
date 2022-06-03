@@ -189,6 +189,11 @@ function createRenderModel(cx, ev, result) {
 }
 exports.createRenderModel = createRenderModel;
 async function processEvent(cx, ev) {
+    // Logging aspect oriented local tool
+    const apiName = (result) => {
+        core.info(`...called Slack API: "${result.api}"`);
+        return result;
+    };
     core.info('processing...');
     const vars1 = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
     core.info('finding actual pull-request...');
@@ -208,7 +213,7 @@ async function processEvent(cx, ev) {
         const model = createRenderModel(cx, ev, result);
         core.info('posting slack message...');
         core.info(JSON.stringify(model, null, '\t'));
-        const currentResult = await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS);
+        const currentResult = apiName(await (0, notifier_1.postPullRequestInfo)(cx, model, previousTS));
         if (currentResult.ok) {
             core.info('success!');
             if (ev.action === 'closed') {

@@ -5,11 +5,11 @@ const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
 const METADATA_EVENT_TYPE = 'pull-request-notify';
-function simpleEquals(payload, vars) {
+const simpleEquals = (payload, vars) => {
     return (payload.owner === vars.owner &&
         payload.name === vars.name &&
         payload.number === vars.number);
-}
+};
 exports.simpleEquals = simpleEquals;
 async function findPreviousSlackMessage(cx, vars, equals) {
     // Search for messages on the channel to get metadata.
@@ -40,13 +40,13 @@ async function findPreviousSlackMessage(cx, vars, equals) {
     return null;
 }
 exports.findPreviousSlackMessage = findPreviousSlackMessage;
-function createSlackResult(result) {
-    return { ok: !!result.ok, error: result.error || '', ts: result.ts || '' };
+function createSlackResult(result, api) {
+    return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
 }
 exports.createSlackResult = createSlackResult;
 async function postPullRequestInfo(cx, model, ts) {
     const client = new web_api_1.WebClient(cx.slackToken);
-    // sanitize because of dirty model
+    // sanitize dirty model
     const event_payload = {
         owner: model.owner,
         name: model.repository.name,
@@ -60,10 +60,19 @@ async function postPullRequestInfo(cx, model, ts) {
             event_payload,
         },
     };
-    if (ts) {
-        return createSlackResult(await client.chat.update({ ...param, text: 'pull-request-notify updates', ts }));
+    if (ts == null) {
+        return createSlackResult(await client.chat.postMessage({
+            ...param,
+            text: 'pull-request-notify posts',
+        }), 'chat.postMessage');
     }
-    return createSlackResult(await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' }));
+    else {
+        return createSlackResult(await client.chat.update({
+            ...param,
+            text: 'pull-request-notify updates',
+            ts,
+        }), 'chat.update');
+    }
 }
 exports.postPullRequestInfo = postPullRequestInfo;
 async function postChangeLog(cx, ts, logMessage) {
@@ -75,7 +84,7 @@ async function postChangeLog(cx, ts, logMessage) {
             text: 'pull-request-notify posted this change log.',
             blocks: (0, jsx_slack_1.JSXSlack)(blocks),
             thread_ts: ts,
-        }));
+        }), 'chat.postMessage');
     }
     return null;
 }
