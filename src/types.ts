@@ -36,6 +36,7 @@ export interface SlackResult {
     ok: boolean;
     error: string;
     ts: string;
+    api: string;
 }
 
 export interface ReviewRequest {

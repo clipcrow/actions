@@ -242,6 +242,13 @@ export async function processEvent (
     cx: ActionContext,
     ev: EventPayload,
 ): Promise<SlackResult | null> {
+
+    // Logging aspect oriented local tool
+    const apiName = (result: SlackResult) => {
+        core.info(`...called Slack API: "${result.api}"`);
+        return result;
+    };
+
     core.info('processing...');
     const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
     core.info('finding actual pull-request...');
@@ -263,7 +270,7 @@ export async function processEvent (
         const model = createRenderModel(cx, ev, result);
         core.info('posting slack message...');
         core.info(JSON.stringify(model, null, '\t'));
-        const currentResult = await postPullRequestInfo(cx, model, previousTS);
+        const currentResult = apiName(await postPullRequestInfo(cx, model, previousTS));
         if (currentResult.ok) {
             core.info('success!');
             if (ev.action === 'closed') {
