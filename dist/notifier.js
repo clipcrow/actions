@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postChangeLog = exports.postPullRequestInfo = exports.createSlackResult = exports.findPreviousSlackMessage = exports.simpleEquals = void 0;
+exports.postChangeLog = exports.updatePullRequestInfo = exports.postPullRequestInfo = exports.createSlackResult = exports.createSlackCallPayload = exports.findPreviousSlackMessage = exports.simpleEquals = void 0;
 const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
@@ -11,7 +11,7 @@ const simpleEquals = (payload, vars) => {
         payload.number === vars.number);
 };
 exports.simpleEquals = simpleEquals;
-async function findPreviousSlackMessage(cx, vars, equals) {
+async function findPreviousSlackMessage(cx, vars) {
     // Search for messages on the channel to get metadata.
     const client = new web_api_1.WebClient(cx.slackToken);
     const result = await client.conversations.history({
@@ -19,9 +19,7 @@ async function findPreviousSlackMessage(cx, vars, equals) {
         include_all_metadata: true,
         limit: 100,
     });
-    let index = 0;
     if (result.ok && result.messages) {
-        const total = result.messages.length;
         for (const message of result.messages) {
             // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {
@@ -31,7 +29,7 @@ async function findPreviousSlackMessage(cx, vars, equals) {
                     break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if (equals(slackMessage.metadata.event_payload, vars, total, index++)) {
+                if ((0, exports.simpleEquals)(slackMessage.metadata.event_payload, vars)) {
                     return slackMessage.ts;
                 }
             }
@@ -40,43 +38,48 @@ async function findPreviousSlackMessage(cx, vars, equals) {
     return null;
 }
 exports.findPreviousSlackMessage = findPreviousSlackMessage;
-function createSlackResult(result, api) {
-    return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
-}
-exports.createSlackResult = createSlackResult;
-async function postPullRequestInfo(cx, model, ts) {
-    const client = new web_api_1.WebClient(cx.slackToken);
+function createSlackCallPayload(channel, model) {
     // sanitize dirty model
     const event_payload = {
         owner: model.owner,
         name: model.repository.name,
         number: model.repository.pullRequest.number,
     };
-    const param = {
-        channel: cx.slackChannel,
+    return {
+        channel,
         blocks: (0, jsx_slack_1.JSXSlack)((0, renderer_1.PullRequest)(model)),
         metadata: {
             event_type: METADATA_EVENT_TYPE,
             event_payload,
         },
     };
-    if (ts == null) {
-        return createSlackResult(await client.chat.postMessage({
-            ...param,
-            text: 'pull-request-notify posts',
-        }), 'chat.postMessage');
-    }
-    else {
-        return createSlackResult(await client.chat.update({
-            ...param,
-            text: 'pull-request-notify updates',
-            ts,
-        }), 'chat.update');
-    }
+}
+exports.createSlackCallPayload = createSlackCallPayload;
+function createSlackResult(result, api) {
+    return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
+}
+exports.createSlackResult = createSlackResult;
+async function postPullRequestInfo(cx, model) {
+    const client = new web_api_1.WebClient(cx.slackToken);
+    const param = createSlackCallPayload(cx.slackChannel, model);
+    return createSlackResult(await client.chat.postMessage({
+        ...param,
+        text: 'pull-request-notify posts',
+    }), 'chat.postMessage');
 }
 exports.postPullRequestInfo = postPullRequestInfo;
-async function postChangeLog(cx, ts, logMessage) {
-    const blocks = logMessage();
+async function updatePullRequestInfo(cx, model, ts) {
+    const client = new web_api_1.WebClient(cx.slackToken);
+    const param = createSlackCallPayload(cx.slackChannel, model);
+    return createSlackResult(await client.chat.update({
+        ...param,
+        text: 'pull-request-notify updates',
+        ts,
+    }), 'chat.update');
+}
+exports.updatePullRequestInfo = updatePullRequestInfo;
+async function postChangeLog(cx, model, ts, changeLog) {
+    const blocks = changeLog(model);
     if (blocks) {
         const client = new web_api_1.WebClient(cx.slackToken);
         return createSlackResult(await client.chat.postMessage({

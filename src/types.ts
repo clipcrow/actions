@@ -1,3 +1,5 @@
+import type { JSX } from 'jsx-slack/jsx-runtime';
+
 export interface KeyValueStore {
     [login: string]: string;
 }
@@ -65,6 +67,8 @@ export interface EventPayload {
     reviewRequest?: ReviewRequest;
     review?: Review;
     sha?: string; // === gihub.context.sha === github.context.payload.pull_request.merge_commit_sha
+    upsert: boolean; // true: chat.update with ts & chat.postMessage without ts / false: chat.update with ts only
+    logMessage?: (props: RenderModel) => JSX.Element | null;
 }
 
 export interface PullRequestList {
@@ -112,5 +116,5 @@ export interface QueryResult {
 
 export type RenderModel =
     Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
-    Omit<EventPayload, 'number'> &
+    Omit<EventPayload, 'number' | 'upsert'> &
     QueryResult;

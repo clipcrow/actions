@@ -1,8 +1,8 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
-
-import type { QueryVariables, PullRequestList, QueryResult } from './types';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = void 0;
+const core = require("@actions/core");
+const github = require("@actions/github");
 const pull_request_list_string = `
 query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
@@ -19,17 +19,18 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
-export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList | null> {
+async function listPullRequests(token, vars) {
     const oktokit = github.getOctokit(token);
     try {
-        return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
-    } catch(err) {
+        return await oktokit.graphql(pull_request_list_string, { ...vars });
+    }
+    catch (err) {
         core.info('' + err);
     }
     return null;
 }
-
-export async function findPullRequestNumber(token: string, vars: QueryVariables): Promise<number> {
+exports.listPullRequests = listPullRequests;
+async function findPullRequestNumber(token, vars) {
     if (vars.sha) {
         const list = await listPullRequests(token, vars);
         if (list) {
@@ -43,7 +44,7 @@ export async function findPullRequestNumber(token: string, vars: QueryVariables)
     }
     return 0;
 }
-
+exports.findPullRequestNumber = findPullRequestNumber;
 const pull_request_query_string = `
 query ($owner: String!, $name: String!, $number: Int!) {
     repository(owner: $owner, name: $name) {
@@ -113,17 +114,18 @@ query ($owner: String!, $name: String!, $number: Int!) {
     }
 }
 `;
-export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+async function queryActualPullRequest(token, vars) {
     const oktokit = github.getOctokit(token);
     try {
-        return await oktokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
-    } catch(err) {
+        return await oktokit.graphql(pull_request_query_string, { ...vars });
+    }
+    catch (err) {
         core.info('' + err);
         return null;
     }
 }
-
-export async function findActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+exports.queryActualPullRequest = queryActualPullRequest;
+async function findActualPullRequest(token, vars) {
     let number = vars.number;
     if (number == 0) {
         number = await findPullRequestNumber(token, vars);
@@ -134,3 +136,5 @@ export async function findActualPullRequest(token: string, vars: QueryVariables)
     }
     return await queryActualPullRequest(token, { ...vars, number });
 }
+exports.findActualPullRequest = findActualPullRequest;
+//# sourceMappingURL=finder.js.map
