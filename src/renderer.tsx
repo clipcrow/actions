@@ -8,7 +8,7 @@ const UserLink = (props: { login: string, slack?: string }) => (
 
 const BranchLink = (props: { url: string, ref: string, static?: boolean }) => {
 	if (props.static) {
-		return <code>{props.ref}</code>
+		return <i>{props.ref}</i>
 	}
 	return (
 		<a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
