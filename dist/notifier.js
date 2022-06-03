@@ -61,7 +61,7 @@ async function postPullRequestInfo(cx, model, ts) {
         },
     };
     if (ts) {
-        createSlackResult(await client.chat.update({ ...param, text: 'pull-request-notify updates', ts }));
+        return createSlackResult(await client.chat.update({ ...param, text: 'pull-request-notify updates', ts }));
     }
     return createSlackResult(await client.chat.postMessage({ ...param, text: 'pull-request-notify posts' }));
 }
