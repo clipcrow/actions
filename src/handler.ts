@@ -22,44 +22,45 @@ export function createRenderModel(cx: ActionContext, ev: EventPayload, result: Q
 
 export async function processEvent (cx: ActionContext, ev: EventPayload): Promise<SlackResult | null> {
     const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
-    console.log('QueryVariables-1 -')
+    console.log('QueryVariables for findActualPullRequest -')
     console.dir(vars1, { depth: null });
 
-    const result = await findActualPullRequest(vars1);
-    if (!result) {
+    const actualPullRequest = await findActualPullRequest(vars1);
+    if (!actualPullRequest) {
         console.log('pull-request not found.');
         return null;
     }
 
     // number of vars1 is 0 when "push"
-    const vars2 = { ...vars1, number: result.repository.pullRequest.number };
-    console.log('QueryVariables-2 -')
+    const vars2 = { ...vars1, number: actualPullRequest.repository.pullRequest.number };
+    console.log('QueryVariables for findPreviousSlackMessage -')
     console.dir(vars2, { depth: null });
 
-    const previousTS = await findPreviousSlackMessage(cx.slackChannel, vars2);
-    console.log(`previousTS: ${previousTS}`);
+    const channel = cx.slackChannel;
+    const previousSlackMessageTS = await findPreviousSlackMessage(channel, vars2);
+    console.log(`previousTS: ${previousSlackMessageTS}`);
 
-    const model = createRenderModel(cx, ev, result);
+    const renderModel = createRenderModel(cx, ev, actualPullRequest);
     console.log('RenderModel:')
-    console.dir(model, { depth: null });
+    console.dir(renderModel, { depth: null });
 
-    let currentResult: SlackResult | undefined;
-    if (previousTS) {
-        currentResult = await updatePullRequestInfo(cx.slackChannel, model, previousTS);
+    let currentSlackMessage: SlackResult | undefined;
+    if (previousSlackMessageTS) {
+        currentSlackMessage = await updatePullRequestInfo(channel, renderModel, previousSlackMessageTS);
     } else if (ev.upsert) {
         // ts: undefined, upsert: true
-        currentResult = await postPullRequestInfo(cx.slackChannel, model);
+        currentSlackMessage = await postPullRequestInfo(channel, renderModel);
     }
     console.log('SlackResult -')
-    console.dir(currentResult, { depth: null });
+    console.dir(currentSlackMessage, { depth: null });
 
-    const logTargetTS = currentResult?.ok ? currentResult.ts : previousTS;
-    console.log(`logTargetTS: ${logTargetTS}`);
+    const targetSlackMessageTS = currentSlackMessage?.ok ? currentSlackMessage.ts : previousSlackMessageTS;
+    console.log(`logTargetTS: ${targetSlackMessageTS}`);
 
-    if (logTargetTS && ev.logMessage) {
-        return await postChangeLog(cx.slackChannel, model, logTargetTS, ev.logMessage);
+    if (targetSlackMessageTS && ev.logMessage) {
+        return await postChangeLog(channel, renderModel, targetSlackMessageTS, ev.logMessage);
     }
-    return currentResult || null;
+    return currentSlackMessage || null;
 }
 
 export function extractPayload(
