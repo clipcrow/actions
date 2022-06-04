@@ -6,10 +6,6 @@ export const Description = (props: { text: string | null }) => (
 	props.text ? <Section><pre>{props.text}</pre></Section> : null
 );
 
-const PullNumber = (props: { url: string, number: number }) => (
-	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
-);
-
 export const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
@@ -106,7 +102,7 @@ const Contents = (props: RenderModel) => {
 	return (
 		<Fragment>
 			<Header>{props.repository.pullRequest.title}</Header>
-			<Context><PullNumber url={url} number={number}/></Context>
+			<Context><a href={url}>#{number}</a></Context>
 			{ text ? <Description text={text}/> : <Section><code>{props.emptyBodyWarning}</code></Section> }
 		</Fragment>
 	)
@@ -180,7 +176,7 @@ const Repository = (props: RenderModel) => {
 	);
 	return (
 		<Context>
-			<span>{repo} / {pull} / <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
+			<span>{repo} / {pull} / <a href={pullRequest.url}>{pullRequest.number}</a></span>
 		</Context>
 	);
 }
