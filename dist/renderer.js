@@ -104,9 +104,9 @@ const Conflicts = (props) => {
 };
 const Repository = (props) => {
     const { name, url, owner, pullRequest } = props.repository;
-    const repo = ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: ["See github.com / ", (0, jsx_runtime_1.jsx)("a", { href: owner.url, children: owner.login }), " / ", (0, jsx_runtime_1.jsx)("a", { href: url, children: name })] }));
+    const repo = ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: ["github.com / ", (0, jsx_runtime_1.jsx)("a", { href: owner.url, children: owner.login }), " / ", (0, jsx_runtime_1.jsx)("a", { href: url, children: name })] }));
     const pull = ((0, jsx_runtime_1.jsx)("a", { href: `${props.repository.url}/pulls`, children: "pull" }));
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " / $", pull, " / ", (0, jsx_runtime_1.jsx)(PullNumber, { url: pullRequest.url, number: pullRequest.number })] }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " / ", pull, " / ", (0, jsx_runtime_1.jsx)(PullNumber, { url: pullRequest.url, number: pullRequest.number })] }) }));
 };
 const PullRequest = (props) => ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(exports.Commits, { ...props }), (0, jsx_runtime_1.jsx)(Contents, { ...props }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 exports.PullRequest = PullRequest;
