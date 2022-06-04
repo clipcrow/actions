@@ -5,7 +5,7 @@ import type {
 
 import { findActualPullRequest } from './finder';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
-import { ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger';
+import { EditedLog, ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger';
 import type {
     GitHubUser, ActionContext, QueryVariables, QueryResult, EventPayload, RenderModel, SlackResult, KeyValueStore
 } from './types';
@@ -57,13 +57,24 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
             logMessage: ClosedLog,
         };
     }
+    if (action === 'edited') {
+        return {
+            sender,
+            event: 'pull_request',
+            action: 'edited',
+            number,
+            sha,
+            upsert: true,
+            logMessage: EditedLog,
+        };
+    }
     return {
         sender,
         event: 'pull_request',
         action,
         number,
         sha,
-        upsert: action === 'edited',
+        upsert: false,
     };
 }
 
