@@ -71,8 +71,10 @@ export const DeployCompleteLog = (props: RenderModel) => {
 		<Blocks>
 			<Context>
 				<span>
-					<b>The workflow launched by <UserLink login={login} slack={slack}
-						/> 's merge commit is complete.</b>
+					<b>
+						The workflow launched by <UserLink login={login} slack={slack}/>
+						's merge commit is complete.
+					</b>
 				</span>
 				<span>&gt; sha: {props.sha}</span>
 				{ message ? <span>&gt; <b>{message}</b></span> : null }
