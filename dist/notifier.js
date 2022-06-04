@@ -1,16 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.postChangeLog = exports.updatePullRequestInfo = exports.postPullRequestInfo = exports.createSlackResult = exports.createSlackCallPayload = exports.findPreviousSlackMessage = exports.simpleEquals = void 0;
+exports.postChangeLog = exports.updatePullRequestInfo = exports.postPullRequestInfo = exports.createSlackCallPayload = exports.findPreviousSlackMessage = void 0;
 const web_api_1 = require("@slack/web-api");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
 const METADATA_EVENT_TYPE = 'pull-request-notify';
-const simpleEquals = (payload, vars) => {
-    return (payload.owner === vars.owner &&
-        payload.name === vars.name &&
-        payload.number === vars.number);
-};
-exports.simpleEquals = simpleEquals;
 async function findPreviousSlackMessage(cx, vars) {
     // Search for messages on the channel to get metadata.
     const client = new web_api_1.WebClient(cx.slackToken);
@@ -29,7 +23,8 @@ async function findPreviousSlackMessage(cx, vars) {
                     break;
                 // check the pull request
                 const { event_payload } = slackMessage.metadata;
-                if ((0, exports.simpleEquals)(slackMessage.metadata.event_payload, vars)) {
+                const actual = slackMessage.metadata.event_payload;
+                if (actual.owner === vars.owner && actual.name === vars.name && actual.number === vars.number) {
                     return slackMessage.ts;
                 }
             }
@@ -58,14 +53,13 @@ exports.createSlackCallPayload = createSlackCallPayload;
 function createSlackResult(result, api) {
     return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
 }
-exports.createSlackResult = createSlackResult;
 async function postPullRequestInfo(cx, model) {
     const client = new web_api_1.WebClient(cx.slackToken);
     const param = {
         ...createSlackCallPayload(cx.slackChannel, model),
         text: 'pull-request-notify posts',
     };
-    console.log('postPullRequestInfo:');
+    console.log('postPullRequestInfo -');
     console.dir({ ...param, channel: 'privacy' }, { depth: null });
     return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
 }
@@ -77,7 +71,7 @@ async function updatePullRequestInfo(cx, model, ts) {
         text: 'pull-request-notify updates',
         ts,
     };
-    console.log('updatePullRequestInfo:');
+    console.log('updatePullRequestInfo -');
     console.dir({ ...param, channel: 'privacy' }, { depth: null });
     return createSlackResult(await client.chat.update(param), 'chat.update');
 }
@@ -92,7 +86,7 @@ async function postChangeLog(cx, model, ts, logMessage) {
             blocks: (0, jsx_slack_1.JSXSlack)(blocks),
             thread_ts: ts,
         };
-        console.log('postChangeLog:');
+        console.log('postChangeLog -');
         console.dir({ ...param, channel: 'privacy' }, { depth: null });
         return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
     }

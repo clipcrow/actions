@@ -1,11 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = void 0;
-const core = require("@actions/core");
-const github = require("@actions/github");
+const workflow_1 = require("./workflow");
 const pull_request_list_string = `
 query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
+        owner {
+            login
+        }
+        name
         pullRequests(last: 100) {
             nodes {
                 mergeCommit {
@@ -19,18 +22,19 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
-async function listPullRequests(token, vars) {
-    const oktokit = github.getOctokit(token);
-    return await oktokit.graphql(pull_request_list_string, { ...vars });
+async function listPullRequests(vars) {
+    const octokit = (0, workflow_1.getOctokit)();
+    return await octokit.graphql(pull_request_list_string, { ...vars });
 }
 exports.listPullRequests = listPullRequests;
-async function findPullRequestNumber(token, vars) {
+async function findPullRequestNumber(vars) {
+    const octokit = (0, workflow_1.getOctokit)();
     if (vars.sha) {
-        const list = await listPullRequests(token, vars);
+        const list = await listPullRequests(vars);
         if (list) {
             for (const pullRequest of list.repository.pullRequests.nodes) {
                 if (pullRequest.mergeCommit && pullRequest.mergeCommit.sha === vars.sha) {
-                    core.info(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
+                    console.log(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
                     return pullRequest.number;
                 }
             }
@@ -108,21 +112,21 @@ query ($owner: String!, $name: String!, $number: Int!) {
     }
 }
 `;
-async function queryActualPullRequest(token, vars) {
-    const oktokit = github.getOctokit(token);
-    return await oktokit.graphql(pull_request_query_string, { ...vars });
+async function queryActualPullRequest(vars) {
+    const octokit = (0, workflow_1.getOctokit)();
+    return await octokit.graphql(pull_request_query_string, { ...vars });
 }
 exports.queryActualPullRequest = queryActualPullRequest;
-async function findActualPullRequest(token, vars) {
+async function findActualPullRequest(vars) {
     let number = vars.number;
     if (number == 0) {
-        number = await findPullRequestNumber(token, vars);
+        number = await findPullRequestNumber(vars);
     }
     if (number == 0) {
         // PullRequest Not Found
         return null;
     }
-    return await queryActualPullRequest(token, { ...vars, number });
+    return await queryActualPullRequest({ ...vars, number });
 }
 exports.findActualPullRequest = findActualPullRequest;
 //# sourceMappingURL=finder.js.map

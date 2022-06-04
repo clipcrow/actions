@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.extractPayload = exports.createActionContext = exports.processEvent = exports.createRenderModel = void 0;
-const core = require("@actions/core");
-const github = require("@actions/github");
+exports.extractPayload = exports.processEvent = exports.createRenderModel = void 0;
 const finder_1 = require("./finder");
 const notifier_1 = require("./notifier");
 const renderer_1 = require("./renderer");
@@ -18,19 +16,19 @@ function createRenderModel(cx, ev, result) {
 exports.createRenderModel = createRenderModel;
 async function processEvent(cx, ev) {
     const vars1 = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
-    console.log('QueryVariables-1:');
+    console.log('QueryVariables-1 -');
     console.dir(vars1, { depth: null });
-    const result = await (0, finder_1.findActualPullRequest)(cx.githubToken, vars1);
+    const result = await (0, finder_1.findActualPullRequest)(vars1);
     if (!result) {
         console.log('pull-request not found.');
         return null;
     }
     // number of vars1 is 0 when "push"
     const vars2 = { ...vars1, number: result.repository.pullRequest.number };
-    console.log('QueryVariables-2:');
+    console.log('QueryVariables-2 -');
     console.dir(vars2, { depth: null });
     const previousTS = await (0, notifier_1.findPreviousSlackMessage)(cx, vars2);
-    core.info(`previousTS: ${previousTS}`);
+    console.log(`previousTS: ${previousTS}`);
     const model = createRenderModel(cx, ev, result);
     console.log('RenderModel:');
     console.dir(model, { depth: null });
@@ -39,10 +37,10 @@ async function processEvent(cx, ev) {
         currentResult = await (0, notifier_1.updatePullRequestInfo)(cx, model, previousTS);
     }
     else if (ev.upsert) {
-        // ts: undefinde, upsert: true
+        // ts: undefined, upsert: true
         currentResult = await (0, notifier_1.postPullRequestInfo)(cx, model);
     }
-    console.log('SlackResult:');
+    console.log('SlackResult -');
     console.dir(currentResult, { depth: null });
     const logTargetTS = currentResult?.ok ? currentResult.ts : previousTS;
     console.log(`logTargetTS: ${logTargetTS}`);
@@ -52,27 +50,6 @@ async function processEvent(cx, ev) {
     return currentResult || null;
 }
 exports.processEvent = processEvent;
-function createActionContext() {
-    const owner = github.context.repo.owner;
-    const name = github.context.repo.repo;
-    const githubToken = core.getInput('githubToken');
-    const slackToken = core.getInput('slackToken');
-    const slackChannel = core.getInput('slackChannel');
-    const emptyBodyWarning = core.getInput('emptyBodyWarning');
-    const pushMessage = core.getInput('pushMessage');
-    const slackAccounts = JSON.parse(core.getInput('slackAccounts'));
-    return {
-        owner,
-        name,
-        githubToken,
-        slackToken,
-        slackChannel,
-        slackAccounts,
-        emptyBodyWarning,
-        pushMessage,
-    };
-}
-exports.createActionContext = createActionContext;
 function extractPayload(sender, event, payload, sha) {
     if (event === 'push') {
         return { sender, event, action: '', number: 0, sha, upsert: false, logMessage: renderer_1.DeployCompleteLog };
@@ -105,32 +82,9 @@ function extractPayload(sender, event, payload, sha) {
         }
         return { sender, event, action, number, review, upsert: false };
     }
-    // if (event === pull_request_review_comment) { TODO: }
+    // if (event === pull_request_review_comment) { /* future */ }
     console.log(`Unsupported trigger event: "${event}"`);
     return null;
 }
 exports.extractPayload = extractPayload;
-async function handleEvent() {
-    const event = github.context.eventName;
-    console.log(`starting handle "${event}"...`);
-    const { actor, sha } = github.context;
-    const ev = extractPayload({ login: actor, url: `https://github.com/${actor}` }, // sender
-    event, github.context.payload, sha);
-    if (ev) {
-        console.log('extracted payload -');
-        console.dir(ev, { depth: null });
-        try {
-            const cx = await createActionContext();
-            console.log('created context -');
-            console.dir({ ...cx, githubToken: '{privacy}', slackToken: '{privacy}' }, { depth: null });
-            return await processEvent(cx, ev);
-        }
-        catch (err) {
-            console.log('exception -');
-            console.dir(err, { depth: null });
-        }
-    }
-    return null;
-}
-exports.handleEvent = handleEvent;
 //# sourceMappingURL=handler.js.map
