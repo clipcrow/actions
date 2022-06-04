@@ -1,8 +1,9 @@
-import { WebClient, ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
+import { ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
 
+import { getWebClient } from './workflow';
 import { PullRequest } from './renderer';
-import type { ActionContext, QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
+import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
@@ -14,11 +15,11 @@ interface SlackMessage {
     ts: string;
 }
 
-export async function findPreviousSlackMessage(cx: ActionContext, vars: QueryVariables): Promise<string | null> {
+export async function findPreviousSlackMessage(channel: string, vars: QueryVariables): Promise<string | null> {
     // Search for messages on the channel to get metadata.
-    const client = new WebClient(cx.slackToken);
+    const client = getWebClient();
     const result = await client.conversations.history({
-        channel: cx.slackChannel,
+        channel,
         include_all_metadata: true,
         limit: 100,
     });
@@ -64,10 +65,10 @@ function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse,
     return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
 }
 
-export async function postPullRequestInfo(cx: ActionContext, model: RenderModel): Promise<SlackResult> {
-    const client = new WebClient(cx.slackToken);
+export async function postPullRequestInfo(channel: string, model: RenderModel): Promise<SlackResult> {
+    const client = getWebClient();
     const param = {
-        ...createSlackCallPayload(cx.slackChannel, model),
+        ...createSlackCallPayload(channel, model),
         text: 'pull-request-notify posts',
     };
     console.log('postPullRequestInfo -');
@@ -76,10 +77,10 @@ export async function postPullRequestInfo(cx: ActionContext, model: RenderModel)
     return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
 }
 
-export async function updatePullRequestInfo(cx: ActionContext, model: RenderModel, ts: string): Promise<SlackResult> {
-    const client = new WebClient(cx.slackToken);
+export async function updatePullRequestInfo(channel: string, model: RenderModel, ts: string): Promise<SlackResult> {
+    const client = getWebClient();
     const param = {
-        ...createSlackCallPayload(cx.slackChannel, model),
+        ...createSlackCallPayload(channel, model),
         text: 'pull-request-notify updates',
         ts,
     };
@@ -90,13 +91,13 @@ export async function updatePullRequestInfo(cx: ActionContext, model: RenderMode
 }
 
 export async function postChangeLog(
-    cx: ActionContext, model: RenderModel, ts: string, logMessage: LogMessage,
+    channel: string, model: RenderModel, ts: string, logMessage: LogMessage,
 ): Promise<SlackResult | null> {
     const blocks = logMessage(model);
     if (blocks) {
-        const client = new WebClient(cx.slackToken);
+        const client = getWebClient();
         const param = {
-            channel: cx.slackChannel,
+            channel,
             text: 'pull-request-notify posted this change log.',
             blocks: JSXSlack(blocks),
             thread_ts: ts,

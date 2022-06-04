@@ -21,12 +21,24 @@ and the trouble of operation.
 Use Slack's metadata API to find messages to update. In this way, the channel is not wasted.
 Fortunately, pull requests have a unique number, so I can simply use that as my search key.
 
+GraphQL(GitHub v4) was used as the method for acquiring detailed data of pull request.
+It was very convenient because it took less effort than the REST API(GitHub v3).
+
 Store the bot tokens needed to use the Slack API in Github Secrets. However, as an Action,
-it is sufficient to simply accept a string.The Slack channel ID, Slack and Github account pair,
-will be written in the workflow YAML too.
+it is sufficient to simply accept a string. The Slack channel ID, Slack and Github account pair,
+will be written in Github Secret accessed via the workflow YAML too.
 
 I will write it in TypeScript, assuming the future of changing the location to
 [Slack's next-generation platform](https://api.slack.com/future).
+
+- index.ts: simple bootstrap
+    - wokflow.ts: GitHub Actions API
+        - I'd like to port the following parts
+          when Slack's next gait platform is able to handle webhooks (probably soon).
+        - handler.ts: GitHub Webhook
+            - finder.ts: GitHub v4 API
+            - renderer.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
+            - notifier.ts: Slack API
 
 ## handle event of GitHub Actions
 

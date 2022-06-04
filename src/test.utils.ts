@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import * as github from '@actions/github';
 import { Octokit } from '@octokit/core';
+import { WebClient } from '@slack/web-api';
 
 import type { RenderModel, QueryVariables, ActionContext } from './types';
 
@@ -8,6 +9,10 @@ const env = dotenv.config();
 
 export function getTestOctokit(): Octokit {
     return github.getOctokit(env.parsed!.githubToken!);
+}
+
+export function getTestWebClient(): WebClient {
+    return new WebClient(env.parsed!.slackToken);
 }
 
 export function getTestQueryVariables(number: number): QueryVariables {

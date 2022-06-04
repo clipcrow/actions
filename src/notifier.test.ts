@@ -1,9 +1,9 @@
 import * as dotenv from 'dotenv';
-import { WebClient } from '@slack/web-api';
 
+import * as workflow from './workflow';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './renderer';
-import { getTestActionContext, pullRequestReviewSubmited } from './test.utils';
+import { getTestWebClient, pullRequestReviewSubmited } from './test.utils';
 import type { QueryVariables } from './types';
 
 const env = dotenv.config();
@@ -14,10 +14,12 @@ test('notifier', async () => {
         return;
     }
 
-    const cx = getTestActionContext({});
+    const spy = jest.spyOn(workflow, 'getWebClient').mockImplementation(() => getTestWebClient());
+
+    const channel = env.parsed!.slackChannel;
     const model = pullRequestReviewSubmited;
 
-    const result1 = await postPullRequestInfo(cx, model);
+    const result1 = await postPullRequestInfo(channel, model);
     expect(result1.ok).toBeTruthy();
 
     const vars: QueryVariables = {
@@ -26,22 +28,24 @@ test('notifier', async () => {
         number: model.repository.pullRequest.number,
     };
 
-    const ts = await findPreviousSlackMessage(cx, vars);
+    const ts = await findPreviousSlackMessage(channel, vars);
     expect(ts).toEqual(result1.ts);
 
-    const result2 = await updatePullRequestInfo(cx, model, result1.ts);
+    const result2 = await updatePullRequestInfo(channel, model, result1.ts);
     expect(result2.ok).toBeTruthy();
 
-    const result3 = await postChangeLog(cx, model, result2.ts, SubmittedLog);
+    const result3 = await postChangeLog(channel, model, result2.ts, SubmittedLog);
     expect(result3?.ok).toBeTruthy();
 
-    const client = new WebClient(cx.slackToken);
+    const client = getTestWebClient();
     if (result3) {
-        await client.chat.delete({ token: cx.slackToken, channel: cx.slackChannel, ts: result3.ts });
+        await client.chat.delete({ channel, ts: result3.ts });
     }
     if (result2.ok) {
-        await client.chat.delete({ token: cx.slackToken, channel: cx.slackChannel, ts: result2.ts });
+        await client.chat.delete({ channel, ts: result2.ts });
     } else {
-        await client.chat.delete({ token: cx.slackToken, channel: cx.slackChannel, ts: result1.ts });
+        await client.chat.delete({ channel, ts: result1.ts });
     }
+
+    spy.mockRestore();
 }, 1000 * 60);

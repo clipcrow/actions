@@ -36,7 +36,7 @@ export async function processEvent (cx: ActionContext, ev: EventPayload): Promis
     console.log('QueryVariables-2 -')
     console.dir(vars2, { depth: null });
 
-    const previousTS = await findPreviousSlackMessage(cx, vars2);
+    const previousTS = await findPreviousSlackMessage(cx.slackChannel, vars2);
     console.log(`previousTS: ${previousTS}`);
 
     const model = createRenderModel(cx, ev, result);
@@ -45,10 +45,10 @@ export async function processEvent (cx: ActionContext, ev: EventPayload): Promis
 
     let currentResult: SlackResult | undefined;
     if (previousTS) {
-        currentResult = await updatePullRequestInfo(cx, model, previousTS);
+        currentResult = await updatePullRequestInfo(cx.slackChannel, model, previousTS);
     } else if (ev.upsert) {
         // ts: undefined, upsert: true
-        currentResult = await postPullRequestInfo(cx, model);
+        currentResult = await postPullRequestInfo(cx.slackChannel, model);
     }
     console.log('SlackResult -')
     console.dir(currentResult, { depth: null });
@@ -57,7 +57,7 @@ export async function processEvent (cx: ActionContext, ev: EventPayload): Promis
     console.log(`logTargetTS: ${logTargetTS}`);
 
     if (logTargetTS && ev.logMessage) {
-        return await postChangeLog(cx, model, logTargetTS, ev.logMessage);
+        return await postChangeLog(cx.slackChannel, model, logTargetTS, ev.logMessage);
     }
     return currentResult || null;
 }
