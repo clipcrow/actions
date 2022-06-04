@@ -180,7 +180,7 @@ const Repository = (props: RenderModel) => {
 	);
 	return (
 		<Context>
-			<span>{repo} / ${pull} / <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
+			<span>{repo} / {pull} / <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
 		</Context>
 	);
 }
