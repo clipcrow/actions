@@ -37,7 +37,7 @@ I will write it in TypeScript, assuming the future of changing the location to
           when Slack's next gait platform is able to handle webhooks (probably soon).
         - handler.ts: GitHub Webhook
             - finder.ts: GitHub v4 API
-            - renderer.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
+            - renderer.tsx, logger.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
             - notifier.ts: Slack API
 
 ## handle event of GitHub Actions

@@ -5,7 +5,7 @@ import type {
 
 import { findActualPullRequest } from './finder';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
-import { ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './renderer';
+import { ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger';
 import type {
     GitHubUser, ActionContext, QueryVariables, QueryResult, EventPayload, RenderModel, SlackResult,
 } from './types';
