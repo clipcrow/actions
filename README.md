@@ -40,6 +40,10 @@ I will write it in TypeScript, assuming the future of changing the location to
             - renderer.tsx, logger.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
             - notifier.ts: Slack API
 
+If implemented as a GitHub App on Slack's next-generation platform,
+I think it will be possible to easily set up tokens and channels,
+which are currently troublesome, using the OAuth process.
+
 ## handle event of GitHub Actions
 
 - Event > Activity Type

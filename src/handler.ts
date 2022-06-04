@@ -39,7 +39,8 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
         return {
             sender,
             event: 'pull_request',
-            action, number,
+            action,
+            number,
             reviewRequest,
             upsert: true,
             logMessage: ReviewRequestedLog,
@@ -49,7 +50,7 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
         return {
             sender,
             event: 'pull_request',
-            action,
+            action: 'closed',
             number,
             sha,
             upsert: true,
@@ -80,7 +81,7 @@ export const pullRequestReviewExtractor: Extractor = (sender, sha, payload) => {
         return {
             sender,
             event: 'pull_request_review',
-            action,
+            action: 'submitted',
             number,
             review,
             upsert: true,
