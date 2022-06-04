@@ -96,13 +96,13 @@ export const Commits = (props: RenderModel) => {
 	);
 }
 
-const Contents = (props: RenderModel) => {
+export const Contents = (props: RenderModel) => {
 	const { url, number, body } = props.repository.pullRequest;
 	const text = body && body.trim();
 	return (
 		<Fragment>
 			<Header>{props.repository.pullRequest.title}</Header>
-			<Context><a href={url}>#{number}</a></Context>
+			<Section><b><a href={url}>#{number}</a></b></Section>
 			{ text ? <Description text={text}/> : <Section><code>{props.emptyBodyWarning}</code></Section> }
 		</Fragment>
 	)
@@ -166,19 +166,14 @@ const Conflicts = (props: RenderModel) => {
 	);
 }
 
-const Repository = (props: RenderModel) => {
+export const Repository = (props: RenderModel) => {
 	const { name, url, owner, pullRequest } = props.repository;
-	const repo = (
-		<Fragment>github.com / <a href={owner.url}>{owner.login}</a> / <a href={url}>{name}</a></Fragment>
-	);
-	const pull = (
-		<a href={`${props.repository.url}/pulls`}>pull</a>
-	);
-	return (
-		<Context>
-			<span>{repo} / {pull} / <a href={pullRequest.url}>{pullRequest.number}</a></span>
-		</Context>
-	);
+	const githubcom = (<a href='https://github.com/'>https://github.com</a>);
+	const org = (<a href={owner.url}>{owner.login}</a>);
+	const repo = (<a href={url}>{name}</a>);
+	const pulls = (<a href={`${props.repository.url}/pulls`}>pull</a>);
+	const pull = (<a href={pullRequest.url}>{pullRequest.number}</a>);
+	return (<Context><span>{githubcom} / {org} / {repo} / {pulls} / {pull}</span></Context>);
 }
 
 export const PullRequest = (props: RenderModel) => (

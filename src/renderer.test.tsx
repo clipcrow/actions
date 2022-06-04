@@ -1,4 +1,4 @@
-import { arrangeReviewers, Commits, PullRequest } from './renderer';
+import { arrangeReviewers, Commits, Contents, Repository, PullRequest } from './renderer';
 import { pullRequestReviewSubmited, closedModel } from './test.utils';
 
 test('arrangeReviewers', () => {
@@ -12,6 +12,14 @@ test('arrangeReviewers', () => {
 
 test('Commits', () => {
     console.log(`{"blocks":[${JSON.stringify(<Commits {...closedModel}/>)}]}`);
+});
+
+test('Contents', () => {
+    console.log(`{"blocks":${JSON.stringify(<Contents {...closedModel}/>)}}`);
+});
+
+test('Repository', () => {
+    console.log(`{"blocks":[${JSON.stringify(<Repository {...closedModel}/>)}]}`);
 });
 
 test('PullRequestInfo', () => {
