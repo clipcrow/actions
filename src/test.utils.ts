@@ -147,12 +147,6 @@ export const pullRequestReviewSubmited: RenderModel = {
 
 
 export const closedModel: RenderModel = {
-    sender: {
-        login: 'someone',
-        url: "https://github.com/someone",
-    },
-    event: "push",
-    action: "",
     owner: 'someone',
     slackAccounts: {
         someone: "U1234567890",
@@ -161,6 +155,13 @@ export const closedModel: RenderModel = {
     },
     emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
+    sender: {
+        login: 'someone',
+        url: "https://github.com/someone",
+    },
+    event: "push",
+    action: "",
+    sha: '6789abcdefghijklmnopqrstuvwxyz0123456789',
     repository: {
         name: "test",
         owner: {
@@ -235,7 +236,4 @@ export const closedModel: RenderModel = {
         },
         url: "https://github.com/someone/test"
     },
-    sha: '6789abcdefghijklmnopqrstuvwxyz0123456789'
 };
-
-test('test data', () => {});

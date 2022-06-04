@@ -2,6 +2,14 @@ import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
 
 import type { KeyValueStore, Connection, ReviewRequest, Review, RenderModel } from './types';
 
+export const Description = (props: { text: string | null }) => (
+	props.text ? <Section><pre>{props.text}</pre></Section> : null
+);
+
+const PullNumber = (props: { url: string, number: number }) => (
+	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
+);
+
 export const UserLink = (props: { login: string, slack?: string }) => (
 	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
 );
@@ -9,33 +17,6 @@ export const UserLink = (props: { login: string, slack?: string }) => (
 const BranchLink = (props: { url: string, ref: string, static?: boolean }) => (
 	props.static ? <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a> : <i>{props.ref}</i>
 );
-
-const Commits = (props: RenderModel) => {
-	const {
-		url,
-		pullRequest: {
-			merged,
-			state,
-			commits: { totalCount },
-			changedFiles,
-			author: { login },
-			baseRefName: base,
-			headRefName: head,
-		}
-	} = props.repository;
-	const text = merged ? ' merged' : ' wants to merge';
-	const commitUnit = totalCount < 2 ? 'commit' : 'commits';
-	const changeUnit = changedFiles < 2 ? 'change' : 'changes';
-	return (
-		<Context>
-			<span>
-				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]} />
-				{` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `}
-				<BranchLink url={url} ref={base}/> from <BranchLink url={url} ref={head} static={merged}/>
-			</span>
-		</Context>
-	);
-}
 
 const StatusSection = (props: { test: boolean, text: string }) => (
 	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
@@ -90,6 +71,45 @@ export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<
 		}
 		return previous;
 	}, { approvals: [], changeRequesteds: [], pendings: [] });
+}
+
+const Commits = (props: RenderModel) => {
+	const {
+		url,
+		pullRequest: {
+			merged,
+			state,
+			commits: { totalCount },
+			changedFiles,
+			author: { login },
+			baseRefName: base,
+			headRefName: head,
+		}
+	} = props.repository;
+	const text = merged ? ' merged' : ' wants to merge';
+	const commitUnit = totalCount < 2 ? 'commit' : 'commits';
+	const changeUnit = changedFiles < 2 ? 'change' : 'changes';
+	return (
+		<Context>
+			<span>
+				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]}/>
+				{ ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into ` }
+				<BranchLink url={url} ref={base}/> from <BranchLink url={url} ref={head} static={merged}/>
+			</span>
+		</Context>
+	);
+}
+
+const Contents = (props: RenderModel) => {
+	const { url, number, body } = props.repository.pullRequest;
+	const text = body && body.trim();
+	return (
+		<Fragment>
+			<Header>{props.repository.pullRequest.title}</Header>
+			<Context><PullNumber url={url} number={number}/></Context>
+			{ text ? <Description text={text}/> : <Section><code>{props.emptyBodyWarning}</code></Section> }
+		</Fragment>
+	)
 }
 
 const pr_approved = 'Changes approved';
@@ -150,10 +170,6 @@ const Conflicts = (props: RenderModel) => {
 	);
 }
 
-const PullNumber = (props: { url: string, number: number }) => (
-	<Fragment><a href={props.url}>#{props.number}</a></Fragment>
-);
-
 const Repository = (props: RenderModel) => {
 	const { name, url, owner, pullRequest } = props.repository;
 	const repo = (
@@ -166,35 +182,13 @@ const Repository = (props: RenderModel) => {
 	);
 }
 
-const Title = (props: { text: string | null }) => (
-	props.text ? <Header>{props.text}</Header> : null
+export const PullRequest = (props: RenderModel) => (
+	<Blocks>
+		<Commits {...props}/>
+		<Contents {...props}/>
+		<Approvals {...props}/>
+		<Conflicts {...props}/>
+		<Repository {...props}/>
+		<Divider/>
+	</Blocks>
 );
-
-export const Description = (props: { text: string | null }) => (
-	props.text ? <Section><pre>{props.text}</pre></Section> : null
-);
-
-const Body = (props: { text: string | null, warning: string }) => {
-	if (props.text) {
-		return <Description text={props.text}/>
-	} else {
-		return <Section><code>{props.warning}</code></Section>
-	}
-};
-
-export const PullRequest = (props: RenderModel) => {
-	const { url, number, body } = props.repository.pullRequest;
-
-	return (
-		<Blocks>
-			<Commits {...props}/>
-			<Title text={props.repository.pullRequest.title}/>
-			<Context><PullNumber url={url} number={number}/></Context>
-			<Body text={body} warning={props.emptyBodyWarning}/>
-			<Approvals {...props}/>
-			<Conflicts {...props}/>
-			<Repository {...props}/>
-			<Divider/>
-		</Blocks>
-	);
-};

@@ -1,4 +1,4 @@
-import { Blocks, Context } from 'jsx-slack';
+import { Blocks, Context, Section } from 'jsx-slack';
 
 import { UserLink, Description } from './renderer';
 import type { RenderModel } from './types';
@@ -28,6 +28,26 @@ export const ClosedLog = (props: RenderModel) => {
 		</Blocks>
 	);
 };
+
+export const DeployCompleteLog = (props: RenderModel) => {
+	const { login } = props.sender;
+	const slack = props.slackAccounts[login];
+	const message = props.pushMessage.trim();
+	return (
+		<Blocks>
+			<Context>
+				<span>
+					<b>
+						The workflow launched by <UserLink login={login} slack={slack}/>
+						's merge commit is complete.
+					</b>
+				</span>
+				<span>&gt; sha: {props.sha}</span>
+			</Context>
+			{ message ? <Section><b>{message}</b></Section> : null }
+		</Blocks>
+	);
+}
 
 export const ReviewRequestedLog = (props: RenderModel) => {
 	const { login } = props.reviewRequest!.requestedReviewer;
@@ -70,23 +90,3 @@ export const SubmittedLog = (props: RenderModel) => {
 	}
 	return null;
 };
-
-export const DeployCompleteLog = (props: RenderModel) => {
-	const { login } = props.sender;
-	const slack = props.slackAccounts[login];
-	const message = props.pushMessage.trim();
-	return (
-		<Blocks>
-			<Context>
-				<span>
-					<b>
-						The workflow launched by <UserLink login={login} slack={slack}/>
-						's merge commit is complete.
-					</b>
-				</span>
-				<span>&gt; sha: {props.sha}</span>
-			</Context>
-			{ message ? <Context><b>{message}</b></Context> : null }
-		</Blocks>
-	);
-}

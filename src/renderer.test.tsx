@@ -1,5 +1,4 @@
-import { arrangeReviewers } from './renderer';
-import { PullRequest } from './renderer';
+import { arrangeReviewers, PullRequest } from './renderer';
 import { pullRequestReviewSubmited, closedModel } from './test.utils';
 
 test('arrangeReviewers', () => {
