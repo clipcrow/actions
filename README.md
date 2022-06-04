@@ -113,7 +113,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: masataka/pull-request-notify@v0.0.5
+      - uses: masataka/pull-request-notify@v[0.0.6](https://github.com/masataka/pull-request-notify/releases)
         env:
           NODE_OPTIONS: --enable-source-maps
         with:
@@ -140,7 +140,7 @@ jobs:
 
       - Your CD steps here
 
-      - uses: masataka/pull-request-notify@v0.0.4
+      - uses: masataka/pull-request-notify@[v0.0.6](https://github.com/masataka/pull-request-notify/releases)
         env:
           NODE_OPTIONS: --enable-source-maps
         with:
