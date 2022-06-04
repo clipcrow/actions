@@ -97,10 +97,9 @@ const Conflicts = (props) => {
     const { state, mergeable, merged } = props.repository.pullRequest;
     if (state === 'OPEN') {
         const test = mergeable === 'MERGEABLE';
-        return (0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? no_conflicts : must_be_resolved });
+        return ((0, jsx_runtime_1.jsx)(StatusSection, { test: test, text: test ? no_conflicts : must_be_resolved }));
     }
-    const text = merged ? merge_completed : closed_without_merge;
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Fragment, { children: (0, jsx_runtime_1.jsx)(StatusSection, { test: true, text: text }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("b", { children: merged ? merge_completed : closed_without_merge }) }));
 };
 const Repository = (props) => {
     const { name, url, owner, pullRequest } = props.repository;
