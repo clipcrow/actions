@@ -1,5 +1,10 @@
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
+export interface Connection<T> {
+    totalCount: number;
+    edges: { node: T }[];
+}
+
 export interface KeyValueStore<T> {
     [key: string]: T;
 }
@@ -45,10 +50,16 @@ export interface Review {
     updatedAt: string;
 }
 
+export interface CheckRun {
+    name: string;
+    conclusion: string;
+}
+
 export interface Commit {
     messageBody: string | null;
     messageHeadline: string | null;
     sha: string;
+    checkSuites: Connection<CheckRun>;
 }
 
 export interface LogMessage {
@@ -67,34 +78,29 @@ export interface EventPayload {
     logMessage?: LogMessage;
 }
 
-export interface Connection<T> {
-    totalCount: number;
-    edges: { node: T }[];
+export interface PullRequest<T> {
+    author: GitHubUser;
+    baseRefName: string;
+    body: string | null;
+    changedFiles: number;
+    commits: Connection<T>;
+    headRefName: string;
+    mergeCommit: T | null;
+    mergeable: string, // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
+    merged: boolean;
+    number: number;
+    reviewRequests: Connection<ReviewRequest>;
+    reviews: Connection<Review>;
+    state: string, // 'CLOSED' | 'MERGED' | 'OPEN';
+    title: string;
+    url: string;
 }
 
 export interface QueryResult {
     repository: {
         name: string;
         owner: GitHubUser;
-        pullRequest: {
-            author: GitHubUser;
-            baseRefName: string;
-            body: string | null;
-            changedFiles: number;
-            commits: {
-                totalCount: number;
-            };
-            headRefName: string;
-            mergeCommit: Commit | null;
-            mergeable: string, // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
-            merged: boolean;
-            number: number;
-            reviewRequests: Connection<ReviewRequest>;
-            reviews: Connection<Review>;
-            state: string, // 'CLOSED' | 'MERGED' | 'OPEN';
-            title: string;
-            url: string;
-        };
+        pullRequest: PullRequest<Commit>;
         url: string;
     }
 }

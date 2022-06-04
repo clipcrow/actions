@@ -1,18 +1,11 @@
 import { getOctokit } from './workflow';
-import type { Commit, QueryVariables, QueryResult } from './types';
+import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types';
 
 interface PullRequestList {
     repository: {
-        owner: {
-            login: string;
-        };
+        owner: GitHubUser;
         name: string;
-        pullRequests: {
-            nodes: {
-                number: number;
-                mergeCommit: Commit;
-            }[];
-        }
+        pullRequests: Connection<Pick<PullRequest<Pick<Commit, 'sha'>>, 'mergeCommit' | 'number'>>;
     }
 }
 
@@ -21,16 +14,17 @@ query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
         owner {
             login
+            url
         }
         name
         pullRequests(last: 100) {
-            nodes {
-                mergeCommit {
-                    messageBody
-                    messageHeadline
-                    sha: oid
+            edges {
+                node {
+                    mergeCommit {
+                        sha: oid
+                    }
+                    number
                 }
-                number
             }
         }
     }
@@ -46,10 +40,10 @@ export async function findPullRequestNumber(vars: QueryVariables): Promise<numbe
     if (vars.sha) {
         const list = await listPullRequests(vars);
         if (list) {
-            for (const pullRequest of list.repository.pullRequests.nodes) {
-                if (pullRequest.mergeCommit && pullRequest.mergeCommit.sha === vars.sha) {
-                    console.log(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
-                    return pullRequest.number;
+            for (const edge of list.repository.pullRequests.edges) {
+                if (edge.node.mergeCommit && edge.node.mergeCommit.sha === vars.sha) {
+                    console.log(`Hit! #${edge.node.number}, sha: ${vars.sha}`);
+                    return edge.node.number;
                 }
             }
         }
@@ -73,14 +67,55 @@ query ($owner: String!, $name: String!, $number: Int!) {
             baseRefName
             body
             changedFiles
-            commits {
+            commits(last: 1) {
                 totalCount
+                edges {
+                    node {
+                        commit {
+                            messageBody
+                            messageHeadline
+                            sha: oid
+                            checkSuites(first: 100) {
+                                totalCount
+                                edges {
+                                    node {
+                                        checkRuns(first: 100) {
+                                            totalCount
+                                            edges {
+                                                node {
+                                                    name
+                                                    conclusion
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             headRefName
             mergeCommit {
                 messageBody
                 messageHeadline
                 sha: oid
+                checkSuites(first: 100) {
+                    totalCount
+                    edges {
+                        node {
+                            checkRuns(first: 100) {
+                                totalCount
+                                edges {
+                                    node {
+                                        name
+                                        conclusion
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             mergeable
             merged

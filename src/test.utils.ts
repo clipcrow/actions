@@ -79,7 +79,8 @@ export const pullRequestReviewSubmited: RenderModel = {
             body: "## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n",
             changedFiles: 13,
             commits: {
-                "totalCount": 9
+                totalCount: 9,
+                edges: []
             },
             headRefName: "feature-269",
             mergeCommit: null,
@@ -177,13 +178,18 @@ export const closedModel: RenderModel = {
             body: "## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n",
             changedFiles: 13,
             commits: {
-                "totalCount": 9
+                totalCount: 9,
+                edges: []
             },
             headRefName: "feature-269",
             mergeCommit: {
                 messageBody: 'create SampleRenderModel object',
                 messageHeadline: 'Merge pull request #311 from test/feature-269',
-                sha: '6789abcdefghijklmnopqrstuvwxyz0123456789'
+                sha: '6789abcdefghijklmnopqrstuvwxyz0123456789',
+                checkSuites: {
+                    totalCount: 0,
+                    edges: [],
+                },
             },
             mergeable: "MERGEABLE",
             merged: true,
