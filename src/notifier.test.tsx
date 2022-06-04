@@ -3,7 +3,7 @@ import { WebClient } from '@slack/web-api';
 
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './renderer';
-import { getTestActionContext, pullRequestReviewSubmited } from './utils.test';
+import { getTestActionContext, pullRequestReviewSubmited } from './test.utils';
 import type { QueryVariables } from './types';
 
 const env = dotenv.config();

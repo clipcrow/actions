@@ -1,6 +1,6 @@
 import { arrangeReviewers } from './renderer';
 import { PullRequest } from './renderer';
-import { pullRequestReviewSubmited, closedModel } from './utils.test';
+import { pullRequestReviewSubmited, closedModel } from './test.utils';
 
 test('arrangeReviewers', () => {
     const { reviewRequests, reviews } = pullRequestReviewSubmited.repository.pullRequest;

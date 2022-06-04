@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 
 import * as workflow from './workflow';
 import { listPullRequests, findPullRequestNumber, queryActualPullRequest, findActualPullRequest } from './finder';
-import { getTestOctokit, getTestQueryVariables } from './utils.test';
+import { getTestOctokit, getTestQueryVariables } from './test.utils';
 
 const env = dotenv.config();
 
