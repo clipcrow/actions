@@ -3,9 +3,17 @@ import { Blocks, Context } from 'jsx-slack';
 import { UserLink, Description } from './renderer';
 import type { RenderModel } from './types';
 
-const Complete = (props: { text: string }) => (
-	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
-);
+export const EditedLog = (props: RenderModel) => {
+	const { login } = props.sender;
+	const slack = props.slackAccounts[login];
+	return (
+		<Blocks>
+			<Context>
+					<b><UserLink login={login} slack={slack}/> edited this body text </b>
+			</Context>
+		</Blocks>
+	);
+};
 
 export const ClosedLog = (props: RenderModel) => {
 	const { merged } = props.repository.pullRequest;
