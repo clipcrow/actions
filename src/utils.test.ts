@@ -32,7 +32,7 @@ export function getTestActionContext(override: Partial<ActionContext>): ActionCo
     }
 }
 
-export const sampleRenderModel: RenderModel = {
+export const pullRequestReviewSubmited: RenderModel = {
     // Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
     owner: 'someone',
     slackAccounts: {

@@ -1,9 +1,9 @@
 import { arrangeReviewers } from './renderer';
 import { PullRequest } from './renderer';
-import { sampleRenderModel, closedModel } from './utils.test';
+import { pullRequestReviewSubmited, closedModel } from './utils.test';
 
 test('arrangeReviewers', () => {
-    const { reviewRequests, reviews } = sampleRenderModel.repository.pullRequest;
+    const { reviewRequests, reviews } = pullRequestReviewSubmited.repository.pullRequest;
 
     const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
 

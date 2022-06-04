@@ -9,7 +9,7 @@ const env = dotenv.config();
 
 test('createActionContext', async () => {
     github.context.eventName = 'pull_request';
-    github.context.payload = require('./event/pull_request.review_requested.json');
+    github.context.payload = require('./pull_request.review_requested.test.json');
     const slackAccounts = await fs.readFile('src/slackAccounts.test.json', 'utf-8');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {

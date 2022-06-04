@@ -3,7 +3,7 @@ import { WebClient } from '@slack/web-api';
 
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './renderer';
-import { getTestActionContext, sampleRenderModel } from './utils.test';
+import { getTestActionContext, pullRequestReviewSubmited } from './utils.test';
 import type { QueryVariables } from './types';
 
 const env = dotenv.config();
@@ -15,23 +15,24 @@ test('notifier', async () => {
     }
 
     const cx = getTestActionContext({});
+    const model = pullRequestReviewSubmited;
 
-    const result1 = await postPullRequestInfo(cx, sampleRenderModel);
+    const result1 = await postPullRequestInfo(cx, model);
     expect(result1.ok).toBeTruthy();
 
     const vars: QueryVariables = {
-        owner: sampleRenderModel.owner,
-        name: sampleRenderModel.repository.name,
-        number: sampleRenderModel.repository.pullRequest.number,
+        owner: model.owner,
+        name: model.repository.name,
+        number: model.repository.pullRequest.number,
     };
 
     const ts = await findPreviousSlackMessage(cx, vars);
     expect(ts).toEqual(result1.ts);
 
-    const result2 = await updatePullRequestInfo(cx, sampleRenderModel, result1.ts);
+    const result2 = await updatePullRequestInfo(cx, model, result1.ts);
     expect(result2.ok).toBeTruthy();
 
-    const result3 = await postChangeLog(cx, sampleRenderModel, result2.ts, SubmittedLog);
+    const result3 = await postChangeLog(cx, model, result2.ts, SubmittedLog);
     expect(result3?.ok).toBeTruthy();
 
     const client = new WebClient(cx.slackToken);
