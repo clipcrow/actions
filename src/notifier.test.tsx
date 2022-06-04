@@ -1,36 +1,37 @@
+import * as dotenv from 'dotenv';
 import { WebClient } from '@slack/web-api';
+
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './renderer';
-import { getTestQueryVariables, getTestActionContext, sampleRenderModel } from './utils.test';
-import type { RenderModel } from './types';
+import { getTestActionContext, sampleRenderModel } from './utils.test';
+import type { QueryVariables } from './types';
 
-test.skip('notifier', async () => {
+const env = dotenv.config();
+
+test('notifier', async () => {
+    if (!Boolean(env.parsed!.slackTest)) {
+        console.log('.env.slackTest is empty')
+        return;
+    }
+
     const cx = getTestActionContext({});
 
     const result1 = await postPullRequestInfo(cx, sampleRenderModel);
     expect(result1.ok).toBeTruthy();
 
-    const ts = await findPreviousSlackMessage(cx, getTestQueryVariables());
-    expect(ts).toEqual(result1.ts);
-
-
-    const update: RenderModel = {
-        ...sampleRenderModel,
-        review: {
-            author: {
-                login: "nobody",
-                url: "https://github.com/nobody",
-            },
-            body: '',
-            state: 'APPROVED',
-            updatedAt: '',
-        },
+    const vars: QueryVariables = {
+        owner: sampleRenderModel.owner,
+        name: sampleRenderModel.repository.name,
+        number: sampleRenderModel.repository.pullRequest.number,
     };
 
-    const result2 = await updatePullRequestInfo(cx, update, result1.ts);
+    const ts = await findPreviousSlackMessage(cx, vars);
+    expect(ts).toEqual(result1.ts);
+
+    const result2 = await updatePullRequestInfo(cx, sampleRenderModel, result1.ts);
     expect(result2.ok).toBeTruthy();
 
-    const result3 = await postChangeLog(cx, update, result2.ts, SubmittedLog);
+    const result3 = await postChangeLog(cx, sampleRenderModel, result2.ts, SubmittedLog);
     expect(result3?.ok).toBeTruthy();
 
     const client = new WebClient(cx.slackToken);

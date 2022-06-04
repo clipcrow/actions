@@ -3,14 +3,14 @@ import * as github from '@actions/github';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs/promises';
 
-import { createActionContext } from './handler';
+import { createActionContext } from './workflow';
 
 const env = dotenv.config();
 
 test('createActionContext', async () => {
     github.context.eventName = 'pull_request';
     github.context.payload = require('./event/pull_request.review_requested.json');
-    const slackAccounts = await fs.readFile('src/repository/accounts.json', 'utf-8');
+    const slackAccounts = await fs.readFile('src/slackAccounts.test.json', 'utf-8');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {
             githubToken: 'ghp_abcdefghijklmnopqrstuvwxyz0123456789',
@@ -30,4 +30,4 @@ test('createActionContext', async () => {
     expect(cx.slackAccounts['nobody']).toEqual('U8901234567');
 
     spy.mockRestore();
-}, 1000 * 30);
+});

@@ -70,7 +70,7 @@ export async function postPullRequestInfo(cx: ActionContext, model: RenderModel)
         ...createSlackCallPayload(cx.slackChannel, model),
         text: 'pull-request-notify posts',
     };
-    console.log('postPullRequestInfo:');
+    console.log('postPullRequestInfo -');
     console.dir({ ...param, channel: 'privacy' }, { depth: null });
 
     return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');
@@ -83,7 +83,7 @@ export async function updatePullRequestInfo(cx: ActionContext, model: RenderMode
         text: 'pull-request-notify updates',
         ts,
     };
-    console.log('updatePullRequestInfo:');
+    console.log('updatePullRequestInfo -');
     console.dir({ ...param, channel: 'privacy' }, { depth: null });
 
     return createSlackResult(await client.chat.update(param), 'chat.update');
@@ -101,7 +101,7 @@ export async function postChangeLog(
             blocks: JSXSlack(blocks),
             thread_ts: ts,
         };
-        console.log('postChangeLog:');
+        console.log('postChangeLog -');
         console.dir({ ...param, channel: 'privacy' }, { depth: null });
 
         return createSlackResult(await client.chat.postMessage(param), 'chat.postMessage');

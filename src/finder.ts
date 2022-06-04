@@ -1,6 +1,4 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
-
+import { getOctokit } from './workflow';
 import type { Commit, QueryVariables, QueryResult } from './types';
 
 interface PullRequestList {
@@ -38,18 +36,19 @@ query ($owner: String!, $name: String!) {
     }
 }
 `;
-export async function listPullRequests(token: string, vars: QueryVariables): Promise<PullRequestList> {
-    const oktokit = github.getOctokit(token);
-    return await oktokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
+export async function listPullRequests(vars: QueryVariables): Promise<PullRequestList> {
+    const octokit = getOctokit();
+    return await octokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
 }
 
-export async function findPullRequestNumber(token: string, vars: QueryVariables): Promise<number> {
+export async function findPullRequestNumber(vars: QueryVariables): Promise<number> {
+    const octokit = getOctokit();
     if (vars.sha) {
-        const list = await listPullRequests(token, vars);
+        const list = await listPullRequests(vars);
         if (list) {
             for (const pullRequest of list.repository.pullRequests.nodes) {
                 if (pullRequest.mergeCommit && pullRequest.mergeCommit.sha === vars.sha) {
-                    core.info(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
+                    console.log(`Hit! #${pullRequest.number}, sha: ${vars.sha}`);
                     return pullRequest.number;
                 }
             }
@@ -127,19 +126,19 @@ query ($owner: String!, $name: String!, $number: Int!) {
     }
 }
 `;
-export async function queryActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult> {
-    const oktokit = github.getOctokit(token);
-    return await oktokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
+export async function queryActualPullRequest(vars: QueryVariables): Promise<QueryResult> {
+    const octokit = getOctokit();
+    return await octokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
 }
 
-export async function findActualPullRequest(token: string, vars: QueryVariables): Promise<QueryResult | null> {
+export async function findActualPullRequest(vars: QueryVariables): Promise<QueryResult | null> {
     let number = vars.number;
     if (number == 0) {
-        number = await findPullRequestNumber(token, vars);
+        number = await findPullRequestNumber(vars);
     }
     if (number == 0) {
         // PullRequest Not Found
         return null;
     }
-    return await queryActualPullRequest(token, { ...vars, number });
+    return await queryActualPullRequest({ ...vars, number });
 }

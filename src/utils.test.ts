@@ -1,18 +1,20 @@
 import * as dotenv from 'dotenv';
+import * as github from '@actions/github';
+import { Octokit } from '@octokit/core';
 
 import type { RenderModel, QueryVariables, ActionContext } from './types';
 
 const env = dotenv.config();
 
-export function getTestGitHubToken(): string {
-    return env.parsed!.githubToken;
+export function getTestOctokit(): Octokit {
+    return github.getOctokit(env.parsed!.githubToken!);
 }
 
-export function getTestQueryVariables(): QueryVariables {
+export function getTestQueryVariables(number: number): QueryVariables {
     return {
         owner: env.parsed!.owner,
         name: env.parsed!.name,
-        number: parseInt(env.parsed!.number),
+        number,
     };
 }
 
@@ -31,12 +33,7 @@ export function getTestActionContext(override: Partial<ActionContext>): ActionCo
 }
 
 export const sampleRenderModel: RenderModel = {
-    sender: {
-        login: 'someone',
-        url: "https://github.com/someone",
-    },
-    event: "pull_request_review",
-    action: "submitted",
+    // Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
     owner: 'someone',
     slackAccounts: {
         someone: "U1234567890",
@@ -45,6 +42,23 @@ export const sampleRenderModel: RenderModel = {
     },
     emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
+    // Omit<EventPayload, 'number' | 'upsert'> &
+    sender: {
+        login: 'someone',
+        url: "https://github.com/someone",
+    },
+    event: "pull_request_review",
+    action: "submitted",
+    review: {
+        author: {
+            login: "someone",
+            url: "https://github.com/someone"
+        },
+        body: '',
+        state: "APPROVED",
+        updatedAt: "2022-05-29T10:07:44Z"
+    },
+    // QueryResult;
     repository: {
         name: "test",
         owner: {
@@ -119,11 +133,11 @@ export const sampleRenderModel: RenderModel = {
                 ]
             },
             state: "OPEN",
-            title: "create SampleRenderModel object",
+            title: "Sample RenderModel Object",
             url: "https://github.com/someone/test/pull/311"
         },
         url: "https://github.com/someone/test"
-    }
+    },
 };
 
 

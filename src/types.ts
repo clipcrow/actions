@@ -60,10 +60,10 @@ export interface EventPayload {
     event: string; // GitHub Actions event & action
     action: string;
     number: number; // PR#
+    upsert: boolean; // true: chat.update with ts & chat.postMessage without ts / false: chat.update with ts only
     reviewRequest?: ReviewRequest;
     review?: Review;
     sha?: string; // === gihub.context.sha === github.context.payload.pull_request.merge_commit_sha
-    upsert: boolean; // true: chat.update with ts & chat.postMessage without ts / false: chat.update with ts only
     logMessage?: LogMessage;
 }
 

@@ -88,7 +88,7 @@ number=311
 name: handle-pull-request
 on:
   pull_request:
-    types: [closed, review_requested, review_request_removed]
+    types: [edited, closed, review_requested, review_request_removed]
 
   pull_request_review:
     types: [submitted]
@@ -109,13 +109,12 @@ jobs:
           slackChannel: ${{ secrets.SLACK_CHANNEL }}
           # GitHub - Slack Account Pairing JSON string, { githubA: slackA, githubB: slackB ... } style
           slackAccounts: ${{ secrets.SLACK_ACCOUNTS }}
-          emptyBodyWarning: "Caution, body of this pull request is empty."
 ```
 
 ```yml
 name: handle-push
 on:
-  push: # Push events occur frequently, so it's a good idea to set a filter.
+  push: # Push events occur frequently, so it's a good idea to set more filter.
 
 jobs:
   notify:
@@ -133,6 +132,4 @@ jobs:
           slackToken: ${{ secrets.SLACK_TOKEN }}
           slackChannel: ${{ secrets.SLACK_CHANNEL }}
           slackAccounts: ${{ secrets.SLACK_ACCOUNTS }}
-          # You can send a message in a workflow with a merge commit fired by a pull request merge operation.
-          pushMessage: Deployment flow complete
 ```
