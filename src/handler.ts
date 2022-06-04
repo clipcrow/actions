@@ -53,7 +53,7 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
             action: 'closed',
             number,
             sha,
-            upsert: true,
+            upsert: false,
             logMessage: ClosedLog,
         };
     }
@@ -64,7 +64,7 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
             action: 'edited',
             number,
             sha,
-            upsert: true,
+            upsert: false,
             logMessage: EditedLog,
         };
     }
