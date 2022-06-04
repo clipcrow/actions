@@ -1,10 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeployCompleteLog = exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = void 0;
+exports.DeployCompleteLog = exports.SubmittedLog = exports.ReviewRequestedLog = exports.ClosedLog = exports.EditedLog = void 0;
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
-const Complete = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["> ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }) }) : null);
+const EditedLog = (props) => {
+    const { login } = props.sender;
+    const slack = props.slackAccounts[login];
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: [(0, jsx_runtime_1.jsx)(renderer_1.UserLink, { login: login, slack: slack }), " edited this body text "] }) }) }));
+};
+exports.EditedLog = EditedLog;
 const ClosedLog = (props) => {
     const { merged } = props.repository.pullRequest;
     if (!merged) {

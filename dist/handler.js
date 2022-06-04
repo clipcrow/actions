@@ -45,13 +45,24 @@ const pullRequestExtractor = (sender, sha, payload) => {
             logMessage: logger_1.ClosedLog,
         };
     }
+    if (action === 'edited') {
+        return {
+            sender,
+            event: 'pull_request',
+            action: 'edited',
+            number,
+            sha,
+            upsert: true,
+            logMessage: logger_1.EditedLog,
+        };
+    }
     return {
         sender,
         event: 'pull_request',
         action,
         number,
         sha,
-        upsert: action === 'edited',
+        upsert: false,
     };
 };
 exports.pullRequestExtractor = pullRequestExtractor;
