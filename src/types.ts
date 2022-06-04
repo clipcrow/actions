@@ -78,14 +78,14 @@ export interface EventPayload {
     logMessage?: LogMessage;
 }
 
-export interface PullRequest<T> {
+export interface PullRequest<C extends Partial<Commit>> {
     author: GitHubUser;
     baseRefName: string;
     body: string | null;
     changedFiles: number;
-    commits: Connection<T>;
+    commits: Connection<C>;
     headRefName: string;
-    mergeCommit: T | null;
+    mergeCommit: C | null;
     mergeable: string, // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
     merged: boolean;
     number: number;
