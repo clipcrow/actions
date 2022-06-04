@@ -173,11 +173,14 @@ const Conflicts = (props: RenderModel) => {
 const Repository = (props: RenderModel) => {
 	const { name, url, owner, pullRequest } = props.repository;
 	const repo = (
-		<Fragment>See github.com &gt; <a href={owner.url}>{owner.login}</a> &gt; <a href={url}>{name}</a></Fragment>
+		<Fragment>See github.com / <a href={owner.url}>{owner.login}</a> / <a href={url}>{name}</a></Fragment>
+	);
+	const pull = (
+		<a href={`${props.repository.url}/pulls`}>pull</a>
 	);
 	return (
 		<Context>
-			<span>{repo} &gt; pull &gt; <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
+			<span>{repo} / ${pull} / <PullNumber url={pullRequest.url} number={pullRequest.number}/></span>
 		</Context>
 	);
 }
