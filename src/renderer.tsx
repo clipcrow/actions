@@ -15,7 +15,7 @@ export const UserLink = (props: { login: string, slack?: string }) => (
 );
 
 const BranchLink = (props: { url: string, ref: string, static?: boolean }) => (
-	props.static ? <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a> : <i>{props.ref}</i>
+	props.static ? <i>{props.ref}</i> : <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
 );
 
 const StatusSection = (props: { test: boolean, text: string }) => (
@@ -73,7 +73,7 @@ export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<
 	}, { approvals: [], changeRequesteds: [], pendings: [] });
 }
 
-const Commits = (props: RenderModel) => {
+export const Commits = (props: RenderModel) => {
 	const {
 		url,
 		pullRequest: {
