@@ -10,6 +10,53 @@ import type {
     GitHubUser, ActionContext, QueryVariables, QueryResult, EventPayload, RenderModel, SlackResult,
 } from './types';
 
+export function extractPayload(
+    sender: GitHubUser, event: string, payload: WebhookPayload, sha: string,
+): EventPayload | null {
+    if (event === 'push') {
+        return { sender, event, action: '', number: 0, sha, upsert: false, logMessage: DeployCompleteLog };
+    }
+
+    if (event === 'pull_request') {
+        const pullRequestEvent = payload as PullRequestEvent;
+        const number = pullRequestEvent.pull_request.number;
+        const action = pullRequestEvent.action;
+
+        if (action === 'review_requested' || action === 'review_request_removed') {
+            const reviewRequestEvent = payload as
+                (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
+            const { login, html_url: url} = reviewRequestEvent.requested_reviewer;
+            const reviewRequest = { requestedReviewer: { login, url} };
+            return { sender, event, action, number, reviewRequest, upsert: true, logMessage: ReviewRequestedLog  };
+        }
+        if (action === 'closed') {
+            return { sender, event, action, number, sha, upsert: true, logMessage: ClosedLog };
+        }
+        return { sender, event, action, number, sha, upsert: action === 'edited' };
+    }
+
+    if (event === 'pull_request_review') {
+        const reviewEvent = payload as PullRequestReviewEvent;
+        const number = reviewEvent.pull_request.number;
+        const action = reviewEvent.action;
+
+        const { user: { login, html_url: url} , body, submitted_at: updatedAt } = reviewEvent.review;
+
+        // Since it is uppercase in the definition of GitHub GraphQL, align it
+        const state = (reviewEvent.review.state).toUpperCase();
+        const review = { author: { login, url }, body, state, updatedAt };
+        if (action === 'submitted') {
+            return { sender, event, action, number, review, upsert: true, logMessage: SubmittedLog };
+        }
+        return { sender, event, action, number, review, upsert: false };
+    }
+
+    // if (event === pull_request_review_comment) { /* future */ }
+
+    console.log(`Unsupported trigger event: "${event}"`);
+    return null;
+}
+
 export function createRenderModel(cx: ActionContext, ev: EventPayload, result: QueryResult): RenderModel {
     const { owner, slackAccounts, emptyBodyWarning, pushMessage } = cx;
     const { sender, event, action, reviewRequest, review, sha } = ev;
@@ -61,51 +108,4 @@ export async function processEvent (cx: ActionContext, ev: EventPayload): Promis
         return await postChangeLog(channel, renderModel, targetSlackMessageTS, ev.logMessage);
     }
     return currentSlackMessage || null;
-}
-
-export function extractPayload(
-    sender: GitHubUser, event: string, payload: WebhookPayload, sha: string,
-): EventPayload | null {
-    if (event === 'push') {
-        return { sender, event, action: '', number: 0, sha, upsert: false, logMessage: DeployCompleteLog };
-    }
-
-    if (event === 'pull_request') {
-        const pullRequestEvent = payload as PullRequestEvent;
-        const number = pullRequestEvent.pull_request.number;
-        const action = pullRequestEvent.action;
-
-        if (action === 'review_requested' || action === 'review_request_removed') {
-            const reviewRequestEvent = payload as
-                (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
-            const { login, html_url: url} = reviewRequestEvent.requested_reviewer;
-            const reviewRequest = { requestedReviewer: { login, url} };
-            return { sender, event, action, number, reviewRequest, upsert: true, logMessage: ReviewRequestedLog  };
-        }
-        if (action === 'closed') {
-            return { sender, event, action, number, sha, upsert: true, logMessage: ClosedLog };
-        }
-        return { sender, event, action, number, sha, upsert: action === 'edited' };
-    }
-
-    if (event === 'pull_request_review') {
-        const reviewEvent = payload as PullRequestReviewEvent;
-        const number = reviewEvent.pull_request.number;
-        const action = reviewEvent.action;
-
-        const { user: { login, html_url: url} , body, submitted_at: updatedAt } = reviewEvent.review;
-
-        // Since it is uppercase in the definition of GitHub GraphQL, align it
-        const state = (reviewEvent.review.state).toUpperCase();
-        const review = { author: { login, url }, body, state, updatedAt };
-        if (action === 'submitted') {
-            return { sender, event, action, number, review, upsert: true, logMessage: SubmittedLog };
-        }
-        return { sender, event, action, number, review, upsert: false };
-    }
-
-    // if (event === pull_request_review_comment) { /* future */ }
-
-    console.log(`Unsupported trigger event: "${event}"`);
-    return null;
 }
