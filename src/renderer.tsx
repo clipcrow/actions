@@ -136,10 +136,6 @@ const must_be_resolved = 'This branch has conflicts that must be resolved';
 const merge_completed = 'The merge is complete'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
-const Complete = (props: { text: string | null }) => (
-	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
-);
-
 const Conflicts = (props: RenderModel) => {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state === 'OPEN') {
@@ -150,7 +146,6 @@ const Conflicts = (props: RenderModel) => {
 	return (
 		<Fragment>
 			<StatusSection test={true} text={text}/>
-			<Complete text={props.event === 'push' ? props.pushMessage : null }/>
 		</Fragment>
 	);
 }

@@ -3,6 +3,10 @@ import { Blocks, Context } from 'jsx-slack';
 import { UserLink, Description } from './renderer';
 import type { RenderModel } from './types';
 
+const Complete = (props: { text: string }) => (
+	props.text ? <Context><span>&gt; <b>{props.text}</b></span></Context> : null
+);
+
 export const ClosedLog = (props: RenderModel) => {
 	const { merged } = props.repository.pullRequest;
 	if (!merged) {
@@ -11,7 +15,7 @@ export const ClosedLog = (props: RenderModel) => {
 	return (
 		<Blocks>
 			<Context>
-				<b>This pull request has been closed {merged ? 'and the merge is complete' : 'without merge'}</b>
+					<b>This pull request has been closed {merged ? 'and the merge is complete' : 'without merge'}</b>
 			</Context>
 		</Blocks>
 	);
@@ -62,12 +66,17 @@ export const SubmittedLog = (props: RenderModel) => {
 export const DeployCompleteLog = (props: RenderModel) => {
 	const { login } = props.sender;
 	const slack = props.slackAccounts[login];
+	const message = props.pushMessage.trim();
 	return (
 		<Blocks>
 			<Context>
-				<b>The workflow launched by <UserLink login={login} slack={slack}/> 's merge commit is complete.</b>
+				<span>
+					<b>The workflow launched by <UserLink login={login} slack={slack}
+						/> 's merge commit is complete.</b>
+				</span>
+				<span>&gt; sha: {props.sha}</span>
+				{ message ? <span>&gt; <b>{message}</b></span> : null }
 			</Context>
-			<Context>sha: {props.sha}</Context>
 		</Blocks>
 	);
 }
