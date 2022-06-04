@@ -4,6 +4,7 @@ exports.DeployCompleteLog = exports.SubmittedLog = exports.ReviewRequestedLog = 
 const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const renderer_1 = require("./renderer");
+const Complete = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: ["> ", (0, jsx_runtime_1.jsx)("b", { children: props.text })] }) }) : null);
 const ClosedLog = (props) => {
     const { merged } = props.repository.pullRequest;
     if (!merged) {
@@ -36,7 +37,8 @@ exports.SubmittedLog = SubmittedLog;
 const DeployCompleteLog = (props) => {
     const { login } = props.sender;
     const slack = props.slackAccounts[login];
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("b", { children: ["The workflow launched by ", (0, jsx_runtime_1.jsx)(renderer_1.UserLink, { login: login, slack: slack }), " 's merge commit is complete."] }) }), (0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: ["sha: ", props.sha] })] }));
+    const message = props.pushMessage.trim();
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Blocks, { children: (0, jsx_runtime_1.jsxs)(jsx_slack_1.Context, { children: [(0, jsx_runtime_1.jsx)("span", { children: (0, jsx_runtime_1.jsxs)("b", { children: ["The workflow launched by ", (0, jsx_runtime_1.jsx)(renderer_1.UserLink, { login: login, slack: slack }), "'s merge commit is complete."] }) }), (0, jsx_runtime_1.jsxs)("span", { children: ["> sha: ", props.sha] }), message ? (0, jsx_runtime_1.jsxs)("span", { children: ["> ", (0, jsx_runtime_1.jsx)("b", { children: message })] }) : null] }) }));
 };
 exports.DeployCompleteLog = DeployCompleteLog;
 //# sourceMappingURL=logger.js.map
