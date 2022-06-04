@@ -77,8 +77,8 @@ export const DeployCompleteLog = (props: RenderModel) => {
 					</b>
 				</span>
 				<span>&gt; sha: {props.sha}</span>
-				{ message ? <span>&gt; <b>{message}</b></span> : null }
 			</Context>
+			{ message ? <Context>&gt; <b>{message}</b></Context> : null }
 		</Blocks>
 	);
 }
