@@ -1,13 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleEvent = exports.createActionContext = exports.getOctokit = void 0;
+exports.handleEvent = exports.createActionContext = exports.getWebClient = exports.getOctokit = void 0;
 const core = require("@actions/core");
 const github = require("@actions/github");
+const web_api_1 = require("@slack/web-api");
 const handler_1 = require("./handler");
 function getOctokit() {
     return github.getOctokit(core.getInput('githubToken'));
 }
 exports.getOctokit = getOctokit;
+function getWebClient() {
+    return new web_api_1.WebClient(core.getInput('slackToken'));
+}
+exports.getWebClient = getWebClient;
 function createActionContext() {
     const owner = github.context.repo.owner;
     const name = github.context.repo.repo;
@@ -33,8 +38,8 @@ async function handleEvent() {
     const event = github.context.eventName;
     console.log(`starting handle "${event}"...`);
     const { actor, sha } = github.context;
-    const ev = (0, handler_1.extractPayload)({ login: actor, url: `https://github.com/${actor}` }, // sender
-    event, github.context.payload, sha);
+    const ev = (0, handler_1.extractEventPayload)({ login: actor, url: `https://github.com/${actor}` }, // sender
+    event, sha, github.context.payload);
     if (ev) {
         console.log('extracted payload -');
         console.dir(ev, { depth: null });
