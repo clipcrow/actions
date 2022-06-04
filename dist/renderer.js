@@ -5,7 +5,6 @@ const jsx_runtime_1 = require("jsx-slack/jsx-runtime");
 const jsx_slack_1 = require("jsx-slack");
 const Description = (props) => (props.text ? (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("pre", { children: props.text }) }) : null);
 exports.Description = Description;
-const PullNumber = (props) => ((0, jsx_runtime_1.jsx)(jsx_slack_1.Fragment, { children: (0, jsx_runtime_1.jsxs)("a", { href: props.url, children: ["#", props.number] }) }));
 const UserLink = (props) => (props.slack ? (0, jsx_runtime_1.jsx)("a", { href: `@${props.slack}` }) : (0, jsx_runtime_1.jsx)("i", { children: props.login }));
 exports.UserLink = UserLink;
 const BranchLink = (props) => (props.static ? (0, jsx_runtime_1.jsx)("i", { children: props.ref }) : (0, jsx_runtime_1.jsx)("a", { href: `${props.url}/tree/${props.ref}`, children: props.ref }));
@@ -58,7 +57,7 @@ exports.Commits = Commits;
 const Contents = (props) => {
     const { url, number, body } = props.repository.pullRequest;
     const text = body && body.trim();
-    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsx)(PullNumber, { url: url, number: number }) }), text ? (0, jsx_runtime_1.jsx)(exports.Description, { text: text }) : (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("code", { children: props.emptyBodyWarning }) })] }));
+    return ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(jsx_slack_1.Header, { children: props.repository.pullRequest.title }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("a", { href: url, children: ["#", number] }) }), text ? (0, jsx_runtime_1.jsx)(exports.Description, { text: text }) : (0, jsx_runtime_1.jsx)(jsx_slack_1.Section, { children: (0, jsx_runtime_1.jsx)("code", { children: props.emptyBodyWarning }) })] }));
 };
 const pr_approved = 'Changes approved';
 const no_review = 'No requested reviewer';
@@ -106,7 +105,7 @@ const Repository = (props) => {
     const { name, url, owner, pullRequest } = props.repository;
     const repo = ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Fragment, { children: ["github.com / ", (0, jsx_runtime_1.jsx)("a", { href: owner.url, children: owner.login }), " / ", (0, jsx_runtime_1.jsx)("a", { href: url, children: name })] }));
     const pull = ((0, jsx_runtime_1.jsx)("a", { href: `${props.repository.url}/pulls`, children: "pull" }));
-    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " / ", pull, " / ", (0, jsx_runtime_1.jsx)(PullNumber, { url: pullRequest.url, number: pullRequest.number })] }) }));
+    return ((0, jsx_runtime_1.jsx)(jsx_slack_1.Context, { children: (0, jsx_runtime_1.jsxs)("span", { children: [repo, " / ", pull, " / ", (0, jsx_runtime_1.jsx)("a", { href: pullRequest.url, children: pullRequest.number })] }) }));
 };
 const PullRequest = (props) => ((0, jsx_runtime_1.jsxs)(jsx_slack_1.Blocks, { children: [(0, jsx_runtime_1.jsx)(exports.Commits, { ...props }), (0, jsx_runtime_1.jsx)(Contents, { ...props }), (0, jsx_runtime_1.jsx)(Approvals, { ...props }), (0, jsx_runtime_1.jsx)(Conflicts, { ...props }), (0, jsx_runtime_1.jsx)(Repository, { ...props }), (0, jsx_runtime_1.jsx)(jsx_slack_1.Divider, {})] }));
 exports.PullRequest = PullRequest;
