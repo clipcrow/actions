@@ -1,7 +1,7 @@
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
-export interface KeyValueStore {
-    [login: string]: string;
+export interface KeyValueStore<T> {
+    [key: string]: T;
 }
 
 export interface ActionContext {
@@ -10,7 +10,7 @@ export interface ActionContext {
     githubToken: string;
 	slackToken: string;
 	slackChannel: string;
-	slackAccounts: KeyValueStore;
+	slackAccounts: KeyValueStore<string>;
     emptyBodyWarning: string;
     pushMessage: string;
 }

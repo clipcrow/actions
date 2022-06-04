@@ -3,7 +3,7 @@ import * as github from '@actions/github';
 import { Octokit } from '@octokit/core';
 import { WebClient } from '@slack/web-api';
 
-import { extractPayload, processEvent } from './handler';
+import { extractEventPayload, processEvent } from './handler';
 import type { KeyValueStore, ActionContext, SlackResult } from './types';
 
 export function getOctokit(): Octokit {
@@ -22,7 +22,7 @@ export function createActionContext(): ActionContext {
     const slackChannel = core.getInput('slackChannel');
     const emptyBodyWarning = core.getInput('emptyBodyWarning');
     const pushMessage = core.getInput('pushMessage');
-    const slackAccounts: KeyValueStore = JSON.parse(core.getInput('slackAccounts'));
+    const slackAccounts: KeyValueStore<string> = JSON.parse(core.getInput('slackAccounts'));
 
     return {
         owner,
@@ -41,11 +41,11 @@ export async function handleEvent (): Promise<SlackResult | null> {
     console.log(`starting handle "${event}"...`);
 
     const { actor, sha } = github.context;
-    const ev = extractPayload(
+    const ev = extractEventPayload(
         {   login: actor, url: `https://github.com/${actor}` }, // sender
         event,
-        github.context.payload,
         sha,
+        github.context.payload,
     );
 
     if (ev) {

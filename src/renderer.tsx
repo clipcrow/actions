@@ -41,7 +41,7 @@ const StatusSection = (props: { test: boolean, text: string }) => (
 	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
 );
 
-const Reviewers = (props: { slackAccounts: KeyValueStore, reviewers: string[], text: string }) => {
+const Reviewers = (props: { slackAccounts: KeyValueStore<string>, reviewers: string[], text: string }) => {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
@@ -65,11 +65,11 @@ interface ArrangeResult {
 }
 
 export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>): ArrangeResult {
-	const requestedReviewer: KeyValueStore = req.edges.reduce<KeyValueStore>((previous, current) => {
+	const requestedReviewer: KeyValueStore<string> = req.edges.reduce<KeyValueStore<string>>((previous, current) => {
 		return { ...previous, [current.node.requestedReviewer.login]: 'PENDING' };
 	}, {});
 	// Caution! here is "reduceRight"
-	const reviewDetails = rv.edges.reduceRight<KeyValueStore>((previous, current) => {
+	const reviewDetails = rv.edges.reduceRight<KeyValueStore<string>>((previous, current) => {
         const { author: { login }, state } = current.node;
 		// Prohibit excessive overwriting
         if (previous[login]) {
