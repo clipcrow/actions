@@ -156,14 +156,9 @@ const Conflicts = (props: RenderModel) => {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state === 'OPEN') {
 		const test = mergeable === 'MERGEABLE';
-		return <StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>
+		return (<StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>);
 	}
-	const text = merged ? merge_completed  : closed_without_merge;
-	return (
-		<Fragment>
-			<StatusSection test={true} text={text}/>
-		</Fragment>
-	);
+	return (<Section><b>{merged ? merge_completed  : closed_without_merge}</b></Section>);
 }
 
 export const Repository = (props: RenderModel) => {
