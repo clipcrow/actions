@@ -32,7 +32,7 @@
         "jsx-slack": "^4.6.1"
     },
     "devDependencies": {
-        "@octokit/webhooks-definitions": "^3.67.3",
+        "@octokit/webhooks-types": "^5.8.0",
         "@types/jest": "^27.5.1",
         "dotenv": "^16.0.1",
         "ts-jest": "^28.0.2",

@@ -1,7 +1,5 @@
 import type { WebhookPayload } from '@actions/github/lib/interfaces';
-import type {
-    PullRequestEvent, PullRequestReviewRequestedEvent, PullRequestReviewRequestRemovedEvent, PullRequestReviewEvent,
-} from '@octokit/webhooks-definitions/schema';
+import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-types';
 
 import { findActualPullRequest } from './finder';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
@@ -14,7 +12,7 @@ interface Extractor {
     (sender: GitHubUser, sha: string, payload: WebhookPayload): EventPayload
 }
 
-export const pushExtractor: Extractor = (sender, sha, payload) => {
+export const pushExtractor: Extractor = (sender, sha, _) => {
     return {
         sender,
         event: 'push',
@@ -26,22 +24,35 @@ export const pushExtractor: Extractor = (sender, sha, payload) => {
     };
 }
 
+export function getRequestedReviewer(payload: any): { login: string, url: string } {
+    if (payload.requested_reviewer !== undefined) {
+        return {
+            login: payload.requested_reviewer.login,
+            url: payload.requested_reviewer.html_url,
+        };
+    } else if (payload.requested_team !== undefined) {
+        return {
+            login: payload.requested_team.name,
+            url: payload.requested_team.html_url,
+        };
+    } else {
+        throw new Error('handler.ts#getRequestedReviewer(unknown-payload)');
+    }
+}
+
 export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
     const pullRequestEvent = payload as PullRequestEvent;
     const number = pullRequestEvent.pull_request.number;
     const action = pullRequestEvent.action;
 
     if (action === 'review_requested' || action === 'review_request_removed') {
-        const reviewRequestEvent = payload as
-            (PullRequestReviewRequestedEvent | PullRequestReviewRequestRemovedEvent);
-        const { login, html_url: url} = reviewRequestEvent.requested_reviewer;
-        const reviewRequest = { requestedReviewer: { login, url} };
+        const requestedReviewer = getRequestedReviewer(payload);
         return {
             sender,
             event: 'pull_request',
             action,
             number,
-            reviewRequest,
+            reviewRequest: { requestedReviewer },
             upsert: true,
             logMessage: ReviewRequestedLog,
         };
@@ -78,7 +89,7 @@ export const pullRequestExtractor: Extractor = (sender, sha, payload) => {
     };
 }
 
-export const pullRequestReviewExtractor: Extractor = (sender, sha, payload) => {
+export const pullRequestReviewExtractor: Extractor = (sender, _, payload) => {
     const reviewEvent = payload as PullRequestReviewEvent;
     const number = reviewEvent.pull_request.number;
     const action = reviewEvent.action;
