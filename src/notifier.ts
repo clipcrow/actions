@@ -1,19 +1,18 @@
 import { ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
-
 import { getWebClient } from './workflow';
 import { PullRequest } from './renderer';
 import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
-interface SlackMessage {
+type SlackMessage = {
     metadata: {
         event_type: string;
         event_payload: QueryVariables;
     };
     ts: string;
-}
+};
 
 export async function findPreviousSlackMessage(channel: string, vars: QueryVariables): Promise<string | null> {
     // Search for messages on the channel to get metadata.

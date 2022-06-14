@@ -1,24 +1,23 @@
 import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
-
 import type { KeyValueStore, Connection, ReviewRequest, Review, RenderModel } from './types';
 
-export const Description = (props: { text: string | null }) => (
-	props.text ? <Section><pre>{props.text}</pre></Section> : null
-);
+export function Description(props: { text: string | null }) {
+	return (props.text ? <Section><pre>{props.text}</pre></Section> : null);
+}
 
-export const UserLink = (props: { login: string, slack?: string }) => (
-	props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>
-);
+export function UserLink(props: { login: string, slack?: string }) {
+	return (props.slack ? <a href={`@${props.slack}`} /> : <i>{props.login}</i>);
+}
 
-const BranchLink = (props: { url: string, ref: string, static?: boolean }) => (
-	props.static ? <i>{props.ref}</i> : <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>
-);
+function BranchLink(props: { url: string, ref: string, static?: boolean }) {
+	return (props.static ? <i>{props.ref}</i> : <a href={`${props.url}/tree/${props.ref}`}>{props.ref}</a>);
+}
 
-const StatusSection = (props: { test: boolean, text: string }) => (
-	<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>
-);
+function StatusSection(props: { test: boolean, text: string }) {
+	return (<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>);
+}
 
-const Reviewers = (props: { slackAccounts: KeyValueStore<string>, reviewers: string[], text: string }) => {
+function Reviewers(props: { slackAccounts: KeyValueStore<string>, reviewers: string[], text: string }) {
 	const count = props.reviewers.length;
 	if (count == 0) {
 		return null;
@@ -35,11 +34,11 @@ const Reviewers = (props: { slackAccounts: KeyValueStore<string>, reviewers: str
 	);
 }
 
-interface ArrangeResult {
+type ArrangeResult = {
 	approvals: string[];
 	changeRequesteds: string[];
 	pendings: string[];
-}
+};
 
 export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<Review>): ArrangeResult {
 	const requestedReviewer: KeyValueStore<string> = req.edges.reduce<KeyValueStore<string>>((previous, current) => {
@@ -69,7 +68,7 @@ export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<
 	}, { approvals: [], changeRequesteds: [], pendings: [] });
 }
 
-export const Commits = (props: RenderModel) => {
+export function Commits(props: RenderModel) {
 	const {
 		url,
 		pullRequest: {
@@ -96,7 +95,7 @@ export const Commits = (props: RenderModel) => {
 	);
 }
 
-export const Contents = (props: RenderModel) => {
+export function Contents(props: RenderModel) {
 	const { url, number, body } = props.repository.pullRequest;
 	const text = body && body.trim();
 	return (
@@ -113,7 +112,7 @@ const no_review = 'No requested reviewer';
 const ch_requested = 'Changes requested'
 const rv_requested = 'Review requested';
 
-const Approvals = (props: RenderModel,) => {
+function Approvals(props: RenderModel) {
 	const { state, reviewRequests, reviews } = props.repository.pullRequest;
 	if (state !== 'OPEN') {
 		return null;
@@ -152,7 +151,7 @@ const must_be_resolved = 'This branch has conflicts that must be resolved';
 const merge_completed = 'The merge is complete'
 const closed_without_merge = 'This pull request have been closed without merge.';
 
-const Conflicts = (props: RenderModel) => {
+function Conflicts(props: RenderModel) {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state === 'OPEN') {
 		const test = mergeable === 'MERGEABLE';
@@ -161,7 +160,7 @@ const Conflicts = (props: RenderModel) => {
 	return (<Section><b>{merged ? merge_completed  : closed_without_merge}</b></Section>);
 }
 
-export const Repository = (props: RenderModel) => {
+export function Repository(props: RenderModel) {
 	const { name, url, owner, pullRequest } = props.repository;
 	const githubcom = (<a href='https://github.com/'>https://github.com</a>);
 	const org = (<a href={owner.url}>{owner.login}</a>);
@@ -171,13 +170,15 @@ export const Repository = (props: RenderModel) => {
 	return (<Context><span>{githubcom} / {org} / {repo} / {pulls} / {pull}</span></Context>);
 }
 
-export const PullRequest = (props: RenderModel) => (
-	<Blocks>
-		<Commits {...props}/>
-		<Contents {...props}/>
-		<Approvals {...props}/>
-		<Conflicts {...props}/>
-		<Repository {...props}/>
-		<Divider/>
-	</Blocks>
-);
+export function PullRequest(props: RenderModel) {
+	return (
+		<Blocks>
+			<Commits {...props}/>
+			<Contents {...props}/>
+			<Approvals {...props}/>
+			<Conflicts {...props}/>
+			<Repository {...props}/>
+			<Divider/>
+		</Blocks>
+	);
+}

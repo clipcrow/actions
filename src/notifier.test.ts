@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv';
-
 import * as workflow from './workflow';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './logger';

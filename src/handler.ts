@@ -1,9 +1,8 @@
-import type { WebhookPayload } from '@actions/github/lib/interfaces';
-import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-types';
-
 import { findActualPullRequest } from './finder';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { EditedLog, ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger';
+import type { WebhookPayload } from '@actions/github/lib/interfaces';
+import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-types';
 import type {
     GitHubUser, ActionContext, QueryVariables, QueryResult, EventPayload, RenderModel, SlackResult, KeyValueStore
 } from './types';

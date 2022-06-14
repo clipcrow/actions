@@ -1,9 +1,8 @@
 import { Blocks, Context, Section } from 'jsx-slack';
-
 import { UserLink, Description } from './renderer';
 import type { RenderModel } from './types';
 
-export const EditedLog = (props: RenderModel) => {
+export function EditedLog(props: RenderModel) {
 	const { login } = props.sender;
 	const slack = props.slackAccounts[login];
 	return (
@@ -13,9 +12,9 @@ export const EditedLog = (props: RenderModel) => {
 			</Context>
 		</Blocks>
 	);
-};
+}
 
-export const ClosedLog = (props: RenderModel) => {
+export function ClosedLog(props: RenderModel) {
 	const { merged } = props.repository.pullRequest;
 	if (!merged) {
 		return null;
@@ -27,9 +26,9 @@ export const ClosedLog = (props: RenderModel) => {
 			</Context>
 		</Blocks>
 	);
-};
+}
 
-export const DeployCompleteLog = (props: RenderModel) => {
+export function DeployCompleteLog(props: RenderModel) {
 	const { login } = props.sender;
 	const slack = props.slackAccounts[login];
 	const message = props.pushMessage.trim();
@@ -49,7 +48,7 @@ export const DeployCompleteLog = (props: RenderModel) => {
 	);
 }
 
-export const ReviewRequestedLog = (props: RenderModel) => {
+export function ReviewRequestedLog(props: RenderModel) {
 	const { login } = props.reviewRequest!.requestedReviewer;
 	const slack = props.slackAccounts[login];
 	const msg = props.action === 'review_requested' ? 'Awaiting' : 'Removed';
@@ -60,9 +59,9 @@ export const ReviewRequestedLog = (props: RenderModel) => {
 			</Context>
 		</Blocks>
 	);
-};
+}
 
-export const SubmittedLog = (props: RenderModel) => {
+export function SubmittedLog(props: RenderModel) {
 	const { state, author: { login }, body } = props.review!;
 	const slack = props.slackAccounts[login];
 	if (state === 'APPROVED') {
@@ -89,4 +88,4 @@ export const SubmittedLog = (props: RenderModel) => {
 		);
 	}
 	return null;
-};
+}

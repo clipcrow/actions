@@ -1,15 +1,15 @@
 import type { JSX } from 'jsx-slack/jsx-runtime';
 
-export interface Connection<T> {
+export type Connection<T> = {
     totalCount: number;
     edges: { node: T }[];
-}
+};
 
-export interface KeyValueStore<T> {
+export type KeyValueStore<T> = {
     [key: string]: T;
-}
+};
 
-export interface ActionContext {
+export type ActionContext = {
 	owner: string;
     name: string;
     githubToken: string;
@@ -18,55 +18,55 @@ export interface ActionContext {
 	slackAccounts: KeyValueStore<string>;
     emptyBodyWarning: string;
     pushMessage: string;
-}
+};
 
-export interface QueryVariables {
+export type QueryVariables = {
 	owner: string;
 	name: string;
 	number: number;
     sha?: string;
-}
+};
 
-export interface GitHubUser {
+export type GitHubUser = {
     login: string;
     url: string;
-}
+};
 
-export interface SlackResult {
+export type SlackResult = {
     ok: boolean;
     error: string;
     ts: string;
     api: string;
-}
+};
 
-export interface ReviewRequest {
+export type ReviewRequest = {
     requestedReviewer: GitHubUser;
-}
+};
 
-export interface Review {
+export type Review = {
     author: GitHubUser;
     body: string | null;
     state: string, // 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
     updatedAt: string;
-}
+};
 
-export interface CheckRun {
+export type CheckRun = {
     name: string;
     conclusion: string;
-}
+};
 
-export interface Commit {
+export type Commit = {
     messageBody: string | null;
     messageHeadline: string | null;
     sha: string;
     checkSuites: Connection<CheckRun>;
-}
+};
 
-export interface LogMessage {
+export type LogMessage = {
     (props: RenderModel): JSX.Element | null;
-}
+};
 
-export interface EventPayload {
+export type EventPayload = {
     sender: GitHubUser;
     event: string; // GitHub Actions event & action
     action: string;
@@ -76,9 +76,9 @@ export interface EventPayload {
     review?: Review;
     sha?: string; // === gihub.context.sha === github.context.payload.pull_request.merge_commit_sha
     logMessage?: LogMessage;
-}
+};
 
-export interface PullRequest<C extends Partial<Commit>> {
+export type PullRequest<C extends Partial<Commit>> = {
     author: GitHubUser;
     baseRefName: string;
     body: string | null;
@@ -94,16 +94,16 @@ export interface PullRequest<C extends Partial<Commit>> {
     state: string, // 'CLOSED' | 'MERGED' | 'OPEN';
     title: string;
     url: string;
-}
+};
 
-export interface QueryResult {
+export type QueryResult = {
     repository: {
         name: string;
         owner: GitHubUser;
         pullRequest: PullRequest<Commit>;
         url: string;
     }
-}
+};
 
 export type RenderModel =
     Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &

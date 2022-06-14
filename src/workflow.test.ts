@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs/promises';
-
 import { createActionContext } from './workflow';
 
 const env = dotenv.config();
