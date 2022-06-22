@@ -1,8 +1,8 @@
-import * as dotenv from 'dotenv';
-import * as github from '@actions/github';
-import { Octokit } from '@octokit/core';
-import { WebClient } from '@slack/web-api';
-import type { RenderModel, QueryVariables, ActionContext } from './types.ts';
+import * as dotenv from 'https://esm.sh/dotenv@16.0.1';
+import * as github from 'https://esm.sh/@actions/github@5.0.3';
+import { Octokit } from 'https://esm.sh/@octokit/core@3.6.0';
+import { WebClient } from 'https://esm.sh/@slack/web-api@6.7.2';
+import type { ActionContext, QueryVariables, RenderModel } from './types.ts';
 
 const env = dotenv.config();
 
@@ -33,57 +33,57 @@ export function getTestActionContext(override: Partial<ActionContext>): ActionCo
         emptyBodyWarning: 'Caution, body of this pull request is empty.',
         pushMessage: 'Deployment complete',
         ...override,
-    }
+    };
 }
 
 export const pullRequestReviewSubmited: RenderModel = {
     // Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
     owner: 'someone',
     slackAccounts: {
-        someone: "U1234567890",
-        another: "U5678901234",
-        nobody: "U8901234567",
+        someone: 'U1234567890',
+        another: 'U5678901234',
+        nobody: 'U8901234567',
     },
     emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
     // Omit<EventPayload, 'number' | 'upsert'> &
     sender: {
         login: 'someone',
-        url: "https://github.com/someone",
+        url: 'https://github.com/someone',
     },
-    event: "pull_request_review",
-    action: "submitted",
+    event: 'pull_request_review',
+    action: 'submitted',
     review: {
         author: {
-            login: "someone",
-            url: "https://github.com/someone"
+            login: 'someone',
+            url: 'https://github.com/someone',
         },
         body: '',
-        state: "APPROVED",
-        updatedAt: "2022-05-29T10:07:44Z"
+        state: 'APPROVED',
+        updatedAt: '2022-05-29T10:07:44Z',
     },
     // QueryResult;
     repository: {
-        name: "test",
+        name: 'test',
         owner: {
-            login: "someone",
-            url: "https://github.com/someone"
+            login: 'someone',
+            url: 'https://github.com/someone',
         },
         pullRequest: {
             author: {
-                login: "impl123",
-                url: "https://github.com/impl123"
+                login: 'impl123',
+                url: 'https://github.com/impl123',
             },
-            baseRefName: "develop",
-            body: "## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n",
+            baseRefName: 'develop',
+            body: '## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n',
             changedFiles: 13,
             commits: {
                 totalCount: 9,
-                edges: []
+                edges: [],
             },
-            headRefName: "feature-269",
+            headRefName: 'feature-269',
             mergeCommit: null,
-            mergeable: "MERGEABLE",
+            mergeable: 'MERGEABLE',
             merged: false,
             number: 311,
             reviewRequests: {
@@ -92,12 +92,12 @@ export const pullRequestReviewSubmited: RenderModel = {
                     {
                         node: {
                             requestedReviewer: {
-                                login: "nobody",
-                                url: "https://github.com/nobody"
-                            }
-                        }
-                    }
-                ]
+                                login: 'nobody',
+                                url: 'https://github.com/nobody',
+                            },
+                        },
+                    },
+                ],
             },
             reviews: {
                 totalCount: 3,
@@ -105,82 +105,81 @@ export const pullRequestReviewSubmited: RenderModel = {
                     {
                         node: {
                             author: {
-                                login: "someone",
-                                url: "https://github.com/someone"
+                                login: 'someone',
+                                url: 'https://github.com/someone',
                             },
                             body: 'LGTM',
-                            state: "CHANGES_REQUESTED",
-                            updatedAt: "2022-05-27T07:00:51Z"
-                        }
+                            state: 'CHANGES_REQUESTED',
+                            updatedAt: '2022-05-27T07:00:51Z',
+                        },
                     },
                     {
                         node: {
                             author: {
-                                login: "another",
-                                url: "https://github.com/another"
+                                login: 'another',
+                                url: 'https://github.com/another',
                             },
                             body: '',
-                            state: "COMMENTED",
-                            updatedAt: "2022-05-27T09:23:28Z"
-                        }
+                            state: 'COMMENTED',
+                            updatedAt: '2022-05-27T09:23:28Z',
+                        },
                     },
                     {
                         node: {
                             author: {
-                                login: "someone",
-                                url: "https://github.com/someone"
+                                login: 'someone',
+                                url: 'https://github.com/someone',
                             },
                             body: '',
-                            state: "APPROVED",
-                            updatedAt: "2022-05-29T10:07:44Z"
-                        }
-                    }
-                ]
+                            state: 'APPROVED',
+                            updatedAt: '2022-05-29T10:07:44Z',
+                        },
+                    },
+                ],
             },
-            state: "OPEN",
-            title: "Sample RenderModel Object",
-            url: "https://github.com/someone/test/pull/311"
+            state: 'OPEN',
+            title: 'Sample RenderModel Object',
+            url: 'https://github.com/someone/test/pull/311',
         },
-        url: "https://github.com/someone/test"
+        url: 'https://github.com/someone/test',
     },
 };
-
 
 export const closedModel: RenderModel = {
     owner: 'someone',
     slackAccounts: {
-        someone: "U1234567890",
-        another: "U5678901234",
-        nobody: "U8901234567",
+        someone: 'U1234567890',
+        another: 'U5678901234',
+        nobody: 'U8901234567',
     },
     emptyBodyWarning: 'Caution, body of this pull request is empty.',
     pushMessage: 'Deployment flow complete',
     sender: {
         login: 'someone',
-        url: "https://github.com/someone",
+        url: 'https://github.com/someone',
     },
-    event: "push",
-    action: "",
+    event: 'push',
+    action: '',
     sha: '6789abcdefghijklmnopqrstuvwxyz0123456789',
     repository: {
-        name: "test",
+        name: 'test',
         owner: {
-            login: "someone",
-            url: "https://github.com/someone"
+            login: 'someone',
+            url: 'https://github.com/someone',
         },
         pullRequest: {
             author: {
-                login: "impl123",
-                url: "https://github.com/impl123"
+                login: 'impl123',
+                url: 'https://github.com/impl123',
             },
-            baseRefName: "develop",
-            body: "## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n",
+            baseRefName: 'develop',
+            body: '## Related issue number\r\n\r\n- https://github.com/someone/test/issues/269\r\n',
             changedFiles: 13,
             commits: {
                 totalCount: 9,
-                edges: []
+                edges: [],
             },
-            headRefName: "feature-269",
+            headRefName: 'feature-269',
             mergeCommit: {
                 messageBody: 'create SampleRenderModel object',
                 messageHeadline: 'Merge pull request #311 from test/feature-269',
@@ -190,12 +189,12 @@ export const closedModel: RenderModel = {
                     edges: [],
                 },
             },
-            mergeable: "MERGEABLE",
+            mergeable: 'MERGEABLE',
             merged: true,
             number: 311,
             reviewRequests: {
                 totalCount: 0,
-                edges: []
+                edges: [],
             },
             reviews: {
                 totalCount: 3,
@@ -203,42 +202,42 @@ export const closedModel: RenderModel = {
                     {
                         node: {
                             author: {
-                                login: "someone",
-                                url: "https://github.com/someone"
+                                login: 'someone',
+                                url: 'https://github.com/someone',
                             },
                             body: 'LGTM',
-                            state: "CHANGES_REQUESTED",
-                            updatedAt: "2022-05-27T07:00:51Z"
-                        }
+                            state: 'CHANGES_REQUESTED',
+                            updatedAt: '2022-05-27T07:00:51Z',
+                        },
                     },
                     {
                         node: {
                             author: {
-                                login: "another",
-                                url: "https://github.com/another"
+                                login: 'another',
+                                url: 'https://github.com/another',
                             },
                             body: '',
-                            state: "COMMENTED",
-                            updatedAt: "2022-05-27T09:23:28Z"
-                        }
+                            state: 'COMMENTED',
+                            updatedAt: '2022-05-27T09:23:28Z',
+                        },
                     },
                     {
                         node: {
                             author: {
-                                login: "someone",
-                                url: "https://github.com/someone"
+                                login: 'someone',
+                                url: 'https://github.com/someone',
                             },
                             body: '',
-                            state: "APPROVED",
-                            updatedAt: "2022-05-29T10:07:44Z"
-                        }
-                    }
-                ]
+                            state: 'APPROVED',
+                            updatedAt: '2022-05-29T10:07:44Z',
+                        },
+                    },
+                ],
             },
-            state: "MERGED",
-            title: "create SampleRenderModel object",
-            url: "https://github.com/someone/test/pull/311"
+            state: 'MERGED',
+            title: 'create SampleRenderModel object',
+            url: 'https://github.com/someone/test/pull/311',
         },
-        url: "https://github.com/someone/test"
+        url: 'https://github.com/someone/test',
     },
 };

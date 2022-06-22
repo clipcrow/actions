@@ -10,20 +10,20 @@ export type KeyValueStore<T> = {
 };
 
 export type ActionContext = {
-	owner: string;
+    owner: string;
     name: string;
     githubToken: string;
-	slackToken: string;
-	slackChannel: string;
-	slackAccounts: KeyValueStore<string>;
+    slackToken: string;
+    slackChannel: string;
+    slackAccounts: KeyValueStore<string>;
     emptyBodyWarning: string;
     pushMessage: string;
 };
 
 export type QueryVariables = {
-	owner: string;
-	name: string;
-	number: number;
+    owner: string;
+    name: string;
+    number: number;
     sha?: string;
 };
 
@@ -46,7 +46,7 @@ export type ReviewRequest = {
 export type Review = {
     author: GitHubUser;
     body: string | null;
-    state: string, // 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
+    state: string; // 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED' | 'PENDING';
     updatedAt: string;
 };
 
@@ -86,12 +86,12 @@ export type PullRequest<C extends Partial<Commit>> = {
     commits: Connection<C>;
     headRefName: string;
     mergeCommit: C | null;
-    mergeable: string, // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
+    mergeable: string; // 'CONFLICTING' | 'MERGEABLE' | 'UNKNOWN';
     merged: boolean;
     number: number;
     reviewRequests: Connection<ReviewRequest>;
     reviews: Connection<Review>;
-    state: string, // 'CLOSED' | 'MERGED' | 'OPEN';
+    state: string; // 'CLOSED' | 'MERGED' | 'OPEN';
     title: string;
     url: string;
 };
@@ -102,10 +102,10 @@ export type QueryResult = {
         owner: GitHubUser;
         pullRequest: PullRequest<Commit>;
         url: string;
-    }
+    };
 };
 
 export type RenderModel =
-    Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'> &
-    Omit<EventPayload, 'number' | 'upsert'> &
-    QueryResult;
+    & Omit<ActionContext, 'name' | 'githubToken' | 'slackToken' | 'slackChannel'>
+    & Omit<EventPayload, 'number' | 'upsert'>
+    & QueryResult;

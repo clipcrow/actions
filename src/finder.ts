@@ -1,12 +1,12 @@
 import { getOctokit } from './workflow.ts';
-import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types.ts';
+import type { Commit, Connection, GitHubUser, PullRequest, QueryResult, QueryVariables } from './types.ts';
 
 type PullRequestList = {
     repository: {
         owner: GitHubUser;
         name: string;
         pullRequests: Connection<Pick<PullRequest<Pick<Commit, 'sha'>>, 'mergeCommit' | 'number'>>;
-    }
+    };
 };
 
 const pull_request_list_string = `

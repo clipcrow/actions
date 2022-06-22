@@ -1,8 +1,8 @@
-import { ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
+import { ChatPostMessageResponse, ChatUpdateResponse } from 'https://esm.sh/@slack/web-api@6.7.2';
 import { JSXSlack } from 'https://esm.sh/jsx-slack@5.0.0';
 import { getWebClient } from './workflow.ts';
 import { PullRequest } from './renderer.tsx';
-import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types.ts';
+import type { LogMessage, QueryVariables, RenderModel, SlackResult } from './types.ts';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 
@@ -57,7 +57,7 @@ export function createSlackCallPayload(channel: string, model: RenderModel) {
             event_type: METADATA_EVENT_TYPE,
             event_payload,
         },
-    }
+    };
 }
 
 function createSlackResult(result: ChatPostMessageResponse | ChatUpdateResponse, api: string): SlackResult {
@@ -90,7 +90,10 @@ export async function updatePullRequestInfo(channel: string, model: RenderModel,
 }
 
 export async function postChangeLog(
-    channel: string, model: RenderModel, ts: string, logMessage: LogMessage,
+    channel: string,
+    model: RenderModel,
+    ts: string,
+    logMessage: LogMessage,
 ): Promise<SlackResult | null> {
     const blocks = logMessage(model);
     if (blocks) {

@@ -3,7 +3,11 @@
         "noImplicitAny": true,
         "strict": true,
         "jsx": "react-jsx",
-        "jsxImportSource": "https://esm.sh/jsx-slack@5.0.0"
+        "jsxImportSource": "https://esm.sh/jsx-slack@5.0.0",
+        "lib": [
+            "deno.window",
+            "deno.ns"
+        ]
     },
     "lint": {
         "files": {

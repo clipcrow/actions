@@ -1,6 +1,7 @@
-import * as dotenv from 'dotenv';
-import * as workflow from './workflow.ts';
-import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier.ts';
+import * as dotenv from 'https://esm.sh/dotenv@16.0.1';
+import { assertEquals } from 'https://deno.land/std@0.144.0/testing/asserts.ts';
+
+import { findPreviousSlackMessage, postChangeLog, postPullRequestInfo, updatePullRequestInfo } from './notifier.ts';
 import { SubmittedLog } from './logger.tsx';
 import { getTestWebClient, pullRequestReviewSubmited } from './test.utils.ts';
 import type { QueryVariables } from './types.ts';
@@ -9,17 +10,15 @@ const env = dotenv.config();
 
 Deno.test('notifier', async () => {
     if (!Boolean(env.parsed!.slackTest)) {
-        console.log('.env.slackTest is empty')
+        console.log('.env.slackTest is empty');
         return;
     }
-
-    const spy = jest.spyOn(workflow, 'getWebClient').mockImplementation(() => getTestWebClient());
 
     const channel = env.parsed!.slackChannel;
     const model = pullRequestReviewSubmited;
 
     const result1 = await postPullRequestInfo(channel, model);
-    expect(result1.ok).toBeTruthy();
+    assertEquals(result1.ok, true);
 
     const vars: QueryVariables = {
         owner: model.owner,
@@ -28,13 +27,13 @@ Deno.test('notifier', async () => {
     };
 
     const ts = await findPreviousSlackMessage(channel, vars);
-    expect(ts).toEqual(result1.ts);
+    assertEquals(ts, result1.ts);
 
     const result2 = await updatePullRequestInfo(channel, model, result1.ts);
-    expect(result2.ok).toBeTruthy();
+    assertEquals(result2.ok, true);
 
     const result3 = await postChangeLog(channel, model, result2.ts, SubmittedLog);
-    expect(result3?.ok).toBeTruthy();
+    assertEquals(result3?.ok, true);
 
     const client = getTestWebClient();
     if (result3) {
@@ -45,6 +44,4 @@ Deno.test('notifier', async () => {
     } else {
         await client.chat.delete({ channel, ts: result1.ts });
     }
-
-    spy.mockRestore();
 });
