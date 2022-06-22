@@ -1,4 +1,4 @@
-import type { JSX } from 'jsx-slack/jsx-runtime';
+import type { JSX } from 'https://esm.sh/jsx-slack@5.0.0/jsx-runtime';
 
 export type Connection<T> = {
     totalCount: number;

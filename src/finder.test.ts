@@ -1,12 +1,12 @@
 import * as dotenv from 'dotenv';
 
-import * as workflow from './workflow';
-import { listPullRequests, findPullRequestNumber, queryActualPullRequest, findActualPullRequest } from './finder';
-import { getTestOctokit, getTestQueryVariables } from './test.utils';
+import * as workflow from './workflow.ts';
+import { listPullRequests, findPullRequestNumber, queryActualPullRequest, findActualPullRequest } from './finder.ts';
+import { getTestOctokit, getTestQueryVariables } from './test.utils.ts';
 
 const env = dotenv.config();
 
-test('listPullRequests', async () => {
+Deno.test('listPullRequests', async () => {
     const spy = jest.spyOn(workflow, 'getOctokit').mockImplementation(() => getTestOctokit());
 
     const vars = getTestQueryVariables(parseInt(env.parsed!.number));
@@ -15,9 +15,9 @@ test('listPullRequests', async () => {
     expect(result.repository.name).toEqual(vars.name);
 
     spy.mockRestore();
-}, 1000 * 30);
+});
 
-test('findPullRequestNumber', async () => {
+Deno.test('findPullRequestNumber', async () => {
     const spy = jest.spyOn(workflow, 'getOctokit').mockImplementation(() => getTestOctokit());
 
     const vars = getTestQueryVariables(parseInt(env.parsed!.number));
@@ -25,9 +25,9 @@ test('findPullRequestNumber', async () => {
     expect(result).toBe(0);
 
     spy.mockRestore();
-}, 1000 * 30);
+});
 
-test('queryActualPullRequest', async () => {
+Deno.test('queryActualPullRequest', async () => {
     const spy = jest.spyOn(workflow, 'getOctokit').mockImplementation(() => getTestOctokit());
 
     const vars = getTestQueryVariables(parseInt(env.parsed!.number));
@@ -39,9 +39,9 @@ test('queryActualPullRequest', async () => {
     console.dir(result, { depth: null });
 
     spy.mockRestore();
-}, 1000 * 30)
+})
 
-test('findActualPullRequest', async () => {
+Deno.test('findActualPullRequest', async () => {
     const spy = jest.spyOn(workflow, 'getOctokit').mockImplementation(() => getTestOctokit());
 
     const vars = getTestQueryVariables(parseInt(env.parsed!.number));
@@ -54,4 +54,4 @@ test('findActualPullRequest', async () => {
     expect(result2!.repository.pullRequest.number).toEqual(vars.number);
 
     spy.mockRestore();
-}, 1000 * 30);
+});

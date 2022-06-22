@@ -1,5 +1,5 @@
-import { Blocks, Context, Divider, Fragment, Header, Section } from 'jsx-slack';
-import type { KeyValueStore, Connection, ReviewRequest, Review, RenderModel } from './types';
+import { Blocks, Context, Divider, Fragment, Header, Section } from 'https://esm.sh/jsx-slack@5.0.0';
+import type { KeyValueStore, Connection, ReviewRequest, Review, RenderModel } from './types.ts';
 
 export function Description(props: { text: string | null }) {
 	return (props.text ? <Section><pre>{props.text}</pre></Section> : null);

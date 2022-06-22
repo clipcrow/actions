@@ -1,6 +1,6 @@
-import { DeployCompleteLog } from './logger';
-import { closedModel } from './test.utils';
+import { DeployCompleteLog } from './logger.tsx';
+import { closedModel } from './test.utils.ts';
 
-test('DeployCompleteLog', () => {
+Deno.test('DeployCompleteLog', () => {
     console.log(`{"blocks":${JSON.stringify(<DeployCompleteLog {...closedModel}/>)}}`);
 });

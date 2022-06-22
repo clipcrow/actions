@@ -1,13 +1,13 @@
 import * as dotenv from 'dotenv';
-import * as workflow from './workflow';
-import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
-import { SubmittedLog } from './logger';
-import { getTestWebClient, pullRequestReviewSubmited } from './test.utils';
-import type { QueryVariables } from './types';
+import * as workflow from './workflow.ts';
+import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier.ts';
+import { SubmittedLog } from './logger.tsx';
+import { getTestWebClient, pullRequestReviewSubmited } from './test.utils.ts';
+import type { QueryVariables } from './types.ts';
 
 const env = dotenv.config();
 
-test('notifier', async () => {
+Deno.test('notifier', async () => {
     if (!Boolean(env.parsed!.slackTest)) {
         console.log('.env.slackTest is empty')
         return;
@@ -47,4 +47,4 @@ test('notifier', async () => {
     }
 
     spy.mockRestore();
-}, 1000 * 60);
+});

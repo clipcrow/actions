@@ -2,11 +2,11 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs/promises';
-import { createActionContext } from './workflow';
+import { createActionContext } from './workflow.ts';
 
 const env = dotenv.config();
 
-test('createActionContext', async () => {
+Deno.test('createActionContext', async () => {
     github.context.eventName = 'pull_request';
     github.context.payload = require('./pull_request.review_requested.test.json');
     const slackAccounts = await fs.readFile('src/slackAccounts.test.json', 'utf-8');

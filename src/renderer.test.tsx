@@ -1,7 +1,7 @@
-import { arrangeReviewers, Commits, Contents, Repository, PullRequest } from './renderer';
-import { pullRequestReviewSubmited, closedModel } from './test.utils';
+import { arrangeReviewers, Commits, Contents, Repository, PullRequest } from './renderer.tsx';
+import { pullRequestReviewSubmited, closedModel } from './test.utils.ts';
 
-test('arrangeReviewers', () => {
+Deno.test('arrangeReviewers', () => {
     const { reviewRequests, reviews } = pullRequestReviewSubmited.repository.pullRequest;
 
     const { pendings, approvals } = arrangeReviewers(reviewRequests, reviews);
@@ -10,18 +10,18 @@ test('arrangeReviewers', () => {
     expect(approvals.includes('someone')).toBeTruthy();
 });
 
-test('Commits', () => {
+Deno.test('Commits', () => {
     console.log(`{"blocks":[${JSON.stringify(<Commits {...closedModel}/>)}]}`);
 });
 
-test('Contents', () => {
+Deno.test('Contents', () => {
     console.log(`{"blocks":${JSON.stringify(<Contents {...closedModel}/>)}}`);
 });
 
-test('Repository', () => {
+Deno.test('Repository', () => {
     console.log(`{"blocks":[${JSON.stringify(<Repository {...closedModel}/>)}]}`);
 });
 
-test('PullRequestInfo', () => {
+Deno.test('PullRequestInfo', () => {
     console.log(`{"blocks":${JSON.stringify(<PullRequest {...closedModel}/>)}}`);
 });

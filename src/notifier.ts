@@ -1,8 +1,8 @@
 import { ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
-import { JSXSlack } from 'jsx-slack';
-import { getWebClient } from './workflow';
-import { PullRequest } from './renderer';
-import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
+import { JSXSlack } from 'https://esm.sh/jsx-slack@5.0.0';
+import { getWebClient } from './workflow.ts';
+import { PullRequest } from './renderer.tsx';
+import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types.ts';
 
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 

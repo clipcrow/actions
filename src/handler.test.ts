@@ -1,6 +1,6 @@
-import { getRequestedReviewer } from './handler';
+import { getRequestedReviewer } from './handler.ts';
 
-test('extractPayload', () => {
+Deno.test('extractPayload', () => {
     const payload1 = {
         requested_reviewer: {
             login: 'someone',

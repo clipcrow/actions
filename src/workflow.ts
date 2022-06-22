@@ -2,8 +2,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { Octokit } from '@octokit/core';
 import { WebClient } from '@slack/web-api';
-import { extractEventPayload, processEvent } from './handler';
-import type { KeyValueStore, ActionContext, SlackResult } from './types';
+import { extractEventPayload, processEvent } from './handler.ts';
+import type { KeyValueStore, ActionContext, SlackResult } from './types.ts';
 
 export function getOctokit(): Octokit {
     return github.getOctokit(core.getInput('githubToken'));

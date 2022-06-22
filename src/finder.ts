@@ -1,5 +1,5 @@
-import { getOctokit } from './workflow';
-import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types';
+import { getOctokit } from './workflow.ts';
+import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types.ts';
 
 type PullRequestList = {
     repository: {

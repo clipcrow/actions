@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import * as github from '@actions/github';
 import { Octokit } from '@octokit/core';
 import { WebClient } from '@slack/web-api';
-import type { RenderModel, QueryVariables, ActionContext } from './types';
+import type { RenderModel, QueryVariables, ActionContext } from './types.ts';
 
 const env = dotenv.config();
 

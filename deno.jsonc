@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strict": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "https://esm.sh/jsx-slack@5.0.0"
+    },
+    "lint": {
+        "files": {
+            "include": ["src/"]
+        },
+        "rules": {
+            "tags": ["recommended"]
+        }
+    },
+    "fmt": {
+        "files": {
+            "include": ["src/"]
+        },
+        "options": {
+            "useTabs": false,
+            "lineWidth": 120,
+            "indentWidth": 4,
+            "singleQuote": true,
+            "proseWrap": "preserve"
+        }
+    }
+}

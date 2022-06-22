@@ -1,11 +1,11 @@
-import { findActualPullRequest } from './finder';
-import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
-import { EditedLog, ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger';
+import { findActualPullRequest } from './finder.ts';
+import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier.ts';
+import { EditedLog, ClosedLog, ReviewRequestedLog, SubmittedLog, DeployCompleteLog } from './logger.tsx';
 import type { WebhookPayload } from '@actions/github/lib/interfaces';
 import type { PullRequestEvent, PullRequestReviewEvent } from '@octokit/webhooks-types';
 import type {
     GitHubUser, ActionContext, QueryVariables, QueryResult, EventPayload, RenderModel, SlackResult, KeyValueStore
-} from './types';
+} from './types.ts';
 
 interface Extractor {
     (sender: GitHubUser, sha: string, payload: WebhookPayload): EventPayload

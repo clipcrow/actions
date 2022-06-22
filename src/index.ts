@@ -1,3 +1,4 @@
+/*
 import * as core from '@actions/core';
 import { handleEvent } from './workflow';
 
@@ -5,3 +6,4 @@ import { handleEvent } from './workflow';
 handleEvent().catch(err => {
     core.setFailed(err);
 });
+*/
