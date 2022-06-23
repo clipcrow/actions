@@ -1,11 +1,8 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import * as fs from 'fs/promises';
 import { createActionContext } from './environment';
 
 test('createActionContext', async () => {
-    github.context.eventName = 'pull_request';
-    github.context.payload = require('./pull_request.review_requested.test.json');
     const slackAccounts = await fs.readFile('src/slackAccounts.test.json', 'utf-8');
     const spy = jest.spyOn(core, 'getInput').mockImplementation((arg: string) => {
         return {

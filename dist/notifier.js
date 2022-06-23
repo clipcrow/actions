@@ -2,18 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postChangeLog = exports.updatePullRequestInfo = exports.postPullRequestInfo = exports.createSlackCallPayload = exports.findPreviousSlackMessage = void 0;
 const jsx_slack_1 = require("jsx-slack");
-const workflow_1 = require("./workflow");
+const environment_1 = require("./environment");
 const renderer_1 = require("./renderer");
 const METADATA_EVENT_TYPE = 'pull-request-notify';
 async function findPreviousSlackMessage(channel, vars) {
     // Search for messages on the channel to get metadata.
-    const client = (0, workflow_1.getWebClient)();
+    const client = (0, environment_1.getWebClient)();
     const result = await client.conversations.history({
         channel,
         include_all_metadata: true,
         limit: 100,
     });
-    if (result.ok && result.messages) {
+    if (result.ok && Array.isArray(result.messages)) {
         for (const message of result.messages) {
             // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {
@@ -54,7 +54,7 @@ function createSlackResult(result, api) {
     return { ok: !!result.ok, error: result.error || '', ts: result.ts || '', api };
 }
 async function postPullRequestInfo(channel, model) {
-    const client = (0, workflow_1.getWebClient)();
+    const client = (0, environment_1.getWebClient)();
     const param = {
         ...createSlackCallPayload(channel, model),
         text: 'pull-request-notify posts',
@@ -65,7 +65,7 @@ async function postPullRequestInfo(channel, model) {
 }
 exports.postPullRequestInfo = postPullRequestInfo;
 async function updatePullRequestInfo(channel, model, ts) {
-    const client = (0, workflow_1.getWebClient)();
+    const client = (0, environment_1.getWebClient)();
     const param = {
         ...createSlackCallPayload(channel, model),
         text: 'pull-request-notify updates',
@@ -79,7 +79,7 @@ exports.updatePullRequestInfo = updatePullRequestInfo;
 async function postChangeLog(channel, model, ts, logMessage) {
     const blocks = logMessage(model);
     if (blocks) {
-        const client = (0, workflow_1.getWebClient)();
+        const client = (0, environment_1.getWebClient)();
         const param = {
             channel,
             text: 'pull-request-notify posted this change log.',

@@ -8,7 +8,7 @@ export function EditedLog(props: RenderModel) {
 	return (
 		<Blocks>
 			<Context>
-					<b><UserLink login={login} slack={slack}/> edited this body text </b>
+				<b><UserLink login={login} slack={slack} /> edited this body text </b>
 			</Context>
 		</Blocks>
 	);
@@ -22,7 +22,7 @@ export function ClosedLog(props: RenderModel) {
 	return (
 		<Blocks>
 			<Context>
-					<b>This pull request has been closed {merged ? 'and the merge is complete' : 'without merge'}</b>
+				<b>This pull request has been closed {merged ? 'and the merge is complete' : 'without merge'}</b>
 			</Context>
 		</Blocks>
 	);
@@ -37,13 +37,13 @@ export function DeployCompleteLog(props: RenderModel) {
 			<Context>
 				<span>
 					<b>
-						The workflow launched by <UserLink login={login} slack={slack}/>
+						The workflow launched by <UserLink login={login} slack={slack} />
 						's merge commit is complete.
 					</b>
 				</span>
 				<span>&gt; sha: {props.sha}</span>
 			</Context>
-			{ message ? <Section><b>{message}</b></Section> : null }
+			{message ? <Section><b>{message}</b></Section> : null}
 		</Blocks>
 	);
 }
@@ -55,7 +55,7 @@ export function ReviewRequestedLog(props: RenderModel) {
 	return (
 		<Blocks>
 			<Context>
-				<b>{msg} requested review from <UserLink login={login} slack={slack}/></b>
+				<b>{msg} requested review from <UserLink login={login} slack={slack} /></b>
 			</Context>
 		</Blocks>
 	);
@@ -70,10 +70,10 @@ export function SubmittedLog(props: RenderModel) {
 		return (
 			<Blocks>
 				<Context>
-					<b><UserLink login={login} slack={slack}/> approved <UserLink
-						login={authorLogin} slack={authorSlack}/>'s changes.</b>
+					<b><UserLink login={login} slack={slack} /> approved <UserLink
+						login={authorLogin} slack={authorSlack} />'s changes.</b>
 				</Context>
-				<Description text={body}/>
+				<Description text={body} />
 			</Blocks>
 		);
 	}
@@ -81,9 +81,9 @@ export function SubmittedLog(props: RenderModel) {
 		return (
 			<Blocks>
 				<Context>
-					<b><UserLink login={login} slack={slack}/> commented.</b>
+					<b><UserLink login={login} slack={slack} /> commented.</b>
 				</Context>
-				<Description text={body}/>
+				<Description text={body} />
 			</Blocks>
 		);
 	}

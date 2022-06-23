@@ -1,4 +1,4 @@
-import { getOctokit } from './environment';
+import { getGraphQL } from './environment';
 import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types';
 
 type PullRequestList = {
@@ -31,12 +31,11 @@ query ($owner: String!, $name: String!) {
 }
 `;
 export async function listPullRequests(vars: QueryVariables): Promise<PullRequestList> {
-    const octokit = getOctokit();
-    return await octokit.graphql<PullRequestList>(pull_request_list_string, { ...vars });
+    const graphql = getGraphQL();
+    return await graphql<PullRequestList>(pull_request_list_string, { ...vars });
 }
 
 export async function findPullRequestNumber(vars: QueryVariables): Promise<number> {
-    const octokit = getOctokit();
     if (vars.sha) {
         const list = await listPullRequests(vars);
         if (list) {
@@ -162,8 +161,8 @@ query ($owner: String!, $name: String!, $number: Int!) {
 }
 `;
 export async function queryActualPullRequest(vars: QueryVariables): Promise<QueryResult> {
-    const octokit = getOctokit();
-    return await octokit.graphql<QueryResult>(pull_request_query_string, { ...vars });
+    const graphql = getGraphQL();
+    return await graphql<QueryResult>(pull_request_query_string, { ...vars });
 }
 
 export async function findActualPullRequest(vars: QueryVariables): Promise<QueryResult | null> {

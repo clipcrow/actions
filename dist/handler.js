@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.processEvent = exports.createRenderModel = exports.extractEventPayload = exports.pullRequestReviewExtractor = exports.pullRequestExtractor = exports.pushExtractor = void 0;
+exports.processEvent = exports.createRenderModel = exports.extractEventPayload = exports.pullRequestReviewExtractor = exports.pullRequestExtractor = exports.getRequestedReviewer = exports.pushExtractor = void 0;
 const finder_1 = require("./finder");
 const notifier_1 = require("./notifier");
 const logger_1 = require("./logger");
-const pushExtractor = (sender, sha, payload) => {
+const pushExtractor = (sender, sha, _) => {
     return {
         sender,
         event: 'push',
@@ -16,20 +16,36 @@ const pushExtractor = (sender, sha, payload) => {
     };
 };
 exports.pushExtractor = pushExtractor;
+function getRequestedReviewer(payload) {
+    if (payload.requested_reviewer !== undefined) {
+        return {
+            login: payload.requested_reviewer.login,
+            url: payload.requested_reviewer.html_url,
+        };
+    }
+    else if (payload.requested_team !== undefined) {
+        return {
+            login: payload.requested_team.name,
+            url: payload.requested_team.html_url,
+        };
+    }
+    else {
+        throw new Error('handler.ts#getRequestedReviewer(unknown-payload)');
+    }
+}
+exports.getRequestedReviewer = getRequestedReviewer;
 const pullRequestExtractor = (sender, sha, payload) => {
     const pullRequestEvent = payload;
     const number = pullRequestEvent.pull_request.number;
     const action = pullRequestEvent.action;
     if (action === 'review_requested' || action === 'review_request_removed') {
-        const reviewRequestEvent = payload;
-        const { login, html_url: url } = reviewRequestEvent.requested_reviewer;
-        const reviewRequest = { requestedReviewer: { login, url } };
+        const requestedReviewer = getRequestedReviewer(payload);
         return {
             sender,
             event: 'pull_request',
             action,
             number,
-            reviewRequest,
+            reviewRequest: { requestedReviewer },
             upsert: true,
             logMessage: logger_1.ReviewRequestedLog,
         };
@@ -66,7 +82,7 @@ const pullRequestExtractor = (sender, sha, payload) => {
     };
 };
 exports.pullRequestExtractor = pullRequestExtractor;
-const pullRequestReviewExtractor = (sender, sha, payload) => {
+const pullRequestReviewExtractor = (sender, _, payload) => {
     const reviewEvent = payload;
     const number = reviewEvent.pull_request.number;
     const action = reviewEvent.action;

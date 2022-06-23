@@ -14,7 +14,7 @@ function BranchLink(props: { url: string, ref: string, static?: boolean }) {
 }
 
 function StatusSection(props: { test: boolean, text: string }) {
-	return (<Section>{ props.test ? ':large_green_circle:' : ':red_circle:' } <b>{props.text}</b></Section>);
+	return (<Section>{props.test ? ':large_green_circle:' : ':red_circle:'} <b>{props.text}</b></Section>);
 }
 
 function Reviewers(props: { slackAccounts: KeyValueStore<string>, reviewers: string[], text: string }) {
@@ -27,7 +27,7 @@ function Reviewers(props: { slackAccounts: KeyValueStore<string>, reviewers: str
 			<span>&gt; {`${count} ${props.text}`}</span>
 			{
 				props.reviewers.map((login) => {
-					return <span><UserLink login={login} slack={props.slackAccounts[login]}/></span>
+					return <span><UserLink login={login} slack={props.slackAccounts[login]} /></span>
 				})
 			}
 		</Context>
@@ -46,12 +46,12 @@ export function arrangeReviewers(req: Connection<ReviewRequest>, rv: Connection<
 	}, {});
 	// Caution! here is "reduceRight"
 	const reviewDetails = rv.edges.reduceRight<KeyValueStore<string>>((previous, current) => {
-        const { author: { login }, state } = current.node;
+		const { author: { login }, state } = current.node;
 		// Prohibit excessive overwriting
-        if (previous[login]) {
-            return previous;
-        }
-        return { ...previous, [login]: state };
+		if (previous[login]) {
+			return previous;
+		}
+		return { ...previous, [login]: state };
 	}, requestedReviewer);
 	return Object.keys(reviewDetails).reduce<ArrangeResult>((previous, current) => {
 		const state = reviewDetails[current];
@@ -87,9 +87,9 @@ export function Commits(props: RenderModel) {
 	return (
 		<Context>
 			<span>
-				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]}/>
-				{ ` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into ` }
-				<BranchLink url={url} ref={base}/> from <BranchLink url={url} ref={head} static={merged}/>
+				[<b>{state}</b>] <UserLink login={login} slack={props.slackAccounts[login]} />
+				{` ${text} ${totalCount} ${commitUnit} (${changedFiles} file ${changeUnit}) into `}
+				<BranchLink url={url} ref={base} /> from <BranchLink url={url} ref={head} static={merged} />
 			</span>
 		</Context>
 	);
@@ -102,7 +102,7 @@ export function Contents(props: RenderModel) {
 		<Fragment>
 			<Header>{props.repository.pullRequest.title}</Header>
 			<Section><b><a href={url}>#{number}</a></b></Section>
-			{ text ? <Description text={text}/> : <Section><code>{props.emptyBodyWarning}</code></Section> }
+			{text ? <Description text={text} /> : <Section><code>{props.emptyBodyWarning}</code></Section>}
 		</Fragment>
 	)
 }
@@ -135,13 +135,13 @@ function Approvals(props: RenderModel) {
 	const unit = (list: string[]) => (list.length > 1 ? 's' : '');
 	return (
 		<Fragment>
-			<StatusSection test={everybodyApproved} text={text}/>
+			<StatusSection test={everybodyApproved} text={text} />
 			<Reviewers slackAccounts={props.slackAccounts}
-				reviewers={approvals} text={`approval${unit(approvals)}`}/>
+				reviewers={approvals} text={`approval${unit(approvals)}`} />
 			<Reviewers slackAccounts={props.slackAccounts}
-				 reviewers={changeRequesteds} text={`reviewer${unit(approvals)} requested changes`}/>
+				reviewers={changeRequesteds} text={`reviewer${unit(approvals)} requested changes`} />
 			<Reviewers slackAccounts={props.slackAccounts}
-				reviewers={pendings} text={`pending reviewer${unit(approvals)}`}/>
+				reviewers={pendings} text={`pending reviewer${unit(approvals)}`} />
 		</Fragment>
 	);
 }
@@ -155,9 +155,9 @@ function Conflicts(props: RenderModel) {
 	const { state, mergeable, merged } = props.repository.pullRequest;
 	if (state === 'OPEN') {
 		const test = mergeable === 'MERGEABLE';
-		return (<StatusSection test={test} text={test ? no_conflicts : must_be_resolved}/>);
+		return (<StatusSection test={test} text={test ? no_conflicts : must_be_resolved} />);
 	}
-	return (<Section><b>{merged ? merge_completed  : closed_without_merge}</b></Section>);
+	return (<Section><b>{merged ? merge_completed : closed_without_merge}</b></Section>);
 }
 
 export function Repository(props: RenderModel) {
@@ -173,12 +173,12 @@ export function Repository(props: RenderModel) {
 export function PullRequest(props: RenderModel) {
 	return (
 		<Blocks>
-			<Commits {...props}/>
-			<Contents {...props}/>
-			<Approvals {...props}/>
-			<Conflicts {...props}/>
-			<Repository {...props}/>
-			<Divider/>
+			<Commits {...props} />
+			<Contents {...props} />
+			<Approvals {...props} />
+			<Conflicts {...props} />
+			<Repository {...props} />
+			<Divider />
 		</Blocks>
 	);
 }

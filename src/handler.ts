@@ -93,7 +93,7 @@ export const pullRequestReviewExtractor: Extractor = (sender, _, payload) => {
     const number = reviewEvent.pull_request.number;
     const action = reviewEvent.action;
 
-    const { user: { login, html_url: url} , body, submitted_at: updatedAt } = reviewEvent.review;
+    const { user: { login, html_url: url }, body, submitted_at: updatedAt } = reviewEvent.review;
 
     // Since it is uppercase in the definition of GitHub GraphQL, align it
     const state = (reviewEvent.review.state).toUpperCase();
@@ -146,7 +146,7 @@ export function createRenderModel(cx: ActionContext, ev: EventPayload, result: Q
     };
 }
 
-export async function processEvent (cx: ActionContext, ev: EventPayload): Promise<SlackResult | null> {
+export async function processEvent(cx: ActionContext, ev: EventPayload): Promise<SlackResult | null> {
     const vars1: QueryVariables = { owner: cx.owner, name: cx.name, number: ev.number, sha: ev.sha };
     console.log('QueryVariables for findActualPullRequest -')
     console.dir(vars1, { depth: null });

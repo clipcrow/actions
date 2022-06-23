@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import * as dotenv from 'dotenv';
-import { Octokit } from '@octokit/core';
+import { graphql } from '@octokit/graphql';
 import { WebClient } from '@slack/web-api';
 import type { KeyValueStore, ActionContext } from './types';
 
@@ -12,8 +11,12 @@ export function getEnv(name: string): string {
     return value || (env.parsed ? env.parsed[name] : '');
 }
 
-export function getOctokit(): Octokit {
-    return github.getOctokit(getEnv('githubToken'));
+export function getGraphQL(): typeof graphql {
+    return graphql.defaults({
+        headers: {
+            authorization: `token ${getEnv('githubToken')}`,
+        },
+    });
 }
 
 export function getWebClient(): WebClient {

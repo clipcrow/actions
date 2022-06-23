@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findActualPullRequest = exports.queryActualPullRequest = exports.findPullRequestNumber = exports.listPullRequests = void 0;
-const workflow_1 = require("./workflow");
+const environment_1 = require("./environment");
 const pull_request_list_string = `
 query ($owner: String!, $name: String!) {
     repository(owner: $owner, name: $name) {
@@ -24,12 +24,12 @@ query ($owner: String!, $name: String!) {
 }
 `;
 async function listPullRequests(vars) {
-    const octokit = (0, workflow_1.getOctokit)();
-    return await octokit.graphql(pull_request_list_string, { ...vars });
+    const graphql = (0, environment_1.getGraphQL)();
+    return await graphql(pull_request_list_string, { ...vars });
 }
 exports.listPullRequests = listPullRequests;
 async function findPullRequestNumber(vars) {
-    const octokit = (0, workflow_1.getOctokit)();
+    const octokit = (0, environment_1.getGraphQL)();
     if (vars.sha) {
         const list = await listPullRequests(vars);
         if (list) {
@@ -155,8 +155,8 @@ query ($owner: String!, $name: String!, $number: Int!) {
 }
 `;
 async function queryActualPullRequest(vars) {
-    const octokit = (0, workflow_1.getOctokit)();
-    return await octokit.graphql(pull_request_query_string, { ...vars });
+    const graphql = (0, environment_1.getGraphQL)();
+    return await graphql(pull_request_query_string, { ...vars });
 }
 exports.queryActualPullRequest = queryActualPullRequest;
 async function findActualPullRequest(vars) {

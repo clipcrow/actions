@@ -10,20 +10,20 @@ export type KeyValueStore<T> = {
 };
 
 export type ActionContext = {
-	owner: string;
+    owner: string;
     name: string;
     githubToken: string;
-	slackToken: string;
-	slackChannel: string;
-	slackAccounts: KeyValueStore<string>;
+    slackToken: string;
+    slackChannel: string;
+    slackAccounts: KeyValueStore<string>;
     emptyBodyWarning: string;
     pushMessage: string;
 };
 
 export type QueryVariables = {
-	owner: string;
-	name: string;
-	number: number;
+    owner: string;
+    name: string;
+    number: number;
     sha?: string;
 };
 
