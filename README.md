@@ -31,14 +31,13 @@ will be written in Github Secret accessed via the workflow YAML too.
 I will write it in TypeScript, assuming the future of changing the location to
 [Slack's next-generation platform](https://api.slack.com/future).
 
-- index.ts: simple bootstrap
-    - wokflow.ts: GitHub Actions API
-        - I'd like to port the following parts
-          when Slack's next gait platform is able to handle webhooks (probably soon).
-        - handler.ts: GitHub Webhook
-            - finder.ts: GitHub v4 API
-            - renderer.tsx, logger.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
-            - notifier.ts: Slack API
+- index.ts: simple bootstrap, GitHub Actions API
+  - I'd like to port the following parts
+    when Slack's next gait platform is able to handle webhooks (probably soon).
+  - handler.ts: GitHub Webhook
+      - finder.ts: GitHub v4 API
+      - renderer.tsx, logger.tsx: [jsx-slack](https://github.com/yhatt/jsx-slack)
+      - notifier.ts: Slack API
 
 If implemented as a GitHub App on Slack's next-generation platform,
 I think it will be possible to easily set up tokens and channels,

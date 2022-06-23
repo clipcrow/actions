@@ -1,10 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
-import * as dotenv from 'dotenv';
 import * as fs from 'fs/promises';
-import { createActionContext } from './workflow';
-
-const env = dotenv.config();
+import { createActionContext } from './environment';
 
 test('createActionContext', async () => {
     github.context.eventName = 'pull_request';
@@ -19,7 +16,7 @@ test('createActionContext', async () => {
         }[arg] || 'n/a';
     });
 
-    const cx = createActionContext();
+    const cx = createActionContext('', '');
 
     expect(cx.githubToken).toEqual('ghp_abcdefghijklmnopqrstuvwxyz0123456789');
     expect(cx.slackToken).toEqual('xoxb-123456789-1234');

@@ -1,4 +1,4 @@
-import { getOctokit } from './workflow';
+import { getOctokit } from './environment';
 import type { GitHubUser, Connection, PullRequest, QueryVariables, QueryResult, Commit } from './types';
 
 type PullRequestList = {

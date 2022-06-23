@@ -1,6 +1,6 @@
 import { ChatPostMessageResponse, ChatUpdateResponse } from '@slack/web-api';
 import { JSXSlack } from 'jsx-slack';
-import { getWebClient } from './workflow';
+import { getWebClient } from './environment';
 import { PullRequest } from './renderer';
 import type { QueryVariables, RenderModel, SlackResult, LogMessage } from './types';
 
@@ -23,7 +23,7 @@ export async function findPreviousSlackMessage(channel: string, vars: QueryVaria
         limit: 100,
     });
 
-    if (result.ok && result.messages) {
+    if (result.ok && Array.isArray(result.messages)) {
         for (const message of result.messages) {
             // Search for messages using the pull request number stored in the metadata as a clue.
             if ('metadata' in message) {

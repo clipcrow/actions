@@ -1,21 +1,16 @@
-import * as dotenv from 'dotenv';
-import * as workflow from './workflow';
+import { getWebClient, getEnv } from './environment';
 import { findPreviousSlackMessage, postPullRequestInfo, updatePullRequestInfo, postChangeLog } from './notifier';
 import { SubmittedLog } from './logger';
-import { getTestWebClient, pullRequestReviewSubmited } from './test.utils';
+import { pullRequestReviewSubmited } from './test.utils';
 import type { QueryVariables } from './types';
 
-const env = dotenv.config();
-
 test('notifier', async () => {
-    if (!Boolean(env.parsed!.slackTest)) {
+    if (!Boolean(getEnv('slackTest'))) {
         console.log('.env.slackTest is empty')
         return;
     }
 
-    const spy = jest.spyOn(workflow, 'getWebClient').mockImplementation(() => getTestWebClient());
-
-    const channel = env.parsed!.slackChannel;
+    const channel = getEnv('slackChannel');
     const model = pullRequestReviewSubmited;
 
     const result1 = await postPullRequestInfo(channel, model);
@@ -36,7 +31,7 @@ test('notifier', async () => {
     const result3 = await postChangeLog(channel, model, result2.ts, SubmittedLog);
     expect(result3?.ok).toBeTruthy();
 
-    const client = getTestWebClient();
+    const client = getWebClient();
     if (result3) {
         await client.chat.delete({ channel, ts: result3.ts });
     }
@@ -45,6 +40,4 @@ test('notifier', async () => {
     } else {
         await client.chat.delete({ channel, ts: result1.ts });
     }
-
-    spy.mockRestore();
 }, 1000 * 60);
